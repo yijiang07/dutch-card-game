@@ -928,6 +928,13 @@ async def no_cache(request, handler):
 
 def make_app():
     storage.init_db()
+    # Log the active storage backend so persistence is verifiable from the deploy logs.
+    if storage.USE_PG:
+        print('[dutch] storage backend: postgres (persistent)', flush=True)
+    else:
+        print('[dutch] storage backend: sqlite at %s '
+              '(EPHEMERAL on Render — accounts/stats reset on every redeploy; '
+              'set DATABASE_URL to use Postgres)' % storage.DB_PATH, flush=True)
     app = web.Application(middlewares=[no_cache])
     app.router.add_get('/ws', ws_handler)
     app.router.add_get('/', handle_index)
