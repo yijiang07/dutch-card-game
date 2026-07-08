@@ -310,7 +310,12 @@ async def turn_monitor(room):
                 continue
             # Stalled — finish this seat's turn automatically.
             p = room.players.get(actor, {})
-            reason = 'disconnected' if (not p.get('is_bot') and not p.get('connected')) else 'stuck'
+            if p.get('is_bot'):
+                reason = 'stuck'
+            elif not p.get('connected'):
+                reason = 'disconnected'
+            else:
+                reason = 'idle'
             game._log(f"{game.names.get(actor, 'A player')} was {reason} — auto-playing their turn.")
             guard = 0
             while room.game and room.game.phase != 'reveal' and bots.required_actor(room.game) == actor and guard < 12:
@@ -358,7 +363,7 @@ async def set_online(ws, ctx, user):
     ctx['user'] = {'id': user['id'], 'username': user['username']}
     ONLINE.setdefault(user['id'], set()).add(ws)
     payload = {'type': 'identity', 'userId': user['id'], 'username': user['username'],
-               'email': user.get('email')}
+               'email': user.get('email'), 'lang': user.get('lang')}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -432,11 +437,18 @@ async def handle_message(ws, ctx, data):
     if mtype == 'signup':
         if ctx.get('user'):
             raise GameError('You are already signed in.')
-        created = storage.create_user(data.get('username'), data.get('password') or '', data.get('email'))
+        created = storage.create_user(data.get('username'), data.get('password') or '',
+                                      data.get('email'), data.get('lang'))
         secret = storage.create_session(created['id'])
         await set_online(ws, ctx, {'id': created['id'], 'username': created['username'],
-                                   'email': data.get('email') or None,
+                                   'email': data.get('email') or None, 'lang': created.get('lang'),
                                    'secret': secret, 'recovery_code': created['recovery_code']})
+        return
+
+    if mtype == 'setLang':
+        user = ctx.get('user')
+        if user:
+            storage.set_lang(user['id'], data.get('lang') or 'en')
         return
 
     if mtype == 'login':
@@ -689,6 +701,15 @@ async def handle_message(ws, ctx, data):
             for other in room.players.values():
                 if other.get('ws') is not None:
                     await send(other['ws'], {'type': 'emote', 'playerId': pid, 'emoji': emoji})
+        return
+
+    if mtype == 'chat':
+        text = (data.get('text') or '').strip()[:200]
+        if text:
+            payload = {'type': 'chat', 'playerId': pid, 'name': room.players[pid]['name'], 'text': text}
+            for other in room.players.values():
+                if other.get('ws') is not None:
+                    await send(other['ws'], payload)
         return
 
     if mtype == 'removeBot':

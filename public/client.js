@@ -30,10 +30,14 @@ let friendsPanelOpen = false;
 let tutorialOpen = false;
 let tutorialIndex = 0;
 let autoTutorialDone = false;
+let langAsked = false;
 
 let authTab = 'login'; // 'login' | 'signup' | 'recover'
 let leaderboardOpen = false;
 let leaderboardData = null;
+let chatOpen = false;
+let chatLog = [];
+let chatUnread = 0;
 
 // Briefly reveal which card a player just swapped in from the discard pile.
 let recentSwap = null;
@@ -67,6 +71,88 @@ function clearProfile() { localStorage.removeItem('dutchProfile'); friendsState 
 
 function loadLastName() { try { return localStorage.getItem('dutchLastName') || ''; } catch (e) { return ''; } }
 function saveLastName(n) { try { localStorage.setItem('dutchLastName', n); } catch (e) {} }
+
+/* ---------- Internationalization ---------- */
+const LANGS = [
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+];
+const TRANSLATIONS = {
+  en: {
+    tagline: 'Lowest score wins. Play from anywhere.',
+    createTitle: 'Create a Game', createSub: 'Start a new table and invite others with a code.',
+    joinTitle: 'Join a Game', joinSub: 'Enter the code someone shared with you.',
+    yourName: 'Your name', createGame: 'Create Game', joinGame: 'Join Game', codePlaceholder: 'CODE',
+    flip: 'Flip from Deck', swap: 'Swap with Discard', match: 'Match', endTurn: 'End Turn',
+    callDutch: 'Call Dutch', playAgain: 'Play Again', startGame: 'Start Game', leave: 'Leave',
+    leaveRoom: 'Leave room', friends: 'Friends', chat: 'Chat', chatEmpty: 'No messages yet. Say hi!',
+    chatPlaceholder: 'Message…', send: 'Send', howToPlay: 'How to play', yourTurn: 'Your turn',
+    chooseLanguage: 'Choose your language', language: 'Language',
+  },
+  es: {
+    tagline: 'Gana quien tenga menos puntos. Juega desde cualquier lugar.',
+    createTitle: 'Crear partida', createSub: 'Crea una mesa nueva e invita con un código.',
+    joinTitle: 'Unirse a una partida', joinSub: 'Introduce el código que te compartieron.',
+    yourName: 'Tu nombre', createGame: 'Crear partida', joinGame: 'Unirse', codePlaceholder: 'CÓDIGO',
+    flip: 'Robar del mazo', swap: 'Cambiar con el descarte', match: 'Emparejar', endTurn: 'Terminar turno',
+    callDutch: 'Cantar Dutch', playAgain: 'Jugar de nuevo', startGame: 'Empezar', leave: 'Salir',
+    leaveRoom: 'Salir de la sala', friends: 'Amigos', chat: 'Chat', chatEmpty: 'Aún no hay mensajes. ¡Saluda!',
+    chatPlaceholder: 'Mensaje…', send: 'Enviar', howToPlay: 'Cómo jugar', yourTurn: 'Tu turno',
+    chooseLanguage: 'Elige tu idioma', language: 'Idioma',
+  },
+  fr: {
+    tagline: 'Le score le plus bas gagne. Jouez où que vous soyez.',
+    createTitle: 'Créer une partie', createSub: 'Créez une table et invitez avec un code.',
+    joinTitle: 'Rejoindre une partie', joinSub: "Entrez le code qu'on vous a partagé.",
+    yourName: 'Votre nom', createGame: 'Créer', joinGame: 'Rejoindre', codePlaceholder: 'CODE',
+    flip: 'Piocher', swap: 'Échanger avec la défausse', match: 'Associer', endTurn: 'Finir le tour',
+    callDutch: 'Annoncer Dutch', playAgain: 'Rejouer', startGame: 'Commencer', leave: 'Quitter',
+    leaveRoom: 'Quitter la salle', friends: 'Amis', chat: 'Chat', chatEmpty: 'Aucun message. Dites bonjour !',
+    chatPlaceholder: 'Message…', send: 'Envoyer', howToPlay: 'Comment jouer', yourTurn: 'Votre tour',
+    chooseLanguage: 'Choisissez votre langue', language: 'Langue',
+  },
+  de: {
+    tagline: 'Niedrigste Punktzahl gewinnt. Spiele von überall.',
+    createTitle: 'Spiel erstellen', createSub: 'Neuen Tisch starten und mit Code einladen.',
+    joinTitle: 'Spiel beitreten', joinSub: 'Gib den geteilten Code ein.',
+    yourName: 'Dein Name', createGame: 'Erstellen', joinGame: 'Beitreten', codePlaceholder: 'CODE',
+    flip: 'Vom Stapel ziehen', swap: 'Mit Ablage tauschen', match: 'Ablegen', endTurn: 'Zug beenden',
+    callDutch: 'Dutch ansagen', playAgain: 'Nochmal spielen', startGame: 'Starten', leave: 'Verlassen',
+    leaveRoom: 'Raum verlassen', friends: 'Freunde', chat: 'Chat', chatEmpty: 'Noch keine Nachrichten. Sag Hallo!',
+    chatPlaceholder: 'Nachricht…', send: 'Senden', howToPlay: 'Spielanleitung', yourTurn: 'Du bist dran',
+    chooseLanguage: 'Wähle deine Sprache', language: 'Sprache',
+  },
+};
+function loadLang() { try { return localStorage.getItem('dutchLang') || ''; } catch (e) { return ''; } }
+function saveLang(l) { try { localStorage.setItem('dutchLang', l); } catch (e) {} }
+let lang = loadLang() || 'en';
+function t(key) {
+  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+}
+function setLanguage(code) {
+  lang = code;
+  saveLang(code);
+  const prof = loadProfile();
+  if (prof && prof.userId) sendMsg({ type: 'setLang', lang: code });
+  render();
+}
+function showLanguageModal(firstTime) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const box = el(`<div class="overlay" style="z-index:100;"><div class="overlay-box">
+    <h2>🌐 ${t('chooseLanguage')}</h2>
+    <div class="lang-grid"></div>
+  </div></div>`);
+  const grid = box.querySelector('.lang-grid');
+  LANGS.forEach((L) => {
+    const b = el(`<button class="lang-btn ${L.code === lang ? 'on' : ''}">${L.flag} ${L.name}</button>`);
+    b.onclick = () => { setLanguage(L.code); root.innerHTML = ''; };
+    grid.appendChild(b);
+  });
+  root.appendChild(box);
+}
 
 /* ---------- Sound effects (synthesized, no assets) ---------- */
 const sound = {
@@ -175,6 +261,7 @@ function handleServerMessage(data) {
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
     saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null });
+    if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
   } else if (data.type === 'identityFailed') {
     // Stored session is no longer valid (expired, logged out elsewhere, or data reset).
@@ -183,6 +270,12 @@ function handleServerMessage(data) {
     clearProfile();
   } else if (data.type === 'emote') {
     popEmote(data.playerId, data.emoji);
+    return;
+  } else if (data.type === 'chat') {
+    chatLog.push({ playerId: data.playerId, name: data.name, text: data.text, mine: data.playerId === myId });
+    if (chatLog.length > 100) chatLog.shift();
+    if (chatOpen) { refreshFriendsPanel(); scrollChatToBottom(); }
+    else { chatUnread++; if (data.playerId !== myId) showToast(`${data.name}: ${data.text}`); render(); }
     return;
   } else if (data.type === 'leftRoom') {
     clearSession();
@@ -320,8 +413,19 @@ function showInviteToast(fromUsername, code) {
 
 function friendsFab() {
   const incoming = friendsState ? friendsState.incoming.length : 0;
-  const fab = el(`<button class="friends-fab" title="Friends">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
-  fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; leaderboardOpen = false; refreshFriendsPanel(); };
+  const fab = el(`<button class="friends-fab" title="${t('friends')}">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
+  fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; leaderboardOpen = false; chatOpen = false; refreshFriendsPanel(); };
+  return fab;
+}
+
+function chatFab() {
+  const fab = el(`<button class="chat-fab" title="Chat">💬${chatUnread ? `<span class="fab-badge">${chatUnread}</span>` : ''}</button>`);
+  fab.onclick = () => {
+    chatOpen = !chatOpen;
+    if (chatOpen) { chatUnread = 0; friendsPanelOpen = false; leaderboardOpen = false; }
+    refreshFriendsPanel();
+    if (chatOpen) scrollChatToBottom();
+  };
   return fab;
 }
 
@@ -329,7 +433,46 @@ function refreshFriendsPanel() {
   const root = document.getElementById('panel-root');
   root.innerHTML = '';
   if (leaderboardOpen) { root.appendChild(renderLeaderboard()); return; }
+  if (chatOpen) { root.appendChild(renderChat()); return; }
   if (friendsPanelOpen) root.appendChild(renderFriendsPanel());
+}
+
+function renderChat() {
+  const overlay = el(`<div class="overlay drawer-overlay"></div>`);
+  overlay.onclick = (e) => { if (e.target === overlay) { chatOpen = false; refreshFriendsPanel(); } };
+  const drawer = el(`<div class="friends-drawer"></div>`);
+  overlay.appendChild(drawer);
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">💬 ${t('chat')}</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  header.querySelector('button').onclick = () => { chatOpen = false; refreshFriendsPanel(); };
+  drawer.appendChild(header);
+
+  const list = el(`<div class="chat-list" id="chat-list"></div>`);
+  if (!chatLog.length) list.appendChild(el(`<div class="help-text" style="text-align:center;">${t('chatEmpty')}</div>`));
+  chatLog.forEach((m) => {
+    const row = el(`<div class="chat-msg ${m.mine ? 'mine' : ''}"></div>`);
+    if (!m.mine) row.appendChild(el(`<div class="chat-name">${escapeHtml(m.name)}</div>`));
+    row.appendChild(el(`<div class="chat-bubble">${escapeHtml(m.text)}</div>`));
+    list.appendChild(row);
+  });
+  drawer.appendChild(list);
+
+  const form = el(`<div class="row" style="margin-top:8px;">
+    <input type="text" id="chat-input" class="grow" placeholder="${t('chatPlaceholder')}" maxlength="200" autocomplete="off" />
+    <button class="btn-blue" id="chat-send">${t('send')}</button>
+  </div>`);
+  const send = () => {
+    const inp = form.querySelector('#chat-input');
+    const text = inp.value.trim();
+    if (text) { sendMsg({ type: 'chat', text }); inp.value = ''; inp.focus(); }
+  };
+  form.querySelector('#chat-send').onclick = send;
+  form.querySelector('#chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
+  drawer.appendChild(form);
+  return overlay;
+}
+
+function scrollChatToBottom() {
+  setTimeout(() => { const l = document.getElementById('chat-list'); if (l) l.scrollTop = l.scrollHeight; }, 20);
 }
 
 function showRecoveryModal(code) {
@@ -411,7 +554,7 @@ function renderAuthForm() {
     const pw = form.querySelector('#auth-pw').value;
     if (!u || !pw) { showToast('Enter a username and password.', true); return; }
     const msg = { type: isSignup ? 'signup' : 'login', username: u, password: pw };
-    if (isSignup) { const em = form.querySelector('#auth-email').value.trim(); if (em) msg.email = em; }
+    if (isSignup) { const em = form.querySelector('#auth-email').value.trim(); if (em) msg.email = em; msg.lang = lang; }
     sendMsg(msg);
   };
   const forgot = form.querySelector('#auth-forgot');
@@ -539,8 +682,14 @@ function renderFriendsPanel() {
 /* ---------- Tutorial ---------- */
 
 function helpFab() {
-  const fab = el(`<button class="help-fab" title="How to play">?</button>`);
+  const fab = el(`<button class="help-fab" title="${t('howToPlay')}">?</button>`);
   fab.onclick = () => openTutorial();
+  return fab;
+}
+
+function langFab() {
+  const fab = el(`<button class="lang-fab" title="${t('language')}">🌐</button>`);
+  fab.onclick = () => showLanguageModal(false);
   return fab;
 }
 
@@ -558,7 +707,7 @@ function soundFab() {
 
 function leaderboardFab() {
   const fab = el(`<button class="lb-fab" title="Leaderboard">🏆</button>`);
-  fab.onclick = () => { leaderboardOpen = true; friendsPanelOpen = false; leaderboardData = null; sendMsg({ type: 'getLeaderboard' }); refreshFriendsPanel(); };
+  fab.onclick = () => { leaderboardOpen = true; friendsPanelOpen = false; chatOpen = false; leaderboardData = null; sendMsg({ type: 'getLeaderboard' }); refreshFriendsPanel(); };
   return fab;
 }
 
@@ -1169,12 +1318,16 @@ function render() {
   app.appendChild(friendsFab());
   app.appendChild(leaderboardFab());
   app.appendChild(soundFab());
-  if (onLanding || inLobby) app.appendChild(helpFab());
-  if (latestState && latestState.code) app.appendChild(emoteFab());
+  if (onLanding || inLobby) { app.appendChild(helpFab()); app.appendChild(langFab()); }
+  if (latestState && latestState.code) { app.appendChild(emoteFab()); app.appendChild(chatFab()); }
   refreshFriendsPanel();
 
   // First-time players: auto-open the tutorial once on the landing screen.
-  if (onLanding && !autoTutorialDone) {
+  // First run: ask language before anything else, then the tutorial.
+  if (onLanding && !loadLang() && !langAsked) {
+    langAsked = true;
+    showLanguageModal(true);
+  } else if (onLanding && !autoTutorialDone) {
     autoTutorialDone = true;
     let seen = false;
     try { seen = !!localStorage.getItem('dutchTutorialSeen'); } catch (e) {}
@@ -1197,24 +1350,24 @@ function renderLanding() {
     <div class="brand">
       <div class="suits">&spades; &hearts; &clubs; &diams;</div>
       <h1>DUTCH</h1>
-      <div class="tagline">Lowest score wins. Play from anywhere.</div>
+      <div class="tagline">${escapeHtml(t('tagline'))}</div>
     </div>
     <div class="landing-cards">
       <div class="card-panel">
-        <h2>Create a Game</h2>
-        <div class="sub">Start a new table and invite others with a code.</div>
+        <h2>${escapeHtml(t('createTitle'))}</h2>
+        <div class="sub">${escapeHtml(t('createSub'))}</div>
         <div class="col">
-          <input type="text" id="create-name" placeholder="Your name" maxlength="20" autocomplete="off" />
-          <button class="btn-gold" id="create-btn">Create Game</button>
+          <input type="text" id="create-name" placeholder="${escapeHtml(t('yourName'))}" maxlength="20" autocomplete="off" />
+          <button class="btn-gold" id="create-btn">${escapeHtml(t('createGame'))}</button>
         </div>
       </div>
       <div class="card-panel">
-        <h2>Join a Game</h2>
-        <div class="sub">Enter the code someone shared with you.</div>
+        <h2>${escapeHtml(t('joinTitle'))}</h2>
+        <div class="sub">${escapeHtml(t('joinSub'))}</div>
         <div class="col">
-          <input type="text" id="join-name" placeholder="Your name" maxlength="20" autocomplete="off" />
-          <input type="text" id="join-code" class="code-input" placeholder="CODE" maxlength="4" autocomplete="off" />
-          <button class="btn-blue" id="join-btn">Join Game</button>
+          <input type="text" id="join-name" placeholder="${escapeHtml(t('yourName'))}" maxlength="20" autocomplete="off" />
+          <input type="text" id="join-code" class="code-input" placeholder="${escapeHtml(t('codePlaceholder'))}" maxlength="4" autocomplete="off" />
+          <button class="btn-blue" id="join-btn">${escapeHtml(t('joinGame'))}</button>
         </div>
       </div>
     </div>
@@ -1309,13 +1462,13 @@ function renderLobby(state) {
     <div id="settings-box"></div>
     <div class="col" style="align-items:center;">
       ${isHost
-        ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>Start Game</button>
+        ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>${t('startGame')}</button>
            <div class="help-text">${state.players.length < 2 ? 'Need at least 2 players to start.' : `Ready — ${state.players.length} players`}</div>`
         : `<div class="help-text">Waiting for the host to start the game…</div>`}
       <div id="lobby-leave" style="margin-top:6px;"></div>
     </div>
   </div>`);
-  wrap.querySelector('#lobby-leave').appendChild(leaveBtn('Leave room'));
+  wrap.querySelector('#lobby-leave').appendChild(leaveBtn(t('leaveRoom')));
 
   wrap.querySelector('#room-code-text').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
@@ -1399,7 +1552,7 @@ function renderTable(state) {
   topBar.querySelector('#room-tag').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
   };
-  topBar.querySelector('.row').appendChild(leaveBtn('Leave'));
+  topBar.querySelector('.row').appendChild(leaveBtn(t('leave')));
   wrap.appendChild(topBar);
 
   const banner = turnBannerInfo(state);
@@ -1515,7 +1668,7 @@ function turnBannerInfo(state) {
   }
   const cur = state.currentPlayerId;
   const mine = cur === me;
-  let headline = mine ? 'Your turn' : `${nameOf(state, cur)}'s turn`;
+  let headline = mine ? t('yourTurn') : `${nameOf(state, cur)}'s turn`;
   const subParts = [];
   if (state.finalRound) subParts.push(`Final round! ${nameOf(state, state.dutchCallerId)} called Dutch — ${state.finalRoundRemaining} turn(s) left`);
   if (state.turnMode === 'jackSwap') subParts.push(mine ? (state.jackFirst ? 'Jack: pick the second card' : 'Jack: pick the first card to swap') : 'Resolving a Jack…');
@@ -1595,7 +1748,7 @@ function renderActionBar(state) {
     && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
 
   function matchButton() {
-    const b = el(`<button class="btn-match">Match</button>`);
+    const b = el(`<button class="btn-match">${t('match')}</button>`);
     b.onclick = () => { swapArmed = false; sendMsg({ type: 'claimMatch' }); };
     return b;
   }
@@ -1615,10 +1768,10 @@ function renderActionBar(state) {
       return bar;
     }
     const remaining = bufferRemainingMs();
-    const flip = el(`<button class="btn-blue">Flip from Deck</button>`);
+    const flip = el(`<button class="btn-blue">${t('flip')}</button>`);
     flip.disabled = remaining > 0 || (state.drawCount === 0 && !state.discardTop);
     flip.onclick = () => sendMsg({ type: 'flip' });
-    const swap = el(`<button class="btn-blue">Swap with Discard</button>`);
+    const swap = el(`<button class="btn-blue">${t('swap')}</button>`);
     swap.disabled = remaining > 0 || !state.discardTop;
     swap.onclick = () => { swapArmed = true; render(); };
     bar.appendChild(flip); bar.appendChild(swap);
@@ -1630,9 +1783,9 @@ function renderActionBar(state) {
   }
 
   if (state.turnMode === 'endOfTurn') {
-    const endBtn = el(`<button class="btn-gold">End Turn</button>`);
+    const endBtn = el(`<button class="btn-gold">${t('endTurn')}</button>`);
     endBtn.onclick = () => sendMsg({ type: 'endTurn' });
-    const dutch = el(`<button class="btn-red">Call Dutch</button>`);
+    const dutch = el(`<button class="btn-red">${t('callDutch')}</button>`);
     dutch.onclick = () => sendMsg({ type: 'callDutch' });
     bar.appendChild(endBtn); bar.appendChild(dutch);
     if (canMatch) bar.appendChild(matchButton());
@@ -1674,12 +1827,12 @@ function renderReveal(state) {
     <div id="series-standings"></div>
     <div class="row center" style="margin-top:20px;">
       ${isHost
-        ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">Play Again</button>`
+        ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">${t('playAgain')}</button>`
         : `<span class="help-text">Waiting for the host to start a new round…</span>`}
     </div>
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);
-  wrap.querySelector('#reveal-leave').appendChild(leaveBtn('Leave room'));
+  wrap.querySelector('#reveal-leave').appendChild(leaveBtn(t('leaveRoom')));
 
   // Cumulative match standings once more than one round has been played.
   const series = (state.series || []).slice().sort((a, b) => a.total - b.total);

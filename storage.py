@@ -73,7 +73,7 @@ def init_db():
         )''')
         # Migrate installs created before passwords existed.
         if USE_PG:
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang'):
                 cur.execute(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} TEXT')
             # The old passwordless schema had a NOT NULL secret_hash; new signups
             # don't set it, so relax the constraint if that column is still around.
@@ -83,7 +83,7 @@ def init_db():
                 cur.execute('ALTER TABLE users ALTER COLUMN secret_hash DROP NOT NULL')
         else:
             have = {r[1] for r in cur.execute('PRAGMA table_info(users)').fetchall()}
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang'):
                 if col not in have:
                     cur.execute(f'ALTER TABLE users ADD COLUMN {col} TEXT')
         # Case-insensitive uniqueness via an expression index (both backends).
@@ -150,26 +150,38 @@ def _clean_email(email):
     return email
 
 
-def create_user(username, password, email=None):
+def create_user(username, password, email=None, lang=None):
     username = _validate_credentials(username, password)
     email = _clean_email(email)
     if email and get_by_email(email):
         raise ValueError('That email is already in use.')
+    lang = (lang or 'en')[:5]
     uid = secrets.token_hex(8)
     salt = secrets.token_hex(16)
     recovery = secrets.token_urlsafe(9)
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('''INSERT INTO users (id, username, pw_salt, pw_hash, recovery_hash, email, created_at)
-                           VALUES (?,?,?,?,?,?,?)'''),
-                    (uid, username, salt, _pw_hash(password, salt), _hash(recovery), email, time.time()))
+        cur.execute(_ph('''INSERT INTO users (id, username, pw_salt, pw_hash, recovery_hash, email, lang, created_at)
+                           VALUES (?,?,?,?,?,?,?,?)'''),
+                    (uid, username, salt, _pw_hash(password, salt), _hash(recovery), email, lang, time.time()))
         conn.commit()
     except DUP_ERRORS:
         raise ValueError('That username is taken.')
     finally:
         conn.close()
-    return {'id': uid, 'username': username, 'recovery_code': recovery}
+    return {'id': uid, 'username': username, 'recovery_code': recovery, 'lang': lang}
+
+
+def set_lang(user_id, lang):
+    lang = (lang or 'en')[:5]
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('UPDATE users SET lang=? WHERE id=?'), (lang, user_id))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def get_by_email(email):
@@ -218,7 +230,7 @@ def verify_password(username, password):
     if not r or not r['pw_hash']:
         return None
     if hmac.compare_digest(_pw_hash(password or '', r['pw_salt']), r['pw_hash']):
-        return {'id': r['id'], 'username': r['username']}
+        return get_by_id(r['id'])
     return None
 
 
@@ -227,7 +239,7 @@ def verify_recovery(username, code):
     if not r or not r['recovery_hash']:
         return None
     if hmac.compare_digest(_hash(code or ''), r['recovery_hash']):
-        return {'id': r['id'], 'username': r['username']}
+        return get_by_id(r['id'])
     return None
 
 
@@ -249,11 +261,11 @@ def get_by_id(uid):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT id, username, email FROM users WHERE id=?'), (uid,))
+        cur.execute(_ph('SELECT id, username, email, lang FROM users WHERE id=?'), (uid,))
         r = cur.fetchone()
     finally:
         conn.close()
-    return {'id': r['id'], 'username': r['username'], 'email': r['email']} if r else None
+    return {'id': r['id'], 'username': r['username'], 'email': r['email'], 'lang': r['lang']} if r else None
 
 
 def create_session(user_id):
