@@ -6,12 +6,16 @@ import string
 
 from aiohttp import web, WSMsgType
 
+import storage
 from game import Game, GameError
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 
 CODE_ALPHABET = ''.join(c for c in string.ascii_uppercase if c not in 'IO')
+
+# user_id -> set of live websockets for that signed-in user (presence)
+ONLINE = {}
 
 
 class Room:
@@ -89,6 +93,49 @@ async def broadcast_state(room):
             await send(p['ws'], {'type': 'state', 'state': build_state(room, pid)})
 
 
+# ---- friends / presence ----
+
+def friends_payload(user_id):
+    rel = storage.relations_of(user_id)
+    for f in rel['friends']:
+        f['online'] = f['id'] in ONLINE
+    return {'type': 'friendsUpdate', **rel}
+
+
+async def push_friends(user_id):
+    for ws in list(ONLINE.get(user_id, ())):
+        await send(ws, friends_payload(user_id))
+
+
+async def notify_friends_of(user_id):
+    """Presence or relationship changed — refresh everyone who lists this user."""
+    rel = storage.relations_of(user_id)
+    for group in (rel['friends'], rel['incoming'], rel['outgoing']):
+        for u in group:
+            await push_friends(u['id'])
+
+
+async def set_online(ws, ctx, user):
+    ctx['user'] = user
+    ONLINE.setdefault(user['id'], set()).add(ws)
+    await send(ws, {'type': 'identity', 'userId': user['id'], 'username': user['username'],
+                    **({'secret': user['secret']} if 'secret' in user else {})})
+    await push_friends(user['id'])
+    await notify_friends_of(user['id'])
+
+
+async def set_offline(ws, ctx):
+    user = ctx.get('user')
+    if not user:
+        return
+    conns = ONLINE.get(user['id'])
+    if conns:
+        conns.discard(ws)
+        if not conns:
+            del ONLINE[user['id']]
+            await notify_friends_of(user['id'])
+
+
 async def handle_index(request):
     return web.FileResponse(os.path.join(PUBLIC_DIR, 'index.html'))
 
@@ -96,7 +143,7 @@ async def handle_index(request):
 async def ws_handler(request):
     ws = web.WebSocketResponse(heartbeat=25)
     await ws.prepare(request)
-    ctx = {'code': None, 'player_id': None}
+    ctx = {'code': None, 'player_id': None, 'user': None}
 
     try:
         async for msg in ws:
@@ -108,9 +155,10 @@ async def ws_handler(request):
                 continue
             try:
                 await handle_message(ws, ctx, data)
-            except GameError as e:
+            except (GameError, ValueError) as e:
                 await send(ws, {'type': 'errorMsg', 'message': str(e)})
     finally:
+        await set_offline(ws, ctx)
         room = rooms.get(ctx['code'])
         if room and ctx['player_id'] in room.players:
             room.players[ctx['player_id']]['ws'] = None
@@ -122,6 +170,76 @@ async def ws_handler(request):
 
 async def handle_message(ws, ctx, data):
     mtype = data.get('type')
+
+    # ---- identity & friends (independent of any room) ----
+
+    if mtype == 'identify':
+        # Either re-authenticate an existing identity, or claim a new username.
+        if data.get('userId') and data.get('secret'):
+            user = storage.verify_user(data['userId'], data['secret'])
+            if user:
+                await set_online(ws, ctx, user)
+            else:
+                await send(ws, {'type': 'identityFailed'})
+            return
+        if data.get('username'):
+            if ctx.get('user'):
+                raise GameError('You already have a username.')
+            user = storage.create_user(data['username'])
+            await set_online(ws, ctx, user)
+            return
+        raise GameError('Nothing to identify with.')
+
+    if mtype == 'friendRequest':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Claim a username first.')
+        target = storage.get_by_username(data.get('username'))
+        if not target:
+            raise GameError('No player with that username.')
+        result = storage.request_friend(user['id'], target['id'])
+        await push_friends(user['id'])
+        await push_friends(target['id'])
+        await send(ws, {'type': 'infoMsg',
+                        'message': 'You are now friends!' if result == 'accepted' else f"Request sent to {target['username']}."})
+        return
+
+    if mtype == 'friendRespond':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Claim a username first.')
+        storage.respond_friend(user['id'], data.get('userId'), bool(data.get('accept')))
+        await push_friends(user['id'])
+        await push_friends(data.get('userId'))
+        return
+
+    if mtype == 'friendRemove':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Claim a username first.')
+        storage.remove_relation(user['id'], data.get('userId'))
+        await push_friends(user['id'])
+        await push_friends(data.get('userId'))
+        return
+
+    if mtype == 'inviteFriend':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Claim a username first.')
+        room = rooms.get(ctx['code'])
+        if not room or room.game is not None:
+            raise GameError('You can only invite friends from a game lobby.')
+        rel = storage.relations_of(user['id'])
+        target_id = data.get('userId')
+        if not any(f['id'] == target_id for f in rel['friends']):
+            raise GameError('You can only invite your friends.')
+        target_conns = ONLINE.get(target_id)
+        if not target_conns:
+            raise GameError('That friend is not online right now.')
+        for tws in list(target_conns):
+            await send(tws, {'type': 'gameInvite', 'fromUsername': user['username'], 'code': room.code})
+        await send(ws, {'type': 'infoMsg', 'message': 'Invite sent!'})
+        return
 
     if mtype == 'createRoom':
         name = clean_name(data.get('name'))
@@ -264,6 +382,7 @@ async def handle_message(ws, ctx, data):
 
 
 def make_app():
+    storage.init_db()
     app = web.Application()
     app.router.add_get('/ws', ws_handler)
     app.router.add_get('/', handle_index)
