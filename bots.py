@@ -225,13 +225,13 @@ def take_action(room, game, bot_id):
 
 
 def _try_match(room, game, bot_id, brain, omni):
-    """If the bot knows a grid card equal to the discard top, drop it. Returns True if it did."""
+    """If the bot knows a grid card of the discard top's rank, drop it. Returns True if it did."""
     if not game.discard:
         return False
-    top = game.discard[-1]['value']
+    top_rank = game.discard[-1]['rank']
     for i in range(len(game.grids[bot_id])):
-        known = omni or ((bot_id, i) in brain.known)
-        if known and _est_cell(brain, game, bot_id, i, omni) == top:
+        card = game.grids[bot_id][i] if omni else brain.known.get((bot_id, i))
+        if card and card['rank'] == top_rank:
             res = game.match_card(bot_id, i)
             if res.get('matched'):
                 record_removal(room, bot_id, i)

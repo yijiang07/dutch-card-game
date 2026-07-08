@@ -641,7 +641,7 @@ const TUTORIAL_PAGES = [
         { gap: true },
         { card: { rank: '7', suit: 'S' }, tag: 'your card' },
       ], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">If you know one of your face-down cards has the <strong>same value</strong> as the discard-pile card, tap <strong>Match</strong> and pick it to drop it — now you have one fewer card. You can do this <strong>even when it isn't your turn</strong>! But guess wrong and you draw a <strong>penalty card</strong>. When a turn begins, the player waits a couple seconds first, so everyone gets a chance to match.</div>`));
+      box.appendChild(el(`<div class="tutorial-body">If you know one of your face-down cards has the <strong>same rank</strong> as the discard-pile card (e.g. any two 7s, or two Kings), tap <strong>Match</strong> and pick it to drop it — now you have one fewer card. You can do this <strong>even when it isn't your turn</strong>! But guess wrong and you draw a <strong>penalty card</strong>. When a turn begins, the player waits a couple seconds first, so everyone gets a chance to match.</div>`));
       return box;
     },
   },

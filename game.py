@@ -225,7 +225,7 @@ class Game:
         top = self.discard[-1]
         card = grid[cell_index]
         self.action_seq += 1
-        if card['value'] == top['value']:
+        if card['rank'] == top['rank']:
             del grid[cell_index]
             self.discard.append(card)  # placed face-up; does NOT trigger its power
             self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
