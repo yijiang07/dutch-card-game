@@ -20,7 +20,7 @@ PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 CODE_ALPHABET = ''.join(c for c in string.ascii_uppercase if c not in 'IO')
 
 # Seconds a bot "thinks" between steps, so humans can follow the action.
-BOT_DELAY = 1.4
+BOT_DELAY = 3.0
 
 # Email (optional) — configure these env vars to enable "email me a reset link".
 SMTP_HOST = os.environ.get('SMTP_HOST')
