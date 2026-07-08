@@ -141,6 +141,18 @@ def init_db():
             expires_at {ts_type} NOT NULL,
             used INTEGER NOT NULL DEFAULT 0
         )''')
+        # Per-round match history (one row per account player per finished round).
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS game_history (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            played_at {ts_type} NOT NULL,
+            total INTEGER NOT NULL,
+            won INTEGER NOT NULL DEFAULT 0,
+            players INTEGER NOT NULL DEFAULT 0,
+            ranked INTEGER NOT NULL DEFAULT 0,
+            rating_delta INTEGER
+        )''')
+        cur.execute('CREATE INDEX IF NOT EXISTS idx_history_user ON game_history (user_id, played_at)')
         conn.commit()
     finally:
         conn.close()
@@ -517,6 +529,44 @@ def record_ranked_1v1(a_id, b_id, a_score):
             out[uid] = {'rating': round(new[0]), 'delta': round(new[0]) - round(old['rating']), 'won': bool(won)}
         conn.commit()
         return out
+    finally:
+        conn.close()
+
+
+def record_history(entries):
+    """entries: list of {user_id, played_at, total, won, players, ranked, rating_delta}.
+    Keeps the most recent 50 rows per user."""
+    if not entries:
+        return
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        for e in entries:
+            cur.execute(_ph('''INSERT INTO game_history
+                               (id, user_id, played_at, total, won, players, ranked, rating_delta)
+                               VALUES (?,?,?,?,?,?,?,?)'''),
+                        (secrets.token_hex(8), e['user_id'], e['played_at'], e['total'],
+                         1 if e.get('won') else 0, e.get('players', 0),
+                         1 if e.get('ranked') else 0, e.get('rating_delta')))
+        for uid in {e['user_id'] for e in entries}:
+            cur.execute(_ph('''DELETE FROM game_history WHERE user_id=? AND id NOT IN
+                               (SELECT id FROM game_history WHERE user_id=?
+                                ORDER BY played_at DESC LIMIT 50)'''), (uid, uid))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_history(user_id, limit=15):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('''SELECT played_at, total, won, players, ranked, rating_delta
+                           FROM game_history WHERE user_id=? ORDER BY played_at DESC LIMIT ?'''),
+                    (user_id, limit))
+        return [{'playedAt': r['played_at'], 'total': r['total'], 'won': bool(r['won']),
+                 'players': r['players'], 'ranked': bool(r['ranked']), 'ratingDelta': r['rating_delta']}
+                for r in cur.fetchall()]
     finally:
         conn.close()
 

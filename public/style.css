@@ -1506,6 +1506,23 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .rating-change .rating-new { color: var(--ink-dim); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .lb-rating { color: var(--champagne); font-weight: 700; }
 
+/* ---- Match history ---- */
+.hist-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.hist-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 9px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border);
+  font-size: 0.85rem;
+}
+.hist-row.won { border-color: rgba(231,194,90,0.4); background: rgba(231,194,90,0.08); }
+.hist-when { color: var(--ink-dim); font-size: 0.78rem; min-width: 74px; }
+.hist-score { flex: 1; font-weight: 600; }
+.hist-right { text-align: right; }
+.hist-players { color: var(--ink-dim); font-size: 0.8rem; }
+.hist-delta { font-weight: 800; }
+.hist-delta.up { color: #46d6a6; }
+.hist-delta.down { color: #ec7a75; }
+
 /* ---- Account call-to-action (landing) ---- */
 .account-cta {
   display: flex;

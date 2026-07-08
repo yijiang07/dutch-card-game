@@ -213,6 +213,14 @@ async def record_game_if_needed(room):
             room.players[pa]['_ranked_acct'] = ainfo['account_id']
             room.players[pb]['_ranked_acct'] = binfo['account_id']
 
+    # Per-round match history for each account player.
+    now = time.time()
+    history = [{'user_id': r['user_id'], 'played_at': now, 'total': r['total'], 'won': r['won'],
+                'players': len(totals), 'ranked': bool(room.ranked),
+                'rating_delta': (ranked_out.get(r['user_id'], {}).get('delta') if ranked_out else None)}
+               for r in results]
+    await asyncio.to_thread(storage.record_history, history)
+
     for r in results:
         stats = await asyncio.to_thread(storage.get_stats, r['user_id'])
         for w in list(ONLINE.get(r['user_id'], ())):
@@ -546,8 +554,9 @@ async def handle_message(ws, ctx, data):
         board = await asyncio.to_thread(storage.get_leaderboard, 10)
         me = ctx.get('user')
         my_stats = await asyncio.to_thread(storage.get_stats, me['id']) if me else None
+        history = await asyncio.to_thread(storage.get_history, me['id'], 15) if me else None
         await send(ws, {'type': 'leaderboard', 'board': board, 'myStats': my_stats,
-                        'myUsername': me['username'] if me else None})
+                        'myUsername': me['username'] if me else None, 'history': history})
         return
 
     if mtype == 'friendRequest':

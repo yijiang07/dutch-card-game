@@ -171,6 +171,7 @@ const TRANSLATIONS = {
     ratingToast: 'Ranked rating: {rating} ({delta})',
     authCta: 'Log in / Sign up', authCtaSub: 'Save your stats, add friends & play ranked.',
     powerYours: 'Matched power — your move!', powerOther: '{name} is using a matched power…',
+    recentGames: 'Recent games', noHistory: 'No games yet — play a round!',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -267,6 +268,7 @@ const TRANSLATIONS = {
     ratingToast: 'Rating de clasificatoria: {rating} ({delta})',
     authCta: 'Entrar / Registrarse', authCtaSub: 'Guarda tus estadísticas, añade amigos y juega clasificatorias.',
     powerYours: 'Poder emparejado — ¡te toca!', powerOther: '{name} está usando un poder emparejado…',
+    recentGames: 'Partidas recientes', noHistory: 'Aún no hay partidas — ¡juega una ronda!',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -362,6 +364,7 @@ const TRANSLATIONS = {
     ratingToast: 'Rating classé : {rating} ({delta})',
     authCta: 'Connexion / Inscription', authCtaSub: 'Enregistrez vos stats, ajoutez des amis et jouez en classé.',
     powerYours: 'Pouvoir associé — à vous !', powerOther: '{name} utilise un pouvoir associé…',
+    recentGames: 'Parties récentes', noHistory: 'Aucune partie — jouez une manche !',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -457,6 +460,7 @@ const TRANSLATIONS = {
     ratingToast: 'Ranglisten-Wertung: {rating} ({delta})',
     authCta: 'Anmelden / Registrieren', authCtaSub: 'Statistiken speichern, Freunde hinzufügen, ranked spielen.',
     powerYours: 'Abgelegte Machtkarte — du bist dran!', powerOther: '{name} nutzt eine abgelegte Machtkarte…',
+    recentGames: 'Letzte Spiele', noHistory: 'Noch keine Spiele — spiel eine Runde!',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -552,6 +556,7 @@ const TRANSLATIONS = {
     ratingToast: '排位评分：{rating}（{delta}）',
     authCta: '登录 / 注册', authCtaSub: '保存战绩、添加好友、畅玩排位。',
     powerYours: '配对能力牌 — 该你了！', powerOther: '{name} 正在使用配对的能力牌…',
+    recentGames: '最近对局', noHistory: '还没有对局 —— 来玩一局吧！',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -864,6 +869,23 @@ function escapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str == null ? '' : String(str);
   return d.innerHTML;
+}
+
+// Localized "3h ago" / "hace 3 h" / "3小时前" from an epoch-seconds timestamp.
+function relTime(sec) {
+  if (!sec) return '';
+  const diff = sec - Date.now() / 1000; // negative for the past
+  const abs = Math.abs(diff);
+  try {
+    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+    if (abs < 60) return rtf.format(Math.round(diff), 'second');
+    if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
+    if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
+    if (abs < 2592000) return rtf.format(Math.round(diff / 86400), 'day');
+    return rtf.format(Math.round(diff / 2592000), 'month');
+  } catch (e) {
+    return Math.round(abs / 3600) + 'h';
+  }
 }
 
 function avatarEl(playerId, state, sizeClass) {
@@ -1277,6 +1299,31 @@ function renderLeaderboard() {
     </div>`));
   } else {
     drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('loginForLb'))}</div>`));
+  }
+
+  // Recent games (signed-in players only)
+  if (leaderboardData.history) {
+    drawer.appendChild(el(`<div class="section-label" style="margin-top:14px;">${escapeHtml(t('recentGames'))}</div>`));
+    if (!leaderboardData.history.length) {
+      drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('noHistory'))}</div>`));
+    } else {
+      const list = el(`<div class="hist-list"></div>`);
+      leaderboardData.history.forEach((g) => {
+        let right;
+        if (g.ranked && g.ratingDelta != null) {
+          const d = (g.ratingDelta > 0 ? '+' : '') + g.ratingDelta;
+          right = `<span class="hist-delta ${g.ratingDelta >= 0 ? 'up' : 'down'}">${escapeHtml(d)}</span>`;
+        } else {
+          right = `<span class="hist-players">${g.players}p</span>`;
+        }
+        list.appendChild(el(`<div class="hist-row ${g.won ? 'won' : ''}">
+          <span class="hist-when">${escapeHtml(relTime(g.playedAt))}</span>
+          <span class="hist-score">${g.won ? '🏆 ' : ''}${g.total} ${escapeHtml(t('ptsUnit'))}</span>
+          <span class="hist-right">${right}</span>
+        </div>`));
+      });
+      drawer.appendChild(list);
+    }
   }
 
   drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('topPlayers'))}</div>`));
