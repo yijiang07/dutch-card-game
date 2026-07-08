@@ -1460,3 +1460,10 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .lang-fab { left: 58px; }
 .top-bar .brand-mini { letter-spacing: 0.14em; font-size: 0.9rem; }
 .top-bar { padding-left: 14px; padding-right: 104px; }
+
+/* A lone panel in a centered column must size to its content, not stretch to fill height */
+.lobby-wrap > .card-panel { flex: 0 0 auto; }
+
+/* House Rules: line the option groups up in a tidy column instead of ragged flush-right */
+.settings-row { justify-content: flex-start; gap: 14px; }
+.settings-label { flex: 0 0 116px; }
