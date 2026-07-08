@@ -261,15 +261,33 @@ async def expire_match(room, deadline):
         schedule_bots(room)
 
 
-def _turn_sig(game):
-    """A signature that changes whenever the game moves to a new actor/turn."""
-    return (game.phase, game.turn_counter, game.peeking_index if game.phase == 'peeking' else -1,
+def _progress_sig(game):
+    """Changes on any real progress (turn/action/peek), so the monitor can tell
+    whether the game is actually advancing or genuinely stalled."""
+    return (game.phase, game.turn_counter, game.action_seq, game.peeking_index,
             bots.required_actor(game))
 
 
+def _idle_limit(room, game, actor):
+    """How long the current actor may stall before the monitor steps in.
+    Always kept above the bot pace so nobody is skipped mid-move, and stuck
+    bots get rescued too."""
+    p = room.players.get(actor, {})
+    bot_backstop = BOT_DELAY + game.buffer_seconds + 5  # generous: drive_bots is the normal driver
+    if p.get('is_bot'):
+        return bot_backstop
+    if not p.get('connected'):
+        return max(5, BOT_DELAY + 2)          # disconnected human — short grace
+    if game.turn_limit:
+        return max(game.turn_limit, BOT_DELAY + 2)  # never faster than a bot moves
+    return bot_backstop                        # limit "off": still backstop a truly stuck seat
+
+
 async def turn_monitor(room):
-    """Never let the game stall: if a human is disconnected (short grace) or idle
-    past the turn limit on their turn, auto-play their turn like a bot."""
+    """Never let the game stall. If whoever's turn it is stops making progress for
+    longer than their idle limit (disconnected/idle human, or a wedged bot),
+    auto-play their turn. Timings are tied to the bot delay so a healthy bot is
+    never interrupted."""
     if room.monitor_running:
         return
     room.monitor_running = True
@@ -280,7 +298,7 @@ async def turn_monitor(room):
             game = room.game
             if not game or game.phase == 'reveal':
                 break
-            sig = _turn_sig(game)
+            sig = _progress_sig(game)
             if sig != last_sig:
                 last_sig, since = sig, time.time()
                 continue
@@ -288,14 +306,11 @@ async def turn_monitor(room):
             if not actor or game.matcher is not None:
                 since = time.time()
                 continue
-            p = room.players.get(actor, {})
-            if p.get('is_bot'):
-                continue  # bots are driven by drive_bots
-            limit = 5 if not p.get('connected') else game.turn_limit
-            if not limit or time.time() - since < limit:
+            if time.time() - since < _idle_limit(room, game, actor):
                 continue
-            # Idle/disconnected human — finish their turn automatically.
-            reason = 'disconnected' if not p.get('connected') else 'idle'
+            # Stalled — finish this seat's turn automatically.
+            p = room.players.get(actor, {})
+            reason = 'disconnected' if (not p.get('is_bot') and not p.get('connected')) else 'stuck'
             game._log(f"{game.names.get(actor, 'A player')} was {reason} — auto-playing their turn.")
             guard = 0
             while room.game and room.game.phase != 'reveal' and bots.required_actor(room.game) == actor and guard < 12:
@@ -306,7 +321,7 @@ async def turn_monitor(room):
                     break
                 await broadcast_state(room)
                 await asyncio.sleep(0.6 if st == 'wait' else 0.35)
-            last_sig, since = _turn_sig(room.game) if room.game else (None, 0), time.time()
+            last_sig, since = (_progress_sig(room.game), time.time()) if room.game else (None, time.time())
             schedule_bots(room)
     finally:
         room.monitor_running = False
