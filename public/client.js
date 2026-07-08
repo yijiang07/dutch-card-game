@@ -91,6 +91,98 @@ const TRANSLATIONS = {
     leaveRoom: 'Leave room', friends: 'Friends', chat: 'Chat', chatEmpty: 'No messages yet. Say hi!',
     chatPlaceholder: 'Message…', send: 'Send', howToPlay: 'How to play', yourTurn: 'Your turn',
     chooseLanguage: 'Choose your language', language: 'Language',
+    // toasts
+    enterName: 'Enter your name first.', enterCode: 'Enter a room code.',
+    roomCodeCopied: 'Room code copied!', inviteLinkCopied: 'Invite link copied!',
+    recoveryCopied: 'Recovery code copied!', playingGuest: 'Playing as guest — create or join a game below.',
+    enterUserPass: 'Enter a username and password.', emailSaved: 'Email saved.',
+    youWon: '🏆 You won! ({n} wins)', gameRecorded: 'Game recorded ({n} played)',
+    // lobby
+    roomShare: 'Room code — share this', tapCopy: 'Tap the code to copy', copyInvite: 'Copy invite link',
+    addBotTitle: 'Add a bot', houseRules: 'House rules', cardsEach: 'Cards each', matchWindowLbl: 'Match window',
+    matchingLbl: 'Matching', turnLimitLbl: 'Turn limit', optOff: 'off', optOn: 'on',
+    needTwo: 'Need at least 2 players to start.', readyPlayers: 'Ready — {n} players',
+    waitingHost: 'Waiting for the host to start the game…', hostTag: 'host', youTag: 'you', removeBot: 'Remove bot',
+    rulesSummary: '{cards} cards · {win}s match window · matching {matching} · {limit}',
+    turnLimitVal: '{n}s turn limit', noTurnLimit: 'no turn limit',
+    diffEasy: 'Easy', diffMedium: 'Medium', diffMed: 'Med', diffHard: 'Hard', diffImpossible: 'Impossible',
+    // peek
+    choosePeek: 'Choose the peek count', isChoosing: '{name} is choosing',
+    peekSub: 'Everyone will privately look at this many of their own {n} cards before play begins.',
+    hangTight: 'Hang tight…', donePeeking: 'Done peeking',
+    // table
+    drawLbl: 'Draw', discardLbl: 'Discard', yourHand: 'Your Hand', yourHandDutch: 'Your Hand — you called Dutch',
+    roomTag: 'Room {code}',
+    // banners
+    matchingPick: '⏸ Matching — pick a card', playPaused: 'Play is paused',
+    xMatching: '⏸ {name} is matching', playPausedE: 'Play is paused…',
+    yourTurnPeek: 'Your turn to peek', lookAtCards: 'Look at {n} of your own cards ({done}/{n} done)',
+    xPeeking: '{name} is peeking at their cards', everyoneHang: 'Everyone else, hang tight…',
+    xTurn: "{name}'s turn", finalRound: 'Final round! {name} called Dutch — {n} turn(s) left',
+    jackSecondMsg: 'Jack: pick the second card', jackFirstMsg: 'Jack: pick the first card to swap',
+    jackResolving: 'Resolving a Jack…', queenPickMsg: 'Queen: pick any card to peek at', queenResolving: 'Resolving a Queen…',
+    aceChooseMsg: 'Ace: choose who receives a face-down card', aceResolving: 'Resolving an Ace…',
+    endOrDutch: 'End your turn — or call Dutch', xFinishing: '{name} is finishing their turn…',
+    // action bar
+    waitingForX: 'Waiting for {name}…', matchPrompt: 'Matching! Tap one of your cards of the same rank as the discard ({card}). Wrong = penalty card.',
+    cancel: 'Cancel', xMatchingPaused: '⏸ {name} is matching — play paused',
+    clickOwnCard: 'Click one of your own cards above.', youCanAct: 'You can act in {n}s — anyone can match the discard now.',
+    jackClickSecond: 'Click the second card to swap with.', jackClickAny: 'Click any card on the table to start the blind swap.',
+    queenClickAny: 'Click any card on the table to peek at it.',
+    // opponent tags
+    tagLeft: 'LEFT', tagTurn: 'TURN', tagOffline: 'OFFLINE',
+    // reveal
+    roundOver: 'Round Over', allRevealed: 'All cards revealed', winner: 'WINNER', ptsUnit: 'pts',
+    waitingNewRound: 'Waiting for the host to start a new round…', matchStandings: 'Match standings · {n} rounds',
+    // reveal modal
+    yourPeek: 'Your Peek', queensPeek: "Queen's Peek", gotIt: 'Got it',
+    // fab tooltips
+    soundTip: 'Sound', leaderboardTip: 'Leaderboard',
+    // auth
+    login: 'Log in', signup: 'Sign up',
+    recoverIntro: 'Enter your username and recovery code to get back in and set a new password.',
+    phUsername: 'username', phRecoveryCode: 'recovery code', phNewPw: 'new password (min 6)', resetLogin: 'Reset & log in',
+    orEmailReset: 'Or email me a reset link', phUserOrEmail: 'username or email', backToLogin: '← Back to log in',
+    signupIntro: 'Create an account so friends can find you and you can log in from any device.',
+    loginIntro: 'Log in to see your friends and invites.', phUsernameRules: 'username (3–16 letters/numbers)',
+    phPassword: 'password (min 6)', phEmailOpt: 'email (optional — for password resets)',
+    createAccount: 'Create account', forgotPw: 'Forgot password?', playGuest: 'Play as guest →',
+    // recovery modal
+    saveRecovery: 'Save your recovery code',
+    recoveryExplain: "There's no email reset. If you ever forget your password, this code is the only way back into your account. Keep it somewhere safe.",
+    copy: 'Copy', savedIt: "I've saved it",
+    // friends panel
+    signedInAs: 'Signed in as', logout: 'Log out', phAddEmail: 'add email for password resets', save: 'Save',
+    phAddFriend: 'Add friend by username', add: 'Add', requests: 'Requests', accept: 'Accept',
+    sentWaiting: 'Sent — waiting', friendsCount: 'Friends ({n})', noFriends: 'No friends yet — add someone by their username.',
+    invite: 'Invite', onlineInvite: 'Online friends can be invited straight into your lobby.',
+    cancelRequest: 'Cancel request', unfriend: 'Unfriend', joinBtn: 'Join', invitedYou: '{name} invited you to game',
+    // leaderboard
+    leaderboardTitle: 'Leaderboard', loading: 'Loading…', yourStats: 'Your stats', statWins: 'wins', statGames: 'games',
+    statBestRound: 'best round', statAccuracy: 'accuracy', statRank: 'rank',
+    accuracyExplain: 'Accuracy = share of your draw/swap decisions that were the best move given what you knew at the time.',
+    loginForLb: 'Log in (👥) to have your games counted on the leaderboard.', topPlayers: 'Top players',
+    lbPlayer: 'Player', lbWins: 'Wins', lbAcc: 'Acc', noGames: 'No games played yet — be the first!',
+    // tutorial
+    tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
+    tutTitle1: 'Welcome to Dutch',
+    tutBody1: 'Everyone gets a row of face-down cards. The goal is simple: have the <strong>lowest total score</strong> when someone calls “Dutch”. Low cards good, high cards bad — and memory matters.',
+    tutTitle2: 'What cards are worth',
+    tutBody2: 'Number cards are worth their face value. <strong>Ace = 1</strong>, <strong>Jack = 11</strong>, <strong>Queen = 12</strong>.<br/>The twist: a <strong>red King is 0</strong> (the best card in the game!), but a <strong>black King is 13</strong> (the worst).',
+    tutTitle3: 'Peek at the start',
+    tutBody3: 'Before play begins, one player picks a number (0–4). Everyone then <strong>secretly looks at that many of their own cards</strong>. Try to remember what and where they are!',
+    tutTitle4: 'On your turn',
+    tutBody4: 'Do <strong>one</strong> of two things:<br/>• <strong>Swap</strong> the face-up discard card into your row — replace a high card with this lower one to cut your score.<br/>• <strong>Flip</strong> the top of the draw pile onto the discard — mainly to trigger a power card.<br/>Then end your turn.',
+    tutTitle5: 'Power cards',
+    tutBody5: 'When a <strong>J</strong>, <strong>Q</strong>, or <strong>A</strong> lands face-up (you flipped it, or discarded it from your row) its power fires:<br/>• <strong>Jack</strong> — blind-swap any two cards on the table.<br/>• <strong>Queen</strong> — secretly peek at any one card.<br/>• <strong>Ace</strong> — give a face-down card to any player (raising their score).',
+    tutTitle6: 'Matching',
+    tutBody6: "If you know one of your face-down cards has the <strong>same rank</strong> as the discard-pile card (e.g. any two 7s, or two Kings), tap <strong>Match</strong> and pick it to drop it — now you have one fewer card. You can do this <strong>even when it isn't your turn</strong>! But guess wrong and you draw a <strong>penalty card</strong>. When a turn begins, the player waits a couple seconds first, so everyone gets a chance to match.",
+    tutTitle7: 'Calling “Dutch”',
+    tutBody7: "Think you have the lowest total? Take your turn, then <strong>call Dutch</strong>. Everyone else gets <strong>one final turn</strong>, then all cards flip up and scores are revealed. Lowest wins — so call it when you're confident!",
+    tutTitle8: "You're ready!",
+    tutBody8: '<strong>Create a game</strong> and share the code with friends, <strong>add bots</strong> to practice against, or open the 👥 menu to claim a username and add friends. Have fun!',
+    tutTagBest: '0 — best!', tutTag1: '1', tutTagWorst: '13 — worst', tutTagSwap: 'swap', tutTagPeek: 'peek',
+    tutTagGive: 'give', tutTagDiscard: 'discard', tutTagYourCard: 'your card',
   },
   es: {
     tagline: 'Gana quien tenga menos puntos. Juega desde cualquier lugar.',
@@ -102,6 +194,83 @@ const TRANSLATIONS = {
     leaveRoom: 'Salir de la sala', friends: 'Amigos', chat: 'Chat', chatEmpty: 'Aún no hay mensajes. ¡Saluda!',
     chatPlaceholder: 'Mensaje…', send: 'Enviar', howToPlay: 'Cómo jugar', yourTurn: 'Tu turno',
     chooseLanguage: 'Elige tu idioma', language: 'Idioma',
+    enterName: 'Primero escribe tu nombre.', enterCode: 'Introduce un código de sala.',
+    roomCodeCopied: '¡Código copiado!', inviteLinkCopied: '¡Enlace de invitación copiado!',
+    recoveryCopied: '¡Código de recuperación copiado!', playingGuest: 'Jugando como invitado — crea o únete a una partida abajo.',
+    enterUserPass: 'Introduce un usuario y contraseña.', emailSaved: 'Correo guardado.',
+    youWon: '🏆 ¡Ganaste! ({n} victorias)', gameRecorded: 'Partida registrada ({n} jugadas)',
+    roomShare: 'Código de sala — compártelo', tapCopy: 'Toca el código para copiar', copyInvite: 'Copiar enlace de invitación',
+    addBotTitle: 'Añadir un bot', houseRules: 'Reglas de la casa', cardsEach: 'Cartas cada uno', matchWindowLbl: 'Ventana de emparejado',
+    matchingLbl: 'Emparejado', turnLimitLbl: 'Límite de turno', optOff: 'no', optOn: 'sí',
+    needTwo: 'Se necesitan al menos 2 jugadores.', readyPlayers: 'Listos — {n} jugadores',
+    waitingHost: 'Esperando a que el anfitrión empiece…', hostTag: 'anfitrión', youTag: 'tú', removeBot: 'Quitar bot',
+    rulesSummary: '{cards} cartas · ventana de {win}s · emparejado {matching} · {limit}',
+    turnLimitVal: 'límite de {n}s por turno', noTurnLimit: 'sin límite de turno',
+    diffEasy: 'Fácil', diffMedium: 'Media', diffMed: 'Med', diffHard: 'Difícil', diffImpossible: 'Imposible',
+    choosePeek: 'Elige cuántas cartas mirar', isChoosing: '{name} está eligiendo',
+    peekSub: 'Cada jugador mirará en privado esta cantidad de sus propias {n} cartas antes de empezar.',
+    hangTight: 'Un momento…', donePeeking: 'Listo',
+    drawLbl: 'Mazo', discardLbl: 'Descarte', yourHand: 'Tu mano', yourHandDutch: 'Tu mano — cantaste Dutch',
+    roomTag: 'Sala {code}',
+    matchingPick: '⏸ Emparejando — elige una carta', playPaused: 'Juego en pausa',
+    xMatching: '⏸ {name} está emparejando', playPausedE: 'Juego en pausa…',
+    yourTurnPeek: 'Tu turno de mirar', lookAtCards: 'Mira {n} de tus cartas ({done}/{n} hechas)',
+    xPeeking: '{name} está mirando sus cartas', everyoneHang: 'Los demás, un momento…',
+    xTurn: 'Turno de {name}', finalRound: '¡Ronda final! {name} cantó Dutch — quedan {n} turno(s)',
+    jackSecondMsg: 'Jota: elige la segunda carta', jackFirstMsg: 'Jota: elige la primera carta a cambiar',
+    jackResolving: 'Resolviendo una Jota…', queenPickMsg: 'Reina: elige cualquier carta para mirar', queenResolving: 'Resolviendo una Reina…',
+    aceChooseMsg: 'As: elige quién recibe una carta boca abajo', aceResolving: 'Resolviendo un As…',
+    endOrDutch: 'Termina tu turno — o canta Dutch', xFinishing: '{name} está terminando su turno…',
+    waitingForX: 'Esperando a {name}…', matchPrompt: '¡Empareja! Toca una de tus cartas del mismo valor que el descarte ({card}). Si fallas = carta de penalización.',
+    cancel: 'Cancelar', xMatchingPaused: '⏸ {name} está emparejando — juego en pausa',
+    clickOwnCard: 'Toca una de tus propias cartas arriba.', youCanAct: 'Podrás actuar en {n}s — cualquiera puede emparejar el descarte ahora.',
+    jackClickSecond: 'Toca la segunda carta para el cambio.', jackClickAny: 'Toca cualquier carta de la mesa para el cambio a ciegas.',
+    queenClickAny: 'Toca cualquier carta de la mesa para mirarla.',
+    tagLeft: 'SE FUE', tagTurn: 'TURNO', tagOffline: 'DESCONECTADO',
+    roundOver: 'Fin de la ronda', allRevealed: 'Cartas reveladas', winner: 'GANADOR', ptsUnit: 'pts',
+    waitingNewRound: 'Esperando a que el anfitrión empiece otra ronda…', matchStandings: 'Clasificación · {n} rondas',
+    yourPeek: 'Tu vistazo', queensPeek: 'Vistazo de la Reina', gotIt: 'Entendido',
+    soundTip: 'Sonido', leaderboardTip: 'Clasificación',
+    login: 'Entrar', signup: 'Registrarse',
+    recoverIntro: 'Introduce tu usuario y código de recuperación para volver y crear una nueva contraseña.',
+    phUsername: 'usuario', phRecoveryCode: 'código de recuperación', phNewPw: 'nueva contraseña (mín. 6)', resetLogin: 'Restablecer y entrar',
+    orEmailReset: 'O envíame un enlace por correo', phUserOrEmail: 'usuario o correo', backToLogin: '← Volver a entrar',
+    signupIntro: 'Crea una cuenta para que tus amigos te encuentren y puedas entrar desde cualquier dispositivo.',
+    loginIntro: 'Entra para ver tus amigos e invitaciones.', phUsernameRules: 'usuario (3–16 letras/números)',
+    phPassword: 'contraseña (mín. 6)', phEmailOpt: 'correo (opcional — para restablecer contraseña)',
+    createAccount: 'Crear cuenta', forgotPw: '¿Olvidaste tu contraseña?', playGuest: 'Jugar como invitado →',
+    saveRecovery: 'Guarda tu código de recuperación',
+    recoveryExplain: 'No hay restablecimiento por correo. Si olvidas tu contraseña, este código es la única forma de recuperar tu cuenta. Guárdalo en un lugar seguro.',
+    copy: 'Copiar', savedIt: 'Ya lo guardé',
+    signedInAs: 'Conectado como', logout: 'Salir', phAddEmail: 'añade correo para restablecer contraseña', save: 'Guardar',
+    phAddFriend: 'Añadir amigo por usuario', add: 'Añadir', requests: 'Solicitudes', accept: 'Aceptar',
+    sentWaiting: 'Enviada — esperando', friendsCount: 'Amigos ({n})', noFriends: 'Aún no tienes amigos — añade a alguien por su usuario.',
+    invite: 'Invitar', onlineInvite: 'Puedes invitar a tu sala a los amigos conectados.',
+    cancelRequest: 'Cancelar solicitud', unfriend: 'Eliminar amigo', joinBtn: 'Unirse', invitedYou: '{name} te invitó a la partida',
+    leaderboardTitle: 'Clasificación', loading: 'Cargando…', yourStats: 'Tus estadísticas', statWins: 'victorias', statGames: 'partidas',
+    statBestRound: 'mejor ronda', statAccuracy: 'precisión', statRank: 'puesto',
+    accuracyExplain: 'Precisión = proporción de tus decisiones de robar/cambiar que fueron la mejor jugada según lo que sabías en ese momento.',
+    loginForLb: 'Entra (👥) para que tus partidas cuenten en la clasificación.', topPlayers: 'Mejores jugadores',
+    lbPlayer: 'Jugador', lbWins: 'Victorias', lbAcc: 'Prec', noGames: 'Aún no hay partidas — ¡sé el primero!',
+    tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
+    tutTitle1: 'Bienvenido a Dutch',
+    tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
+    tutTitle2: 'Cuánto valen las cartas',
+    tutBody2: 'Las cartas numéricas valen su valor. <strong>As = 1</strong>, <strong>Jota = 11</strong>, <strong>Reina = 12</strong>.<br/>El truco: un <strong>Rey rojo vale 0</strong> (¡la mejor carta!), pero un <strong>Rey negro vale 13</strong> (la peor).',
+    tutTitle3: 'Vistazo inicial',
+    tutBody3: 'Antes de empezar, un jugador elige un número (0–4). Todos <strong>miran en secreto esa cantidad de sus propias cartas</strong>. ¡Intenta recordar cuáles son y dónde están!',
+    tutTitle4: 'En tu turno',
+    tutBody4: 'Haz <strong>una</strong> de dos cosas:<br/>• <strong>Cambia</strong> la carta boca arriba del descarte por una de tu fila — sustituye una carta alta por esta más baja para reducir tu puntuación.<br/>• <strong>Roba</strong> la carta superior del mazo al descarte — sobre todo para activar una carta de poder.<br/>Luego termina tu turno.',
+    tutTitle5: 'Cartas de poder',
+    tutBody5: 'Cuando una <strong>J</strong>, <strong>Q</strong> o <strong>A</strong> queda boca arriba (la robaste o la descartaste de tu fila) se activa su poder:<br/>• <strong>Jota</strong> — intercambia a ciegas dos cartas cualesquiera de la mesa.<br/>• <strong>Reina</strong> — mira en secreto cualquier carta.<br/>• <strong>As</strong> — da una carta boca abajo a cualquier jugador (subiendo su puntuación).',
+    tutTitle6: 'Emparejar',
+    tutBody6: 'Si sabes que una de tus cartas boca abajo tiene el <strong>mismo valor</strong> que la del descarte (p. ej. dos 7, o dos Reyes), toca <strong>Emparejar</strong> y elígela para soltarla — así tendrás una carta menos. ¡Puedes hacerlo <strong>incluso cuando no es tu turno</strong>! Pero si fallas, robas una <strong>carta de penalización</strong>. Al empezar un turno, el jugador espera unos segundos para que todos tengan opción de emparejar.',
+    tutTitle7: 'Cantar “Dutch”',
+    tutBody7: '¿Crees que tienes el total más bajo? Juega tu turno y luego <strong>canta Dutch</strong>. Los demás tienen <strong>un último turno</strong>, luego se revelan todas las cartas y las puntuaciones. ¡Gana la más baja, así que cántalo cuando estés seguro!',
+    tutTitle8: '¡Listo!',
+    tutBody8: '<strong>Crea una partida</strong> y comparte el código con amigos, <strong>añade bots</strong> para practicar, o abre el menú 👥 para elegir un usuario y añadir amigos. ¡Diviértete!',
+    tutTagBest: '0 — ¡la mejor!', tutTag1: '1', tutTagWorst: '13 — la peor', tutTagSwap: 'cambio', tutTagPeek: 'mirar',
+    tutTagGive: 'dar', tutTagDiscard: 'descarte', tutTagYourCard: 'tu carta',
   },
   fr: {
     tagline: 'Le score le plus bas gagne. Jouez où que vous soyez.',
@@ -113,6 +282,83 @@ const TRANSLATIONS = {
     leaveRoom: 'Quitter la salle', friends: 'Amis', chat: 'Chat', chatEmpty: 'Aucun message. Dites bonjour !',
     chatPlaceholder: 'Message…', send: 'Envoyer', howToPlay: 'Comment jouer', yourTurn: 'Votre tour',
     chooseLanguage: 'Choisissez votre langue', language: 'Langue',
+    enterName: "Entrez d'abord votre nom.", enterCode: 'Entrez un code de salle.',
+    roomCodeCopied: 'Code copié !', inviteLinkCopied: "Lien d'invitation copié !",
+    recoveryCopied: 'Code de récupération copié !', playingGuest: 'En invité — créez ou rejoignez une partie ci-dessous.',
+    enterUserPass: 'Entrez un identifiant et un mot de passe.', emailSaved: 'E-mail enregistré.',
+    youWon: '🏆 Gagné ! ({n} victoires)', gameRecorded: 'Partie enregistrée ({n} jouées)',
+    roomShare: 'Code de salle — partagez-le', tapCopy: 'Touchez le code pour copier', copyInvite: "Copier le lien d'invitation",
+    addBotTitle: 'Ajouter un bot', houseRules: 'Règles', cardsEach: 'Cartes chacun', matchWindowLbl: "Fenêtre d'association",
+    matchingLbl: 'Association', turnLimitLbl: 'Limite de tour', optOff: 'non', optOn: 'oui',
+    needTwo: 'Il faut au moins 2 joueurs.', readyPlayers: 'Prêt — {n} joueurs',
+    waitingHost: "En attente du lancement par l'hôte…", hostTag: 'hôte', youTag: 'vous', removeBot: 'Retirer le bot',
+    rulesSummary: '{cards} cartes · fenêtre de {win}s · association {matching} · {limit}',
+    turnLimitVal: 'limite de {n}s par tour', noTurnLimit: 'sans limite de tour',
+    diffEasy: 'Facile', diffMedium: 'Moyen', diffMed: 'Moy', diffHard: 'Difficile', diffImpossible: 'Impossible',
+    choosePeek: 'Choisissez combien de cartes regarder', isChoosing: '{name} choisit',
+    peekSub: "Avant de commencer, chacun regarde en privé ce nombre de ses propres {n} cartes.",
+    hangTight: 'Un instant…', donePeeking: 'Terminé',
+    drawLbl: 'Pioche', discardLbl: 'Défausse', yourHand: 'Votre main', yourHandDutch: 'Votre main — vous avez annoncé Dutch',
+    roomTag: 'Salle {code}',
+    matchingPick: '⏸ Association — choisissez une carte', playPaused: 'Jeu en pause',
+    xMatching: '⏸ {name} associe', playPausedE: 'Jeu en pause…',
+    yourTurnPeek: 'À vous de regarder', lookAtCards: 'Regardez {n} de vos cartes ({done}/{n} faites)',
+    xPeeking: '{name} regarde ses cartes', everyoneHang: 'Les autres, patientez…',
+    xTurn: 'Tour de {name}', finalRound: 'Dernier tour ! {name} a annoncé Dutch — {n} tour(s) restant(s)',
+    jackSecondMsg: 'Valet : choisissez la deuxième carte', jackFirstMsg: 'Valet : choisissez la première carte à échanger',
+    jackResolving: 'Résolution du Valet…', queenPickMsg: "Dame : choisissez une carte à regarder", queenResolving: 'Résolution de la Dame…',
+    aceChooseMsg: 'As : choisissez qui reçoit une carte face cachée', aceResolving: "Résolution de l'As…",
+    endOrDutch: 'Finissez votre tour — ou annoncez Dutch', xFinishing: '{name} finit son tour…',
+    waitingForX: 'En attente de {name}…', matchPrompt: 'Association ! Touchez une de vos cartes du même rang que la défausse ({card}). Erreur = carte de pénalité.',
+    cancel: 'Annuler', xMatchingPaused: '⏸ {name} associe — jeu en pause',
+    clickOwnCard: 'Touchez une de vos cartes ci-dessus.', youCanAct: 'Vous pourrez agir dans {n}s — tout le monde peut associer la défausse maintenant.',
+    jackClickSecond: 'Touchez la deuxième carte à échanger.', jackClickAny: "Touchez n'importe quelle carte pour l'échange à l'aveugle.",
+    queenClickAny: "Touchez n'importe quelle carte de la table pour la regarder.",
+    tagLeft: 'PARTI', tagTurn: 'TOUR', tagOffline: 'HORS LIGNE',
+    roundOver: 'Fin de la manche', allRevealed: 'Cartes révélées', winner: 'GAGNANT', ptsUnit: 'pts',
+    waitingNewRound: "En attente d'une nouvelle manche par l'hôte…", matchStandings: 'Classement · {n} manches',
+    yourPeek: 'Votre coup d’œil', queensPeek: 'Coup d’œil de la Dame', gotIt: 'Compris',
+    soundTip: 'Son', leaderboardTip: 'Classement',
+    login: 'Connexion', signup: 'Inscription',
+    recoverIntro: 'Entrez votre identifiant et votre code de récupération pour revenir et créer un nouveau mot de passe.',
+    phUsername: 'identifiant', phRecoveryCode: 'code de récupération', phNewPw: 'nouveau mot de passe (min 6)', resetLogin: 'Réinitialiser et se connecter',
+    orEmailReset: 'Ou envoyez-moi un lien par e-mail', phUserOrEmail: 'identifiant ou e-mail', backToLogin: '← Retour à la connexion',
+    signupIntro: 'Créez un compte pour que vos amis vous trouvent et vous connecter depuis tout appareil.',
+    loginIntro: 'Connectez-vous pour voir vos amis et invitations.', phUsernameRules: 'identifiant (3–16 lettres/chiffres)',
+    phPassword: 'mot de passe (min 6)', phEmailOpt: 'e-mail (facultatif — pour réinitialiser)',
+    createAccount: 'Créer un compte', forgotPw: 'Mot de passe oublié ?', playGuest: 'Jouer en invité →',
+    saveRecovery: 'Enregistrez votre code de récupération',
+    recoveryExplain: "Pas de réinitialisation par e-mail. Si vous oubliez votre mot de passe, ce code est le seul moyen de récupérer votre compte. Gardez-le en lieu sûr.",
+    copy: 'Copier', savedIt: "C'est enregistré",
+    signedInAs: 'Connecté en tant que', logout: 'Déconnexion', phAddEmail: 'ajoutez un e-mail pour réinitialiser', save: 'Enregistrer',
+    phAddFriend: "Ajouter un ami par identifiant", add: 'Ajouter', requests: 'Demandes', accept: 'Accepter',
+    sentWaiting: 'Envoyée — en attente', friendsCount: 'Amis ({n})', noFriends: "Aucun ami pour l'instant — ajoutez quelqu'un par son identifiant.",
+    invite: 'Inviter', onlineInvite: 'Les amis en ligne peuvent être invités directement dans votre salle.',
+    cancelRequest: 'Annuler la demande', unfriend: 'Retirer', joinBtn: 'Rejoindre', invitedYou: '{name} vous invite à la partie',
+    leaderboardTitle: 'Classement', loading: 'Chargement…', yourStats: 'Vos stats', statWins: 'victoires', statGames: 'parties',
+    statBestRound: 'meilleure manche', statAccuracy: 'précision', statRank: 'rang',
+    accuracyExplain: 'Précision = part de vos décisions de pioche/échange qui étaient le meilleur coup selon ce que vous saviez à ce moment-là.',
+    loginForLb: 'Connectez-vous (👥) pour que vos parties comptent au classement.', topPlayers: 'Meilleurs joueurs',
+    lbPlayer: 'Joueur', lbWins: 'Victoires', lbAcc: 'Préc', noGames: 'Aucune partie jouée — soyez le premier !',
+    tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
+    tutTitle1: 'Bienvenue dans Dutch',
+    tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
+    tutTitle2: 'La valeur des cartes',
+    tutBody2: 'Les cartes numérotées valent leur valeur. <strong>As = 1</strong>, <strong>Valet = 11</strong>, <strong>Dame = 12</strong>.<br/>L’astuce : un <strong>Roi rouge vaut 0</strong> (la meilleure carte !), mais un <strong>Roi noir vaut 13</strong> (la pire).',
+    tutTitle3: 'Coup d’œil au début',
+    tutBody3: "Avant de commencer, un joueur choisit un nombre (0–4). Chacun <strong>regarde en secret ce nombre de ses propres cartes</strong>. Essayez de retenir lesquelles et où !",
+    tutTitle4: 'À votre tour',
+    tutBody4: 'Faites <strong>une</strong> des deux choses :<br/>• <strong>Échangez</strong> la carte de la défausse dans votre rangée — remplacez une carte haute par celle-ci, plus basse, pour réduire votre score.<br/>• <strong>Piochez</strong> la carte du dessus vers la défausse — surtout pour déclencher une carte de pouvoir.<br/>Puis finissez votre tour.',
+    tutTitle5: 'Cartes de pouvoir',
+    tutBody5: "Quand un <strong>V</strong>, une <strong>D</strong> ou un <strong>A</strong> se retrouve face visible (piochée ou défaussée de votre rangée), son pouvoir s'active :<br/>• <strong>Valet</strong> — échangez à l'aveugle deux cartes de la table.<br/>• <strong>Dame</strong> — regardez en secret une carte.<br/>• <strong>As</strong> — donnez une carte face cachée à un joueur (augmentant son score).",
+    tutTitle6: 'Association',
+    tutBody6: "Si vous savez qu'une de vos cartes face cachée a le <strong>même rang</strong> que la défausse (p. ex. deux 7, ou deux Rois), touchez <strong>Associer</strong> et choisissez-la pour vous en défaire — vous avez une carte de moins. Possible <strong>même hors de votre tour</strong> ! Mais en cas d'erreur, vous piochez une <strong>carte de pénalité</strong>. Au début d'un tour, le joueur attend quelques secondes pour laisser à tous une chance d'associer.",
+    tutTitle7: 'Annoncer « Dutch »',
+    tutBody7: "Vous pensez avoir le total le plus bas ? Jouez votre tour puis <strong>annoncez Dutch</strong>. Les autres ont <strong>un dernier tour</strong>, puis toutes les cartes se retournent et les scores sont révélés. Le plus bas gagne — annoncez quand vous êtes sûr !",
+    tutTitle8: 'Vous êtes prêt !',
+    tutBody8: '<strong>Créez une partie</strong> et partagez le code avec vos amis, <strong>ajoutez des bots</strong> pour vous entraîner, ou ouvrez le menu 👥 pour choisir un identifiant et ajouter des amis. Amusez-vous !',
+    tutTagBest: '0 — la meilleure !', tutTag1: '1', tutTagWorst: '13 — la pire', tutTagSwap: 'échange', tutTagPeek: 'regard',
+    tutTagGive: 'donner', tutTagDiscard: 'défausse', tutTagYourCard: 'votre carte',
   },
   de: {
     tagline: 'Niedrigste Punktzahl gewinnt. Spiele von überall.',
@@ -124,6 +370,83 @@ const TRANSLATIONS = {
     leaveRoom: 'Raum verlassen', friends: 'Freunde', chat: 'Chat', chatEmpty: 'Noch keine Nachrichten. Sag Hallo!',
     chatPlaceholder: 'Nachricht…', send: 'Senden', howToPlay: 'Spielanleitung', yourTurn: 'Du bist dran',
     chooseLanguage: 'Wähle deine Sprache', language: 'Sprache',
+    enterName: 'Gib zuerst deinen Namen ein.', enterCode: 'Gib einen Raumcode ein.',
+    roomCodeCopied: 'Code kopiert!', inviteLinkCopied: 'Einladungslink kopiert!',
+    recoveryCopied: 'Wiederherstellungscode kopiert!', playingGuest: 'Als Gast — erstelle oder tritt unten einem Spiel bei.',
+    enterUserPass: 'Gib Benutzername und Passwort ein.', emailSaved: 'E-Mail gespeichert.',
+    youWon: '🏆 Gewonnen! ({n} Siege)', gameRecorded: 'Spiel gespeichert ({n} gespielt)',
+    roomShare: 'Raumcode — teile ihn', tapCopy: 'Tippe den Code zum Kopieren', copyInvite: 'Einladungslink kopieren',
+    addBotTitle: 'Bot hinzufügen', houseRules: 'Hausregeln', cardsEach: 'Karten je Spieler', matchWindowLbl: 'Ablege-Fenster',
+    matchingLbl: 'Ablegen', turnLimitLbl: 'Zug-Limit', optOff: 'aus', optOn: 'an',
+    needTwo: 'Mindestens 2 Spieler nötig.', readyPlayers: 'Bereit — {n} Spieler',
+    waitingHost: 'Warte auf den Host…', hostTag: 'Host', youTag: 'du', removeBot: 'Bot entfernen',
+    rulesSummary: '{cards} Karten · {win}s Ablege-Fenster · Ablegen {matching} · {limit}',
+    turnLimitVal: '{n}s Zug-Limit', noTurnLimit: 'kein Zug-Limit',
+    diffEasy: 'Leicht', diffMedium: 'Mittel', diffMed: 'Mit', diffHard: 'Schwer', diffImpossible: 'Unmöglich',
+    choosePeek: 'Wähle die Anzahl zum Ansehen', isChoosing: '{name} wählt',
+    peekSub: 'Vor Spielbeginn sieht sich jeder heimlich so viele seiner eigenen {n} Karten an.',
+    hangTight: 'Einen Moment…', donePeeking: 'Fertig',
+    drawLbl: 'Stapel', discardLbl: 'Ablage', yourHand: 'Deine Hand', yourHandDutch: 'Deine Hand — du hast Dutch angesagt',
+    roomTag: 'Raum {code}',
+    matchingPick: '⏸ Ablegen — wähle eine Karte', playPaused: 'Spiel pausiert',
+    xMatching: '⏸ {name} legt ab', playPausedE: 'Spiel pausiert…',
+    yourTurnPeek: 'Du darfst ansehen', lookAtCards: 'Sieh dir {n} deiner Karten an ({done}/{n} erledigt)',
+    xPeeking: '{name} sieht sich Karten an', everyoneHang: 'Alle anderen, einen Moment…',
+    xTurn: '{name} ist dran', finalRound: 'Letzte Runde! {name} hat Dutch angesagt — noch {n} Zug/Züge',
+    jackSecondMsg: 'Bube: wähle die zweite Karte', jackFirstMsg: 'Bube: wähle die erste Karte zum Tauschen',
+    jackResolving: 'Bube wird aufgelöst…', queenPickMsg: 'Dame: wähle eine Karte zum Ansehen', queenResolving: 'Dame wird aufgelöst…',
+    aceChooseMsg: 'Ass: wähle, wer eine verdeckte Karte bekommt', aceResolving: 'Ass wird aufgelöst…',
+    endOrDutch: 'Beende deinen Zug — oder sag Dutch an', xFinishing: '{name} beendet den Zug…',
+    waitingForX: 'Warte auf {name}…', matchPrompt: 'Ablegen! Tippe eine deiner Karten mit demselben Rang wie die Ablage ({card}). Falsch = Strafkarte.',
+    cancel: 'Abbrechen', xMatchingPaused: '⏸ {name} legt ab — Spiel pausiert',
+    clickOwnCard: 'Tippe oben eine deiner eigenen Karten.', youCanAct: 'Du kannst in {n}s handeln — jeder kann jetzt die Ablage ablegen.',
+    jackClickSecond: 'Tippe die zweite Karte zum Tauschen.', jackClickAny: 'Tippe eine beliebige Karte für den Blindtausch.',
+    queenClickAny: 'Tippe eine beliebige Karte auf dem Tisch zum Ansehen.',
+    tagLeft: 'WEG', tagTurn: 'ZUG', tagOffline: 'OFFLINE',
+    roundOver: 'Runde vorbei', allRevealed: 'Alle Karten aufgedeckt', winner: 'SIEGER', ptsUnit: 'Pkt',
+    waitingNewRound: 'Warte auf eine neue Runde vom Host…', matchStandings: 'Gesamtstand · {n} Runden',
+    yourPeek: 'Dein Blick', queensPeek: 'Blick der Dame', gotIt: 'Verstanden',
+    soundTip: 'Ton', leaderboardTip: 'Bestenliste',
+    login: 'Anmelden', signup: 'Registrieren',
+    recoverIntro: 'Gib deinen Benutzernamen und Wiederherstellungscode ein, um zurückzukommen und ein neues Passwort zu setzen.',
+    phUsername: 'Benutzername', phRecoveryCode: 'Wiederherstellungscode', phNewPw: 'neues Passwort (min. 6)', resetLogin: 'Zurücksetzen & anmelden',
+    orEmailReset: 'Oder Link per E-Mail senden', phUserOrEmail: 'Benutzername oder E-Mail', backToLogin: '← Zurück zur Anmeldung',
+    signupIntro: 'Erstelle ein Konto, damit Freunde dich finden und du dich von jedem Gerät anmelden kannst.',
+    loginIntro: 'Melde dich an, um Freunde und Einladungen zu sehen.', phUsernameRules: 'Benutzername (3–16 Zeichen)',
+    phPassword: 'Passwort (min. 6)', phEmailOpt: 'E-Mail (optional — für Passwort-Reset)',
+    createAccount: 'Konto erstellen', forgotPw: 'Passwort vergessen?', playGuest: 'Als Gast spielen →',
+    saveRecovery: 'Speichere deinen Wiederherstellungscode',
+    recoveryExplain: 'Es gibt kein Zurücksetzen per E-Mail. Wenn du dein Passwort vergisst, ist dieser Code der einzige Weg zurück in dein Konto. Bewahre ihn sicher auf.',
+    copy: 'Kopieren', savedIt: 'Gespeichert',
+    signedInAs: 'Angemeldet als', logout: 'Abmelden', phAddEmail: 'E-Mail für Passwort-Reset hinzufügen', save: 'Speichern',
+    phAddFriend: 'Freund per Benutzername hinzufügen', add: 'Hinzufügen', requests: 'Anfragen', accept: 'Annehmen',
+    sentWaiting: 'Gesendet — wartend', friendsCount: 'Freunde ({n})', noFriends: 'Noch keine Freunde — füge jemanden per Benutzername hinzu.',
+    invite: 'Einladen', onlineInvite: 'Online-Freunde können direkt in deinen Raum eingeladen werden.',
+    cancelRequest: 'Anfrage abbrechen', unfriend: 'Entfernen', joinBtn: 'Beitreten', invitedYou: '{name} lädt dich ins Spiel ein',
+    leaderboardTitle: 'Bestenliste', loading: 'Lädt…', yourStats: 'Deine Statistik', statWins: 'Siege', statGames: 'Spiele',
+    statBestRound: 'beste Runde', statAccuracy: 'Genauigkeit', statRank: 'Rang',
+    accuracyExplain: 'Genauigkeit = Anteil deiner Zieh-/Tausch-Entscheidungen, die der beste Zug waren, gemessen an dem, was du damals wusstest.',
+    loginForLb: 'Melde dich an (👥), damit deine Spiele in der Bestenliste zählen.', topPlayers: 'Top-Spieler',
+    lbPlayer: 'Spieler', lbWins: 'Siege', lbAcc: 'Gen', noGames: 'Noch keine Spiele — sei der Erste!',
+    tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
+    tutTitle1: 'Willkommen bei Dutch',
+    tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
+    tutTitle2: 'Kartenwerte',
+    tutBody2: 'Zahlenkarten zählen ihren Wert. <strong>Ass = 1</strong>, <strong>Bube = 11</strong>, <strong>Dame = 12</strong>.<br/>Der Clou: ein <strong>roter König zählt 0</strong> (die beste Karte!), aber ein <strong>schwarzer König zählt 13</strong> (die schlechteste).',
+    tutTitle3: 'Blick zu Beginn',
+    tutBody3: 'Vor Spielbeginn wählt ein Spieler eine Zahl (0–4). Dann sieht sich jeder <strong>heimlich so viele eigene Karten</strong> an. Merke dir, welche und wo!',
+    tutTitle4: 'In deinem Zug',
+    tutBody4: 'Mache <strong>eines</strong> von zwei Dingen:<br/>• <strong>Tausche</strong> die offene Ablagekarte in deine Reihe — ersetze eine hohe Karte durch diese niedrigere, um Punkte zu senken.<br/>• <strong>Ziehe</strong> die oberste Stapelkarte auf die Ablage — vor allem um eine Machtkarte auszulösen.<br/>Dann beende deinen Zug.',
+    tutTitle5: 'Machtkarten',
+    tutBody5: 'Wenn ein <strong>B</strong>, eine <strong>D</strong> oder ein <strong>A</strong> offen liegt (gezogen oder aus deiner Reihe abgelegt), wirkt die Macht:<br/>• <strong>Bube</strong> — tausche blind zwei beliebige Karten auf dem Tisch.<br/>• <strong>Dame</strong> — sieh dir heimlich eine Karte an.<br/>• <strong>Ass</strong> — gib einem Spieler eine verdeckte Karte (erhöht dessen Punkte).',
+    tutTitle6: 'Ablegen',
+    tutBody6: 'Wenn du weißt, dass eine deiner verdeckten Karten den <strong>gleichen Rang</strong> wie die Ablage hat (z. B. zwei 7er oder zwei Könige), tippe <strong>Ablegen</strong> und wähle sie — nun hast du eine Karte weniger. Das geht <strong>auch außerhalb deines Zuges</strong>! Doch bei Fehlgriff ziehst du eine <strong>Strafkarte</strong>. Zu Zugbeginn wartet der Spieler ein paar Sekunden, damit alle ablegen können.',
+    tutTitle7: '„Dutch“ ansagen',
+    tutBody7: 'Glaubst du, die niedrigste Summe zu haben? Spiele deinen Zug und <strong>sag Dutch an</strong>. Alle anderen haben <strong>einen letzten Zug</strong>, dann werden alle Karten aufgedeckt und Punkte gezeigt. Niedrigste gewinnt — sag es an, wenn du sicher bist!',
+    tutTitle8: 'Du bist bereit!',
+    tutBody8: '<strong>Erstelle ein Spiel</strong> und teile den Code mit Freunden, <strong>füge Bots</strong> zum Üben hinzu, oder öffne das 👥-Menü, um einen Benutzernamen zu wählen und Freunde hinzuzufügen. Viel Spaß!',
+    tutTagBest: '0 — beste!', tutTag1: '1', tutTagWorst: '13 — schlechteste', tutTagSwap: 'tauschen', tutTagPeek: 'ansehen',
+    tutTagGive: 'geben', tutTagDiscard: 'Ablage', tutTagYourCard: 'deine Karte',
   },
   zh: {
     tagline: '分数最低者获胜。随时随地畅玩。',
@@ -135,13 +458,170 @@ const TRANSLATIONS = {
     leaveRoom: '离开房间', friends: '好友', chat: '聊天', chatEmpty: '还没有消息，打个招呼吧！',
     chatPlaceholder: '输入消息…', send: '发送', howToPlay: '玩法说明', yourTurn: '轮到你了',
     chooseLanguage: '选择你的语言', language: '语言',
+    enterName: '请先输入你的名字。', enterCode: '请输入房间码。',
+    roomCodeCopied: '房间码已复制！', inviteLinkCopied: '邀请链接已复制！',
+    recoveryCopied: '恢复码已复制！', playingGuest: '以访客身份游玩 — 在下方创建或加入游戏。',
+    enterUserPass: '请输入用户名和密码。', emailSaved: '邮箱已保存。',
+    youWon: '🏆 你赢了！（{n} 胜）', gameRecorded: '对局已记录（已玩 {n} 局）',
+    roomShare: '房间码 — 分享给好友', tapCopy: '点击房间码复制', copyInvite: '复制邀请链接',
+    addBotTitle: '添加机器人', houseRules: '房间规则', cardsEach: '每人手牌', matchWindowLbl: '配对窗口',
+    matchingLbl: '配对', turnLimitLbl: '回合时限', optOff: '关', optOn: '开',
+    needTwo: '至少需要 2 名玩家才能开始。', readyPlayers: '准备就绪 — {n} 名玩家',
+    waitingHost: '等待房主开始游戏…', hostTag: '房主', youTag: '你', removeBot: '移除机器人',
+    rulesSummary: '{cards} 张牌 · {win} 秒配对窗口 · 配对{matching} · {limit}',
+    turnLimitVal: '{n} 秒回合时限', noTurnLimit: '无回合时限',
+    diffEasy: '简单', diffMedium: '中等', diffMed: '中', diffHard: '困难', diffImpossible: '地狱',
+    choosePeek: '选择偷看的张数', isChoosing: '{name} 正在选择',
+    peekSub: '开始前，每位玩家将私下查看自己 {n} 张手牌中的这么多张。',
+    hangTight: '稍等…', donePeeking: '看好了',
+    drawLbl: '牌堆', discardLbl: '弃牌', yourHand: '你的手牌', yourHandDutch: '你的手牌 — 你喊了 Dutch',
+    roomTag: '房间 {code}',
+    matchingPick: '⏸ 配对中 — 选一张牌', playPaused: '游戏暂停',
+    xMatching: '⏸ {name} 正在配对', playPausedE: '游戏暂停…',
+    yourTurnPeek: '轮到你偷看', lookAtCards: '查看你的 {n} 张牌（已看 {done}/{n}）',
+    xPeeking: '{name} 正在查看手牌', everyoneHang: '其他人稍等…',
+    xTurn: '{name} 的回合', finalRound: '最后一轮！{name} 喊了 Dutch — 还剩 {n} 个回合',
+    jackSecondMsg: 'J：选择第二张牌', jackFirstMsg: 'J：选择要交换的第一张牌',
+    jackResolving: '正在结算 J…', queenPickMsg: 'Q：选择任意一张牌偷看', queenResolving: '正在结算 Q…',
+    aceChooseMsg: 'A：选择谁获得一张暗牌', aceResolving: '正在结算 A…',
+    endOrDutch: '结束你的回合 — 或喊 Dutch', xFinishing: '{name} 正在结束回合…',
+    waitingForX: '等待 {name}…', matchPrompt: '配对！点击你与弃牌（{card}）同点数的一张牌。配错 = 罚一张牌。',
+    cancel: '取消', xMatchingPaused: '⏸ {name} 正在配对 — 游戏暂停',
+    clickOwnCard: '点击上方你自己的一张牌。', youCanAct: '{n} 秒后可行动 — 现在任何人都可以配对弃牌。',
+    jackClickSecond: '点击要交换的第二张牌。', jackClickAny: '点击桌上任意一张牌开始盲换。',
+    queenClickAny: '点击桌上任意一张牌偷看。',
+    tagLeft: '已离开', tagTurn: '回合', tagOffline: '离线',
+    roundOver: '本轮结束', allRevealed: '所有牌已亮出', winner: '胜者', ptsUnit: '分',
+    waitingNewRound: '等待房主开始新一轮…', matchStandings: '总积分榜 · {n} 轮',
+    yourPeek: '你的偷看', queensPeek: 'Q 的偷看', gotIt: '知道了',
+    soundTip: '声音', leaderboardTip: '排行榜',
+    login: '登录', signup: '注册',
+    recoverIntro: '输入你的用户名和恢复码即可重新登录并设置新密码。',
+    phUsername: '用户名', phRecoveryCode: '恢复码', phNewPw: '新密码（至少 6 位）', resetLogin: '重置并登录',
+    orEmailReset: '或给我发送重置链接邮件', phUserOrEmail: '用户名或邮箱', backToLogin: '← 返回登录',
+    signupIntro: '创建账户，好友便能找到你，你也能在任意设备登录。',
+    loginIntro: '登录以查看好友和邀请。', phUsernameRules: '用户名（3–16 位字母/数字）',
+    phPassword: '密码（至少 6 位）', phEmailOpt: '邮箱（可选 — 用于重置密码）',
+    createAccount: '创建账户', forgotPw: '忘记密码？', playGuest: '以访客身份游玩 →',
+    saveRecovery: '保存你的恢复码',
+    recoveryExplain: '没有邮箱重置。如果你忘记密码，这个恢复码是找回账户的唯一方法。请妥善保管。',
+    copy: '复制', savedIt: '我已保存',
+    signedInAs: '已登录为', logout: '登出', phAddEmail: '添加邮箱以便重置密码', save: '保存',
+    phAddFriend: '按用户名添加好友', add: '添加', requests: '好友请求', accept: '接受',
+    sentWaiting: '已发送 — 等待中', friendsCount: '好友（{n}）', noFriends: '还没有好友 — 按用户名添加一个吧。',
+    invite: '邀请', onlineInvite: '在线好友可以直接被邀请进你的房间。',
+    cancelRequest: '取消请求', unfriend: '删除好友', joinBtn: '加入', invitedYou: '{name} 邀请你加入游戏',
+    leaderboardTitle: '排行榜', loading: '加载中…', yourStats: '你的战绩', statWins: '胜场', statGames: '总场次',
+    statBestRound: '最佳单轮', statAccuracy: '准确率', statRank: '排名',
+    accuracyExplain: '准确率 = 在你当时已知信息下，你的抽牌/交换决策中属于最佳选择的比例。',
+    loginForLb: '登录（👥）后你的对局才会计入排行榜。', topPlayers: '顶尖玩家',
+    lbPlayer: '玩家', lbWins: '胜场', lbAcc: '准确', noGames: '还没有对局 — 来当第一人吧！',
+    tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
+    tutTitle1: '欢迎来到 Dutch',
+    tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
+    tutTitle2: '牌的分值',
+    tutBody2: '数字牌按面值计分。<strong>A = 1</strong>，<strong>J = 11</strong>，<strong>Q = 12</strong>。<br/>特别之处：<strong>红色 K 为 0 分</strong>（全场最好的牌！），而<strong>黑色 K 为 13 分</strong>（最差）。',
+    tutTitle3: '开局偷看',
+    tutBody3: '开始前，一名玩家选一个数字（0–4）。然后每个人<strong>私下查看自己相应数量的牌</strong>。记住它们是什么、在哪里！',
+    tutTitle4: '轮到你时',
+    tutBody4: '在两件事中<strong>选一件</strong>：<br/>• <strong>交换</strong>：把正面朝上的弃牌换进你的一排 —— 用这张更小的牌替换掉大牌来降低分数。<br/>• <strong>抽牌</strong>：把牌堆顶的牌翻到弃牌堆 —— 主要用来触发能力牌。<br/>然后结束你的回合。',
+    tutTitle5: '能力牌',
+    tutBody5: '当一张 <strong>J</strong>、<strong>Q</strong> 或 <strong>A</strong> 正面朝上（你翻出的，或从你一排弃出的）时，其能力触发：<br/>• <strong>J</strong> —— 盲换桌上任意两张牌。<br/>• <strong>Q</strong> —— 秘密偷看任意一张牌。<br/>• <strong>A</strong> —— 给任意玩家一张暗牌（抬高其分数）。',
+    tutTitle6: '配对',
+    tutBody6: '如果你知道自己某张暗牌与弃牌堆顶牌<strong>点数相同</strong>（例如两张 7，或两张 K），点击<strong>配对</strong>并选中它打出 —— 这样你就少一张牌。<strong>即使不是你的回合也可以这么做</strong>！但猜错就要<strong>罚抽一张牌</strong>。每回合开始时，当前玩家会先等待几秒，让所有人都有机会配对。',
+    tutTitle7: '喊“Dutch”',
+    tutBody7: '觉得自己的总分最低了吗？先走完你的回合，然后<strong>喊 Dutch</strong>。其他人各有<strong>最后一个回合</strong>，随后所有牌亮出、公布分数。最低分获胜 —— 有把握时再喊！',
+    tutTitle8: '你准备好了！',
+    tutBody8: '<strong>创建一局游戏</strong>并把房间码分享给好友，<strong>添加机器人</strong>来练习，或打开 👥 菜单注册用户名并添加好友。玩得开心！',
+    tutTagBest: '0 — 最好！', tutTag1: '1', tutTagWorst: '13 — 最差', tutTagSwap: '交换', tutTagPeek: '偷看',
+    tutTagGive: '给牌', tutTagDiscard: '弃牌', tutTagYourCard: '你的牌',
   },
+};
+// Event-log templates (server sends structured {code, ...params}; the client localizes).
+const LOGT = {
+  en: {
+    reshuffle: 'Draw pile was empty — reshuffled the discard pile.',
+    matching: '{name} is matching — play paused.', flip: '{name} flipped {card}.',
+    matched: '{name} matched {card} and dropped a card!',
+    wrongMatch: '{name} tried to match {card} — wrong! Drew a penalty card.',
+    swap: '{name} swapped in {card}, discarded {old}.', dutch: '{name} called Dutch!',
+    jack: '{name} used the Jack to blind-swap two cards.',
+    queen: "{name} used the Queen to peek at {target}'s card.",
+    noGive: 'No cards left to give.', ace: '{name} used the Ace to give {target} a card.',
+    matchExpired: 'Match window expired — play resumes.', autoplay: '{name} was {reason} — auto-playing their turn.',
+  },
+  es: {
+    reshuffle: 'El mazo estaba vacío — se rebarajó el descarte.',
+    matching: '{name} está emparejando — juego en pausa.', flip: '{name} robó {card}.',
+    matched: '¡{name} emparejó {card} y soltó una carta!',
+    wrongMatch: '{name} intentó emparejar {card} — ¡mal! Roba una carta de penalización.',
+    swap: '{name} cambió por {card} y descartó {old}.', dutch: '¡{name} cantó Dutch!',
+    jack: '{name} usó la Jota para cambiar dos cartas a ciegas.',
+    queen: '{name} usó la Reina para mirar la carta de {target}.',
+    noGive: 'No quedan cartas para dar.', ace: '{name} usó el As para dar una carta a {target}.',
+    matchExpired: 'La ventana de emparejado terminó — se reanuda el juego.', autoplay: '{name} estaba {reason} — se juega su turno automáticamente.',
+  },
+  fr: {
+    reshuffle: 'La pioche était vide — la défausse a été remélangée.',
+    matching: '{name} associe — jeu en pause.', flip: '{name} a pioché {card}.',
+    matched: '{name} a associé {card} et posé une carte !',
+    wrongMatch: "{name} a tenté d'associer {card} — raté ! Pioche une carte de pénalité.",
+    swap: '{name} a échangé pour {card} et défaussé {old}.', dutch: '{name} a annoncé Dutch !',
+    jack: "{name} a utilisé le Valet pour échanger deux cartes à l'aveugle.",
+    queen: '{name} a utilisé la Dame pour regarder la carte de {target}.',
+    noGive: 'Plus de cartes à donner.', ace: "{name} a utilisé l'As pour donner une carte à {target}.",
+    matchExpired: "La fenêtre d'association est terminée — le jeu reprend.", autoplay: '{name} était {reason} — son tour est joué automatiquement.',
+  },
+  de: {
+    reshuffle: 'Der Stapel war leer — die Ablage wurde neu gemischt.',
+    matching: '{name} legt ab — Spiel pausiert.', flip: '{name} zog {card}.',
+    matched: '{name} legte {card} ab und wurde eine Karte los!',
+    wrongMatch: '{name} wollte {card} ablegen — falsch! Zieht eine Strafkarte.',
+    swap: '{name} tauschte {card} ein und legte {old} ab.', dutch: '{name} hat Dutch angesagt!',
+    jack: '{name} nutzte den Buben für einen Blindtausch zweier Karten.',
+    queen: '{name} nutzte die Dame, um die Karte von {target} anzusehen.',
+    noGive: 'Keine Karten mehr zum Geben.', ace: '{name} nutzte das Ass, um {target} eine Karte zu geben.',
+    matchExpired: 'Das Ablege-Fenster ist abgelaufen — das Spiel geht weiter.', autoplay: '{name} war {reason} — der Zug wird automatisch gespielt.',
+  },
+  zh: {
+    reshuffle: '牌堆已空 —— 重新洗入弃牌堆。',
+    matching: '{name} 正在配对 —— 游戏暂停。', flip: '{name} 抽到了 {card}。',
+    matched: '{name} 用 {card} 配对成功，打出一张牌！',
+    wrongMatch: '{name} 尝试用 {card} 配对 —— 配错了！罚抽一张牌。',
+    swap: '{name} 换入 {card}，弃掉 {old}。', dutch: '{name} 喊了 Dutch！',
+    jack: '{name} 使用 J 盲换了两张牌。',
+    queen: '{name} 使用 Q 偷看了 {target} 的一张牌。',
+    noGive: '没有牌可以给了。', ace: '{name} 使用 A 给了 {target} 一张牌。',
+    matchExpired: '配对窗口已结束 —— 游戏继续。', autoplay: '{name} {reason} —— 自动完成其回合。',
+  },
+};
+const REASONS = {
+  en: { stuck: 'stuck', disconnected: 'disconnected', idle: 'idle' },
+  es: { stuck: 'atascado', disconnected: 'desconectado', idle: 'inactivo' },
+  fr: { stuck: 'bloqué', disconnected: 'déconnecté', idle: 'inactif' },
+  de: { stuck: 'hängen geblieben', disconnected: 'getrennt', idle: 'untätig' },
+  zh: { stuck: '卡住', disconnected: '掉线', idle: '挂机' },
 };
 function loadLang() { try { return localStorage.getItem('dutchLang') || ''; } catch (e) { return ''; } }
 function saveLang(l) { try { localStorage.setItem('dutchLang', l); } catch (e) {} }
 let lang = loadLang() || 'en';
-function t(key) {
-  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+function t(key, params) {
+  let s = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+  if (params) for (const k in params) s = s.split('{' + k + '}').join(params[k]);
+  return s;
+}
+function formatLog(entry) {
+  if (typeof entry === 'string') return escapeHtml(entry); // backward-compat with any old string entries
+  const set = LOGT[lang] || LOGT.en;
+  let tmpl = set[entry.code] || LOGT.en[entry.code] || entry.code;
+  const rset = REASONS[lang] || REASONS.en;
+  const rep = {
+    name: escapeHtml(entry.name || ''), card: escapeHtml(entry.card || ''),
+    old: escapeHtml(entry.old || ''), target: escapeHtml(entry.target || ''),
+    reason: escapeHtml((entry.reason && (rset[entry.reason] || entry.reason)) || ''),
+  };
+  for (const k in rep) tmpl = tmpl.split('{' + k + '}').join(rep[k]);
+  return tmpl;
 }
 function setLanguage(code) {
   lang = code;
@@ -298,7 +778,7 @@ function handleServerMessage(data) {
     const prof = loadProfile();
     if (prof) { prof.email = data.email || null; saveProfile(prof); }
   } else if (data.type === 'statsUpdate') {
-    showToast(data.won ? `🏆 You won! (${data.stats.wins} wins)` : `Game recorded (${data.stats.games} played)`);
+    showToast(data.won ? t('youWon', { n: data.stats.wins }) : t('gameRecorded', { n: data.stats.games }));
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
     if (leaderboardOpen) renderLeaderboardRoot();
@@ -386,12 +866,12 @@ function showToast(message, isError) {
 function showRevealModal(data) {
   const root = document.getElementById('modal-root');
   root.innerHTML = '';
-  const title = data.context === 'peek' ? 'Your Peek' : 'Queen’s Peek';
+  const title = data.context === 'peek' ? t('yourPeek') : t('queensPeek');
   const box = el(`<div class="overlay">
     <div class="overlay-box">
-      <h2>${title}</h2>
+      <h2>${escapeHtml(title)}</h2>
       <div class="big-card-wrap"></div>
-      <button class="btn-blue" id="reveal-close-btn">Got it</button>
+      <button class="btn-blue" id="reveal-close-btn">${escapeHtml(t('gotIt'))}</button>
     </div>
   </div>`);
   const wrap = box.querySelector('.big-card-wrap');
@@ -407,20 +887,20 @@ function showRevealModal(data) {
 function showInviteToast(fromUsername, code) {
   if (latestState && latestState.code === code) return; // already in that room
   const root = document.getElementById('toast-root');
-  const t = el(`<div class="toast invite">
-    <span>${escapeHtml(fromUsername)} invited you to game <strong>${escapeHtml(code)}</strong></span>
-    <button class="btn-gold" id="inv-join">Join</button>
+  const toast = el(`<div class="toast invite">
+    <span>${escapeHtml(t('invitedYou', { name: fromUsername }))} <strong>${escapeHtml(code)}</strong></span>
+    <button class="btn-gold" id="inv-join">${escapeHtml(t('joinBtn'))}</button>
     <button class="btn-ghost" id="inv-close">✕</button>
   </div>`);
-  t.querySelector('#inv-join').onclick = () => {
+  toast.querySelector('#inv-join').onclick = () => {
     const prof = loadProfile();
     clearSession();
     sendMsg({ type: 'joinRoom', name: (prof && prof.username) || 'Player', code });
-    t.remove();
+    toast.remove();
   };
-  t.querySelector('#inv-close').onclick = () => t.remove();
-  root.appendChild(t);
-  setTimeout(() => t.remove(), 60000);
+  toast.querySelector('#inv-close').onclick = () => toast.remove();
+  root.appendChild(toast);
+  setTimeout(() => toast.remove(), 60000);
 }
 
 function friendsFab() {
@@ -431,7 +911,7 @@ function friendsFab() {
 }
 
 function chatFab() {
-  const fab = el(`<button class="chat-fab" title="Chat">💬${chatUnread ? `<span class="fab-badge">${chatUnread}</span>` : ''}</button>`);
+  const fab = el(`<button class="chat-fab" title="${escapeHtml(t('chat'))}">💬${chatUnread ? `<span class="fab-badge">${chatUnread}</span>` : ''}</button>`);
   fab.onclick = () => {
     chatOpen = !chatOpen;
     if (chatOpen) { chatUnread = 0; friendsPanelOpen = false; leaderboardOpen = false; }
@@ -492,16 +972,16 @@ function showRecoveryModal(code) {
   root.innerHTML = '';
   const box = el(`<div class="overlay" style="z-index:100;">
     <div class="overlay-box">
-      <h2>Save your recovery code</h2>
-      <p class="help-text">There's no email reset. If you ever forget your password, this code is the only way back into your account. Keep it somewhere safe.</p>
+      <h2>${escapeHtml(t('saveRecovery'))}</h2>
+      <p class="help-text">${escapeHtml(t('recoveryExplain'))}</p>
       <div class="recovery-code" id="rec-code">${escapeHtml(code)}</div>
       <div class="row center" style="gap:10px; margin-top:16px;">
-        <button class="btn-ghost" id="rec-copy">Copy</button>
-        <button class="btn-gold" id="rec-done">I've saved it</button>
+        <button class="btn-ghost" id="rec-copy">${escapeHtml(t('copy'))}</button>
+        <button class="btn-gold" id="rec-done">${escapeHtml(t('savedIt'))}</button>
       </div>
     </div>
   </div>`);
-  box.querySelector('#rec-copy').onclick = () => navigator.clipboard?.writeText(code).then(() => showToast('Recovery code copied!'));
+  box.querySelector('#rec-copy').onclick = () => navigator.clipboard?.writeText(code).then(() => showToast(t('recoveryCopied')));
   box.querySelector('#rec-done').onclick = () => { root.innerHTML = ''; };
   root.appendChild(box);
 }
@@ -509,21 +989,21 @@ function showRecoveryModal(code) {
 function renderAuthForm() {
   const wrap = el(`<div class="col"></div>`);
   const tabs = el(`<div class="auth-tabs">
-    <button class="auth-tab ${authTab === 'login' ? 'on' : ''}" data-tab="login">Log in</button>
-    <button class="auth-tab ${authTab === 'signup' ? 'on' : ''}" data-tab="signup">Sign up</button>
+    <button class="auth-tab ${authTab === 'login' ? 'on' : ''}" data-tab="login">${escapeHtml(t('login'))}</button>
+    <button class="auth-tab ${authTab === 'signup' ? 'on' : ''}" data-tab="signup">${escapeHtml(t('signup'))}</button>
   </div>`);
-  tabs.querySelectorAll('.auth-tab').forEach((t) => {
-    t.onclick = () => { authTab = t.dataset.tab; refreshFriendsPanel(); };
+  tabs.querySelectorAll('.auth-tab').forEach((tab) => {
+    tab.onclick = () => { authTab = tab.dataset.tab; refreshFriendsPanel(); };
   });
   wrap.appendChild(tabs);
 
   if (authTab === 'recover') {
-    wrap.appendChild(el(`<p class="help-text">Enter your username and recovery code to get back in and set a new password.</p>`));
+    wrap.appendChild(el(`<p class="help-text">${escapeHtml(t('recoverIntro'))}</p>`));
     const form = el(`<div class="col">
-      <input type="text" id="auth-user" placeholder="username" maxlength="16" autocomplete="username" />
-      <input type="text" id="auth-code" placeholder="recovery code" autocomplete="off" />
-      <input type="password" id="auth-newpw" placeholder="new password (min 6)" autocomplete="new-password" />
-      <button class="btn-gold" id="auth-submit">Reset & log in</button>
+      <input type="text" id="auth-user" placeholder="${escapeHtml(t('phUsername'))}" maxlength="16" autocomplete="username" />
+      <input type="text" id="auth-code" placeholder="${escapeHtml(t('phRecoveryCode'))}" autocomplete="off" />
+      <input type="password" id="auth-newpw" placeholder="${escapeHtml(t('phNewPw'))}" autocomplete="new-password" />
+      <button class="btn-gold" id="auth-submit">${escapeHtml(t('resetLogin'))}</button>
     </div>`);
     form.querySelector('#auth-submit').onclick = () => {
       const u = form.querySelector('#auth-user').value.trim();
@@ -533,10 +1013,10 @@ function renderAuthForm() {
     };
     wrap.appendChild(form);
 
-    wrap.appendChild(el(`<div class="section-label">Or email me a reset link</div>`));
+    wrap.appendChild(el(`<div class="section-label">${escapeHtml(t('orEmailReset'))}</div>`));
     const emForm = el(`<div class="row">
-      <input type="text" id="reset-ident" class="grow" placeholder="username or email" autocomplete="off" />
-      <button class="btn-blue" id="reset-send">Send</button>
+      <input type="text" id="reset-ident" class="grow" placeholder="${escapeHtml(t('phUserOrEmail'))}" autocomplete="off" />
+      <button class="btn-blue" id="reset-send">${escapeHtml(t('send'))}</button>
     </div>`);
     emForm.querySelector('#reset-send').onclick = () => {
       const v = emForm.querySelector('#reset-ident').value.trim();
@@ -544,27 +1024,25 @@ function renderAuthForm() {
     };
     wrap.appendChild(emForm);
 
-    const back = el(`<button class="btn-ghost" style="background:transparent;">← Back to log in</button>`);
+    const back = el(`<button class="btn-ghost" style="background:transparent;">${escapeHtml(t('backToLogin'))}</button>`);
     back.onclick = () => { authTab = 'login'; refreshFriendsPanel(); };
     wrap.appendChild(back);
     return wrap;
   }
 
   const isSignup = authTab === 'signup';
-  wrap.appendChild(el(`<p class="help-text">${isSignup
-    ? 'Create an account so friends can find you and you can log in from any device.'
-    : 'Log in to see your friends and invites.'}</p>`));
+  wrap.appendChild(el(`<p class="help-text">${escapeHtml(isSignup ? t('signupIntro') : t('loginIntro'))}</p>`));
   const form = el(`<div class="col">
-    <input type="text" id="auth-user" placeholder="username (3–16 letters/numbers)" maxlength="16" autocomplete="username" />
-    <input type="password" id="auth-pw" placeholder="password (min 6)" autocomplete="${isSignup ? 'new-password' : 'current-password'}" />
-    ${isSignup ? '<input type="email" id="auth-email" placeholder="email (optional — for password resets)" autocomplete="email" />' : ''}
-    <button class="btn-gold" id="auth-submit">${isSignup ? 'Create account' : 'Log in'}</button>
-    ${isSignup ? '' : '<button class="btn-ghost" id="auth-forgot" style="background:transparent;">Forgot password?</button>'}
+    <input type="text" id="auth-user" placeholder="${escapeHtml(t('phUsernameRules'))}" maxlength="16" autocomplete="username" />
+    <input type="password" id="auth-pw" placeholder="${escapeHtml(t('phPassword'))}" autocomplete="${isSignup ? 'new-password' : 'current-password'}" />
+    ${isSignup ? `<input type="email" id="auth-email" placeholder="${escapeHtml(t('phEmailOpt'))}" autocomplete="email" />` : ''}
+    <button class="btn-gold" id="auth-submit">${escapeHtml(isSignup ? t('createAccount') : t('login'))}</button>
+    ${isSignup ? '' : `<button class="btn-ghost" id="auth-forgot" style="background:transparent;">${escapeHtml(t('forgotPw'))}</button>`}
   </div>`);
   form.querySelector('#auth-submit').onclick = () => {
     const u = form.querySelector('#auth-user').value.trim();
     const pw = form.querySelector('#auth-pw').value;
-    if (!u || !pw) { showToast('Enter a username and password.', true); return; }
+    if (!u || !pw) { showToast(t('enterUserPass'), true); return; }
     const msg = { type: isSignup ? 'signup' : 'login', username: u, password: pw };
     if (isSignup) { const em = form.querySelector('#auth-email').value.trim(); if (em) msg.email = em; msg.lang = lang; }
     sendMsg(msg);
@@ -576,8 +1054,8 @@ function renderAuthForm() {
   });
   wrap.appendChild(form);
 
-  const guest = el(`<button class="btn-ghost" style="background:transparent; margin-top:4px;">Play as guest →</button>`);
-  guest.onclick = () => { friendsPanelOpen = false; refreshFriendsPanel(); showToast('Playing as guest — create or join a game below.'); };
+  const guest = el(`<button class="btn-ghost" style="background:transparent; margin-top:4px;">${escapeHtml(t('playGuest'))}</button>`);
+  guest.onclick = () => { friendsPanelOpen = false; refreshFriendsPanel(); showToast(t('playingGuest')); };
   wrap.appendChild(guest);
   return wrap;
 }
@@ -589,7 +1067,7 @@ function renderFriendsPanel() {
   const drawer = el(`<div class="friends-drawer"></div>`);
   overlay.appendChild(drawer);
 
-  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">Friends</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">${escapeHtml(t('friends'))}</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
   header.querySelector('button').onclick = () => { friendsPanelOpen = false; refreshFriendsPanel(); };
   drawer.appendChild(header);
 
@@ -599,8 +1077,8 @@ function renderFriendsPanel() {
   }
 
   const signedRow = el(`<div class="row between" style="align-items:center;">
-    <div class="help-text">Signed in as <strong style="color:var(--ink);">${escapeHtml(prof.username)}</strong></div>
-    <button class="btn-ghost" style="padding:6px 12px;">Log out</button>
+    <div class="help-text">${escapeHtml(t('signedInAs'))} <strong style="color:var(--ink);">${escapeHtml(prof.username)}</strong></div>
+    <button class="btn-ghost" style="padding:6px 12px;">${escapeHtml(t('logout'))}</button>
   </div>`);
   signedRow.querySelector('button').onclick = () => {
     const p = loadProfile();
@@ -612,8 +1090,8 @@ function renderFriendsPanel() {
 
   // Email — enables "email me a reset link"
   const emailRow = el(`<div class="row">
-    <input type="email" id="acct-email" class="grow" placeholder="add email for password resets" value="${escapeHtml(prof.email || '')}" autocomplete="email" />
-    <button class="btn-ghost" id="acct-email-save" style="padding:8px 12px;">Save</button>
+    <input type="email" id="acct-email" class="grow" placeholder="${escapeHtml(t('phAddEmail'))}" value="${escapeHtml(prof.email || '')}" autocomplete="email" />
+    <button class="btn-ghost" id="acct-email-save" style="padding:8px 12px;">${escapeHtml(t('save'))}</button>
   </div>`);
   emailRow.querySelector('#acct-email-save').onclick = () => {
     sendMsg({ type: 'setEmail', email: emailRow.querySelector('#acct-email').value.trim() });
@@ -621,8 +1099,8 @@ function renderFriendsPanel() {
   drawer.appendChild(emailRow);
 
   const addForm = el(`<div class="row">
-    <input type="text" id="add-friend-input" class="grow" placeholder="Add friend by username" maxlength="16" autocomplete="off" />
-    <button class="btn-blue" id="add-friend-btn">Add</button>
+    <input type="text" id="add-friend-input" class="grow" placeholder="${escapeHtml(t('phAddFriend'))}" maxlength="16" autocomplete="off" />
+    <button class="btn-blue" id="add-friend-btn">${escapeHtml(t('add'))}</button>
   </div>`);
   addForm.querySelector('#add-friend-btn').onclick = () => {
     const name = addForm.querySelector('#add-friend-input').value.trim();
@@ -636,11 +1114,11 @@ function renderFriendsPanel() {
   const fs = friendsState || { friends: [], incoming: [], outgoing: [] };
 
   if (fs.incoming.length) {
-    drawer.appendChild(el(`<div class="section-label">Requests</div>`));
+    drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('requests'))}</div>`));
     fs.incoming.forEach((u) => {
       const row = el(`<div class="friend-row">
         <span class="grow">${escapeHtml(u.username)}</span>
-        <button class="btn-gold" style="padding:6px 12px;">Accept</button>
+        <button class="btn-gold" style="padding:6px 12px;">${escapeHtml(t('accept'))}</button>
         <button class="btn-ghost" style="padding:6px 10px;">✕</button>
       </div>`);
       const [acceptBtn, declineBtn] = row.querySelectorAll('button');
@@ -651,28 +1129,28 @@ function renderFriendsPanel() {
   }
 
   if (fs.outgoing.length) {
-    drawer.appendChild(el(`<div class="section-label">Sent — waiting</div>`));
+    drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('sentWaiting'))}</div>`));
     fs.outgoing.forEach((u) => {
       const row = el(`<div class="friend-row">
         <span class="grow">${escapeHtml(u.username)}</span>
-        <button class="btn-ghost" style="padding:6px 10px;" title="Cancel request">✕</button>
+        <button class="btn-ghost" style="padding:6px 10px;" title="${escapeHtml(t('cancelRequest'))}">✕</button>
       </div>`);
       row.querySelector('button').onclick = () => sendMsg({ type: 'friendRemove', userId: u.id });
       drawer.appendChild(row);
     });
   }
 
-  drawer.appendChild(el(`<div class="section-label">Friends (${fs.friends.length})</div>`));
+  drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('friendsCount', { n: fs.friends.length }))}</div>`));
   if (!fs.friends.length) {
-    drawer.appendChild(el(`<div class="help-text">No friends yet — add someone by their username.</div>`));
+    drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('noFriends'))}</div>`));
   }
   const canInvite = latestState && latestState.phase === 'lobby';
   fs.friends.forEach((u) => {
     const row = el(`<div class="friend-row">
       <span class="online-dot ${u.online ? '' : 'off'}"></span>
       <span class="grow">${escapeHtml(u.username)}</span>
-      ${canInvite && u.online ? '<button class="btn-blue" style="padding:6px 12px;">Invite</button>' : ''}
-      <button class="btn-ghost" style="padding:6px 10px;" title="Unfriend">✕</button>
+      ${canInvite && u.online ? `<button class="btn-blue" style="padding:6px 12px;">${escapeHtml(t('invite'))}</button>` : ''}
+      <button class="btn-ghost" style="padding:6px 10px;" title="${escapeHtml(t('unfriend'))}">✕</button>
     </div>`);
     const btns = row.querySelectorAll('button');
     if (canInvite && u.online) {
@@ -685,7 +1163,7 @@ function renderFriendsPanel() {
   });
 
   if (canInvite) {
-    drawer.appendChild(el(`<div class="help-text">Online friends can be invited straight into your lobby.</div>`));
+    drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('onlineInvite'))}</div>`));
   }
 
   return overlay;
@@ -706,7 +1184,7 @@ function langFab() {
 }
 
 function soundFab() {
-  const fab = el(`<button class="sound-fab" title="Sound">${sound.enabled ? '🔊' : '🔇'}</button>`);
+  const fab = el(`<button class="sound-fab" title="${escapeHtml(t('soundTip'))}">${sound.enabled ? '🔊' : '🔇'}</button>`);
   fab.onclick = () => {
     sound.setEnabled(!sound.enabled);
     if (sound.enabled) { sound.unlock(); sound.play('turn'); }
@@ -718,7 +1196,7 @@ function soundFab() {
 /* ---------- Leaderboard ---------- */
 
 function leaderboardFab() {
-  const fab = el(`<button class="lb-fab" title="Leaderboard">🏆</button>`);
+  const fab = el(`<button class="lb-fab" title="${escapeHtml(t('leaderboardTip'))}">🏆</button>`);
   fab.onclick = () => { leaderboardOpen = true; friendsPanelOpen = false; chatOpen = false; leaderboardData = null; sendMsg({ type: 'getLeaderboard' }); refreshFriendsPanel(); };
   return fab;
 }
@@ -731,12 +1209,12 @@ function renderLeaderboard() {
   const drawer = el(`<div class="friends-drawer"></div>`);
   overlay.appendChild(drawer);
 
-  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">🏆 Leaderboard</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">🏆 ${escapeHtml(t('leaderboardTitle'))}</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
   header.querySelector('button').onclick = () => { leaderboardOpen = false; renderLeaderboardRoot(); };
   drawer.appendChild(header);
 
   if (!leaderboardData) {
-    drawer.appendChild(el(`<div class="help-text">Loading…</div>`));
+    drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('loading'))}</div>`));
     return overlay;
   }
 
@@ -744,25 +1222,25 @@ function renderLeaderboard() {
   if (leaderboardData.myStats && leaderboardData.myUsername) {
     const s = leaderboardData.myStats;
     drawer.appendChild(el(`<div class="my-stats">
-      <div class="section-label">Your stats</div>
+      <div class="section-label">${escapeHtml(t('yourStats'))}</div>
       <div class="row wrap" style="gap:14px; margin-top:6px;">
-        <span><strong>${s.wins}</strong> wins</span>
-        <span><strong>${s.games}</strong> games</span>
-        <span>best round <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
-        <span>accuracy <strong>${s.accuracy == null ? '—' : s.accuracy + '%'}</strong></span>
-        ${s.rank ? `<span>rank <strong>#${s.rank}</strong></span>` : ''}
+        <span><strong>${s.wins}</strong> ${escapeHtml(t('statWins'))}</span>
+        <span><strong>${s.games}</strong> ${escapeHtml(t('statGames'))}</span>
+        <span>${escapeHtml(t('statBestRound'))} <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
+        <span>${escapeHtml(t('statAccuracy'))} <strong>${s.accuracy == null ? '—' : s.accuracy + '%'}</strong></span>
+        ${s.rank ? `<span>${escapeHtml(t('statRank'))} <strong>#${s.rank}</strong></span>` : ''}
       </div>
-      <div class="help-text" style="margin-top:8px;">Accuracy = share of your draw/swap decisions that were the best move given what you knew at the time.</div>
+      <div class="help-text" style="margin-top:8px;">${escapeHtml(t('accuracyExplain'))}</div>
     </div>`));
   } else {
-    drawer.appendChild(el(`<div class="help-text">Log in (👥) to have your games counted on the leaderboard.</div>`));
+    drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('loginForLb'))}</div>`));
   }
 
-  drawer.appendChild(el(`<div class="section-label">Top players</div>`));
+  drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('topPlayers'))}</div>`));
   const table = el(`<div class="lb-table"></div>`);
-  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">Player</span><span class="lb-num">Wins</span><span class="lb-num">Acc</span></div>`));
+  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num">${escapeHtml(t('lbWins'))}</span><span class="lb-num">${escapeHtml(t('lbAcc'))}</span></div>`));
   if (!board.length) {
-    table.appendChild(el(`<div class="help-text" style="padding:10px;">No games played yet — be the first!</div>`));
+    table.appendChild(el(`<div class="help-text" style="padding:10px;">${escapeHtml(t('noGames'))}</div>`));
   }
   board.forEach((r, i) => {
     const mine = leaderboardData.myUsername && r.username === leaderboardData.myUsername;
@@ -805,32 +1283,29 @@ function tutorialIllus(items, size) {
 
 const TUTORIAL_PAGES = [
   {
-    title: 'Welcome to Dutch',
+    titleKey: 'tutTitle1',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(tutorialIllus(['back', 'back', 'back', 'back'], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">Everyone gets a row of face-down cards. The goal is simple: have the <strong>lowest total score</strong> when someone calls “Dutch”. Low cards good, high cards bad — and memory matters.</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody1')}</div>`));
       return box;
     },
   },
   {
-    title: 'What cards are worth',
+    titleKey: 'tutTitle2',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(tutorialIllus([
-        { card: { rank: 'K', suit: 'H' }, tag: '0 — best!', tagClass: 'good' },
-        { card: { rank: 'A', suit: 'S' }, tag: '1' },
-        { card: { rank: 'K', suit: 'S' }, tag: '13 — worst', tagClass: 'bad' },
+        { card: { rank: 'K', suit: 'H' }, tag: t('tutTagBest'), tagClass: 'good' },
+        { card: { rank: 'A', suit: 'S' }, tag: t('tutTag1') },
+        { card: { rank: 'K', suit: 'S' }, tag: t('tutTagWorst'), tagClass: 'bad' },
       ], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">
-        Number cards are worth their face value. <strong>Ace = 1</strong>, <strong>Jack = 11</strong>, <strong>Queen = 12</strong>.<br/>
-        The twist: a <strong>red King is 0</strong> (the best card in the game!), but a <strong>black King is 13</strong> (the worst).
-      </div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody2')}</div>`));
       return box;
     },
   },
   {
-    title: 'Peek at the start',
+    titleKey: 'tutTitle3',
     build: () => {
       const box = el(`<div></div>`);
       const row = el(`<div class="tutorial-illus"></div>`);
@@ -839,69 +1314,63 @@ const TUTORIAL_PAGES = [
       row.appendChild(cardBack('size-md'));
       row.appendChild(cardBack('size-md'));
       box.appendChild(row);
-      box.appendChild(el(`<div class="tutorial-body">Before play begins, one player picks a number (0–4). Everyone then <strong>secretly looks at that many of their own cards</strong>. Try to remember what and where they are!</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody3')}</div>`));
       return box;
     },
   },
   {
-    title: 'On your turn',
+    titleKey: 'tutTitle4',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(tutorialIllus([
         { card: { rank: 'K', suit: 'D' } },
       ], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">Do <strong>one</strong> of two things:<br/>
-        • <strong>Swap</strong> the face-up discard card into your row — replace a high card with this lower one to cut your score.<br/>
-        • <strong>Flip</strong> the top of the draw pile onto the discard — mainly to trigger a power card.<br/>
-        Then end your turn.</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody4')}</div>`));
       return box;
     },
   },
   {
-    title: 'Power cards',
+    titleKey: 'tutTitle5',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(tutorialIllus([
-        { card: { rank: 'J', suit: 'S' }, tag: 'swap' },
-        { card: { rank: 'Q', suit: 'H' }, tag: 'peek' },
-        { card: { rank: 'A', suit: 'C' }, tag: 'give' },
+        { card: { rank: 'J', suit: 'S' }, tag: t('tutTagSwap') },
+        { card: { rank: 'Q', suit: 'H' }, tag: t('tutTagPeek') },
+        { card: { rank: 'A', suit: 'C' }, tag: t('tutTagGive') },
       ], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">When a <strong>J</strong>, <strong>Q</strong>, or <strong>A</strong> lands face-up (you flipped it, or discarded it from your row) its power fires:<br/>
-        • <strong>Jack</strong> — blind-swap any two cards on the table.<br/>
-        • <strong>Queen</strong> — secretly peek at any one card.<br/>
-        • <strong>Ace</strong> — give a face-down card to any player (raising their score).</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody5')}</div>`));
       return box;
     },
   },
   {
-    title: 'Matching',
+    titleKey: 'tutTitle6',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(tutorialIllus([
-        { card: { rank: '7', suit: 'H' }, tag: 'discard' },
+        { card: { rank: '7', suit: 'H' }, tag: t('tutTagDiscard') },
         { gap: true },
-        { card: { rank: '7', suit: 'S' }, tag: 'your card' },
+        { card: { rank: '7', suit: 'S' }, tag: t('tutTagYourCard') },
       ], 'size-md'));
-      box.appendChild(el(`<div class="tutorial-body">If you know one of your face-down cards has the <strong>same rank</strong> as the discard-pile card (e.g. any two 7s, or two Kings), tap <strong>Match</strong> and pick it to drop it — now you have one fewer card. You can do this <strong>even when it isn't your turn</strong>! But guess wrong and you draw a <strong>penalty card</strong>. When a turn begins, the player waits a couple seconds first, so everyone gets a chance to match.</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody6')}</div>`));
       return box;
     },
   },
   {
-    title: 'Calling “Dutch”',
+    titleKey: 'tutTitle7',
     build: () => {
       const box = el(`<div></div>`);
-      const chip = el(`<div class="tutorial-illus"><span class="tutorial-dutch-chip">Call Dutch</span></div>`);
+      const chip = el(`<div class="tutorial-illus"><span class="tutorial-dutch-chip">${escapeHtml(t('callDutch'))}</span></div>`);
       box.appendChild(chip);
-      box.appendChild(el(`<div class="tutorial-body">Think you have the lowest total? Take your turn, then <strong>call Dutch</strong>. Everyone else gets <strong>one final turn</strong>, then all cards flip up and scores are revealed. Lowest wins — so call it when you're confident!</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody7')}</div>`));
       return box;
     },
   },
   {
-    title: "You're ready!",
+    titleKey: 'tutTitle8',
     build: () => {
       const box = el(`<div></div>`);
       box.appendChild(el(`<div class="tutorial-illus" style="font-size:2.4rem;">♠ ♥ ♣ ♦</div>`));
-      box.appendChild(el(`<div class="tutorial-body"><strong>Create a game</strong> and share the code with friends, <strong>add bots</strong> to practice against, or open the 👥 menu to claim a username and add friends. Have fun!</div>`));
+      box.appendChild(el(`<div class="tutorial-body">${t('tutBody8')}</div>`));
       return box;
     },
   },
@@ -917,11 +1386,11 @@ function renderTutorialRoot() {
   overlay.onclick = (e) => { if (e.target === overlay) closeTutorial(); };
 
   const box = el(`<div class="tutorial-box"></div>`);
-  const skip = el(`<button class="tutorial-skip" title="Close">✕</button>`);
+  const skip = el(`<button class="tutorial-skip" title="${escapeHtml(t('tutClose'))}">✕</button>`);
   skip.onclick = () => closeTutorial();
   box.appendChild(skip);
-  box.appendChild(el(`<div class="tutorial-step">Step ${tutorialIndex + 1} of ${TUTORIAL_PAGES.length}</div>`));
-  box.appendChild(el(`<div class="tutorial-title">${escapeHtml(page.title)}</div>`));
+  box.appendChild(el(`<div class="tutorial-step">${escapeHtml(t('tutStep', { n: tutorialIndex + 1, total: TUTORIAL_PAGES.length }))}</div>`));
+  box.appendChild(el(`<div class="tutorial-title">${escapeHtml(t(page.titleKey))}</div>`));
   box.appendChild(page.build());
 
   const dots = el(`<div class="tutorial-dots"></div>`);
@@ -932,13 +1401,13 @@ function renderTutorialRoot() {
   });
 
   const nav = el(`<div class="tutorial-nav"></div>`);
-  const back = el(`<button class="btn-ghost">Back</button>`);
+  const back = el(`<button class="btn-ghost">${escapeHtml(t('tutBack'))}</button>`);
   back.style.visibility = tutorialIndex === 0 ? 'hidden' : 'visible';
   back.onclick = () => { if (tutorialIndex > 0) { tutorialIndex--; renderTutorialRoot(); } };
   nav.appendChild(back);
   nav.appendChild(dots);
   const isLast = tutorialIndex === TUTORIAL_PAGES.length - 1;
-  const next = el(`<button class="btn-gold">${isLast ? "Let's play" : 'Next'}</button>`);
+  const next = el(`<button class="btn-gold">${escapeHtml(isLast ? t('tutPlay') : t('tutNext'))}</button>`);
   next.onclick = () => { if (isLast) closeTutorial(); else { tutorialIndex++; renderTutorialRoot(); } };
   nav.appendChild(next);
   box.appendChild(nav);
@@ -1402,15 +1871,15 @@ function renderLanding() {
 
   wrap.querySelector('#create-btn').onclick = () => {
     const name = wrap.querySelector('#create-name').value.trim();
-    if (!name) { showToast('Enter your name first.', true); return; }
+    if (!name) { showToast(t('enterName'), true); return; }
     saveLastName(name);
     sendMsg({ type: 'createRoom', name });
   };
   wrap.querySelector('#join-btn').onclick = () => {
     const name = wrap.querySelector('#join-name').value.trim();
     const code = wrap.querySelector('#join-code').value.trim();
-    if (!name) { showToast('Enter your name first.', true); return; }
-    if (!code) { showToast('Enter a room code.', true); return; }
+    if (!name) { showToast(t('enterName'), true); return; }
+    if (!code) { showToast(t('enterCode'), true); return; }
     saveLastName(name);
     sendMsg({ type: 'joinRoom', name, code });
   };
@@ -1430,28 +1899,30 @@ function renderLanding() {
 function renderSettings(state, isHost) {
   const s = state.settings || { cardsPer: 4, bufferSeconds: 2.5, matching: true, turnLimit: 30 };
   if (!isHost) {
-    const lim = s.turnLimit ? `${s.turnLimit}s turn limit` : 'no turn limit';
-    return el(`<div class="settings-box"><div class="section-label" style="text-align:center;">House rules</div>
-      <div class="help-text" style="text-align:center;">${s.cardsPer} cards · ${s.bufferSeconds}s match window · matching ${s.matching ? 'on' : 'off'} · ${lim}</div></div>`);
+    const lim = s.turnLimit ? t('turnLimitVal', { n: s.turnLimit }) : t('noTurnLimit');
+    const summary = t('rulesSummary', { cards: s.cardsPer, win: s.bufferSeconds, matching: s.matching ? t('optOn') : t('optOff'), limit: lim });
+    return el(`<div class="settings-box"><div class="section-label" style="text-align:center;">${t('houseRules')}</div>
+      <div class="help-text" style="text-align:center;">${escapeHtml(summary)}</div></div>`);
   }
-  const box = el(`<div class="settings-box"><div class="section-label" style="text-align:center;">House rules</div></div>`);
+  const box = el(`<div class="settings-box"><div class="section-label" style="text-align:center;">${t('houseRules')}</div></div>`);
   const set = (patch) => sendMsg({ type: 'setSettings', settings: patch });
 
   const group = (label, options, current, key) => {
-    const row = el(`<div class="settings-row"><span class="settings-label">${label}</span><div class="seg"></div></div>`);
+    const row = el(`<div class="settings-row"><span class="settings-label">${escapeHtml(label)}</span><div class="seg"></div></div>`);
     const seg = row.querySelector('.seg');
     options.forEach(([val, text]) => {
-      const b = el(`<button class="seg-btn ${current === val ? 'on' : ''}">${text}</button>`);
+      const b = el(`<button class="seg-btn ${current === val ? 'on' : ''}">${escapeHtml(text)}</button>`);
       b.onclick = () => set({ [key]: val });
       seg.appendChild(b);
     });
     return row;
   };
 
-  box.appendChild(group('Cards each', [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], s.cardsPer, 'cardsPer'));
-  box.appendChild(group('Match window', [[0, 'off'], [1.5, '1.5s'], [2.5, '2.5s'], [4, '4s']], s.bufferSeconds, 'bufferSeconds'));
-  box.appendChild(group('Matching', [[true, 'on'], [false, 'off']], s.matching, 'matching'));
-  box.appendChild(group('Turn limit', [[0, 'off'], [15, '15s'], [30, '30s'], [45, '45s']], s.turnLimit, 'turnLimit'));
+  const OFF = t('optOff'), ON = t('optOn');
+  box.appendChild(group(t('cardsEach'), [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], s.cardsPer, 'cardsPer'));
+  box.appendChild(group(t('matchWindowLbl'), [[0, OFF], [1.5, '1.5s'], [2.5, '2.5s'], [4, '4s']], s.bufferSeconds, 'bufferSeconds'));
+  box.appendChild(group(t('matchingLbl'), [[true, ON], [false, OFF]], s.matching, 'matching'));
+  box.appendChild(group(t('turnLimitLbl'), [[0, OFF], [15, '15s'], [30, '30s'], [45, '45s']], s.turnLimit, 'turnLimit'));
   return box;
 }
 
@@ -1461,33 +1932,33 @@ function renderLobby(state) {
   const isHost = state.hostId === state.youId;
   const wrap = el(`<div class="lobby-wrap">
     <div class="room-code-box">
-      <div class="label">ROOM CODE — SHARE THIS</div>
+      <div class="label">${escapeHtml(t('roomShare'))}</div>
       <div class="code" id="room-code-text">${escapeHtml(state.code)}</div>
-      <div class="copy-hint">Tap the code to copy</div>
-      <button class="btn-ghost" id="copy-link-btn" style="margin-top:12px; padding:8px 16px; font-size:0.85rem;">🔗 Copy invite link</button>
+      <div class="copy-hint">${escapeHtml(t('tapCopy'))}</div>
+      <button class="btn-ghost" id="copy-link-btn" style="margin-top:12px; padding:8px 16px; font-size:0.85rem;">🔗 ${escapeHtml(t('copyInvite'))}</button>
     </div>
     <div class="player-chip-list" id="player-chips"></div>
     ${isHost ? `<div class="add-bot-box">
-      <div class="section-label" style="text-align:center;">Add a bot</div>
+      <div class="section-label" style="text-align:center;">${escapeHtml(t('addBotTitle'))}</div>
       <div class="row center wrap" id="bot-buttons"></div>
     </div>` : ''}
     <div id="settings-box"></div>
     <div class="col" style="align-items:center;">
       ${isHost
         ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>${t('startGame')}</button>
-           <div class="help-text">${state.players.length < 2 ? 'Need at least 2 players to start.' : `Ready — ${state.players.length} players`}</div>`
-        : `<div class="help-text">Waiting for the host to start the game…</div>`}
+           <div class="help-text">${state.players.length < 2 ? escapeHtml(t('needTwo')) : escapeHtml(t('readyPlayers', { n: state.players.length }))}</div>`
+        : `<div class="help-text">${escapeHtml(t('waitingHost'))}</div>`}
       <div id="lobby-leave" style="margin-top:6px;"></div>
     </div>
   </div>`);
   wrap.querySelector('#lobby-leave').appendChild(leaveBtn(t('leaveRoom')));
 
   wrap.querySelector('#room-code-text').onclick = () => {
-    navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
+    navigator.clipboard?.writeText(state.code).then(() => showToast(t('roomCodeCopied')));
   };
   wrap.querySelector('#copy-link-btn').onclick = () => {
     const link = `${location.origin}/?join=${state.code}`;
-    navigator.clipboard?.writeText(link).then(() => showToast('Invite link copied!'))
+    navigator.clipboard?.writeText(link).then(() => showToast(t('inviteLinkCopied')))
       .catch(() => showToast(link));
   };
   wrap.querySelector('#settings-box').appendChild(renderSettings(state, isHost));
@@ -1496,11 +1967,11 @@ function renderLobby(state) {
   state.players.forEach((p) => {
     const chip = el(`<div class="player-chip ${p.connected ? '' : 'offline'}"></div>`);
     chip.appendChild(avatarEl(p.id, state, 'sm'));
-    const label = p.id === state.hostId ? `${p.name} (host)` : p.name;
-    chip.appendChild(document.createTextNode(label + (p.isYou ? ' (you)' : '')));
+    const label = p.id === state.hostId ? `${p.name} (${t('hostTag')})` : p.name;
+    chip.appendChild(document.createTextNode(label + (p.isYou ? ` (${t('youTag')})` : '')));
     if (p.isBot) chip.appendChild(el(`<span class="diff-badge ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
     if (isHost && p.isBot) {
-      const rm = el(`<button class="btn-ghost" style="padding:2px 8px; margin-left:2px;" title="Remove bot">✕</button>`);
+      const rm = el(`<button class="btn-ghost" style="padding:2px 8px; margin-left:2px;" title="${escapeHtml(t('removeBot'))}">✕</button>`);
       rm.onclick = () => sendMsg({ type: 'removeBot', botId: p.id });
       chip.appendChild(rm);
     }
@@ -1510,8 +1981,8 @@ function renderLobby(state) {
   if (isHost) {
     const botRow = wrap.querySelector('#bot-buttons');
     const full = state.players.length >= 8;
-    [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['impossible', 'Impossible']].forEach(([diff, label]) => {
-      const b = el(`<button class="btn-ghost diff-btn ${diff}">+ ${label}</button>`);
+    [['easy', t('diffEasy')], ['medium', t('diffMedium')], ['hard', t('diffHard')], ['impossible', t('diffImpossible')]].forEach(([diff, label]) => {
+      const b = el(`<button class="btn-ghost diff-btn ${diff}">+ ${escapeHtml(label)}</button>`);
       b.disabled = full;
       b.onclick = () => sendMsg({ type: 'addBot', difficulty: diff });
       botRow.appendChild(b);
@@ -1522,7 +1993,7 @@ function renderLobby(state) {
 }
 
 function difficultyLabel(diff) {
-  return { easy: 'Easy', medium: 'Med', hard: 'Hard', impossible: 'Impossible' }[diff] || diff;
+  return { easy: t('diffEasy'), medium: t('diffMed'), hard: t('diffHard'), impossible: t('diffImpossible') }[diff] || diff;
 }
 
 /* ---------- Choose peek count ---------- */
@@ -1531,8 +2002,8 @@ function renderChoosePeekCount(state) {
   const isChooser = state.peekChooserId === state.youId;
   const wrap = el(`<div class="lobby-wrap">
     <div class="card-panel" style="max-width:420px; text-align:center;">
-      <h2>${isChooser ? 'Choose the peek count' : `${escapeHtml(nameOf(state, state.peekChooserId))} is choosing`}</h2>
-      <div class="sub">Everyone will privately look at this many of their own ${state.cardsPer || 4} cards before play begins.</div>
+      <h2>${isChooser ? escapeHtml(t('choosePeek')) : escapeHtml(t('isChoosing', { name: nameOf(state, state.peekChooserId) }))}</h2>
+      <div class="sub">${escapeHtml(t('peekSub', { n: state.cardsPer || 4 }))}</div>
       <div class="row center wrap" id="peek-buttons" style="margin-top:8px;"></div>
     </div>
   </div>`);
@@ -1544,7 +2015,7 @@ function renderChoosePeekCount(state) {
       row.appendChild(b);
     }
   } else {
-    row.appendChild(el(`<div class="help-text">Hang tight…</div>`));
+    row.appendChild(el(`<div class="help-text">${escapeHtml(t('hangTight'))}</div>`));
   }
   return wrap;
 }
@@ -1558,11 +2029,11 @@ function renderTable(state) {
   const topBar = el(`<div class="top-bar">
     <div class="brand-mini">DUTCH</div>
     <div class="row" style="gap:8px;">
-      <div class="room-tag" id="room-tag">Room ${escapeHtml(state.code)}</div>
+      <div class="room-tag" id="room-tag">${escapeHtml(t('roomTag', { code: state.code }))}</div>
     </div>
   </div>`);
   topBar.querySelector('#room-tag').onclick = () => {
-    navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
+    navigator.clipboard?.writeText(state.code).then(() => showToast(t('roomCodeCopied')));
   };
   topBar.querySelector('.row').appendChild(leaveBtn(t('leave')));
   wrap.appendChild(topBar);
@@ -1584,11 +2055,11 @@ function renderTable(state) {
     nameRow.appendChild(document.createTextNode((p.isBot ? '🤖 ' : '') + p.name));
     card.appendChild(nameRow);
     const tags = el(`<div class="opp-tags"></div>`);
-    if (p.left) tags.appendChild(el(`<span class="mini-tag offline">LEFT</span>`));
+    if (p.left) tags.appendChild(el(`<span class="mini-tag offline">${escapeHtml(t('tagLeft'))}</span>`));
     else if (p.isBot) tags.appendChild(el(`<span class="mini-tag bot ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
-    if (isActive) tags.appendChild(el(`<span class="mini-tag turn">TURN</span>`));
+    if (isActive) tags.appendChild(el(`<span class="mini-tag turn">${escapeHtml(t('tagTurn'))}</span>`));
     if (isDutch) tags.appendChild(el(`<span class="mini-tag dutch">DUTCH</span>`));
-    if (!p.connected && !p.isBot) tags.appendChild(el(`<span class="mini-tag offline">OFFLINE</span>`));
+    if (!p.connected && !p.isBot) tags.appendChild(el(`<span class="mini-tag offline">${escapeHtml(t('tagOffline'))}</span>`));
     if (tags.children.length) card.appendChild(tags);
 
     const cardsRow = el(`<div class="row" style="gap:4px;"></div>`);
@@ -1613,11 +2084,11 @@ function renderTable(state) {
   // Table area
   const table = el(`<div class="table-area">
     <div class="pile">
-      <div class="pile-label">Draw (${state.drawCount})</div>
+      <div class="pile-label">${escapeHtml(t('drawLbl'))} (${state.drawCount})</div>
       <div id="draw-slot"></div>
     </div>
     <div class="pile">
-      <div class="pile-label">Discard</div>
+      <div class="pile-label">${escapeHtml(t('discardLbl'))}</div>
       <div id="discard-slot"></div>
     </div>
   </div>`);
@@ -1630,8 +2101,8 @@ function renderTable(state) {
   // Your hand
   const myPlayer = state.players.find((p) => p.isYou);
   const handWrap = el(`<div class="your-hand-wrap" data-pid="${me}"></div>`);
-  let handLabel = 'Your Hand';
-  if (myPlayer && myPlayer.id === state.dutchCallerId) handLabel = 'Your Hand — you called Dutch';
+  let handLabel = t('yourHand');
+  if (myPlayer && myPlayer.id === state.dutchCallerId) handLabel = t('yourHandDutch');
   handWrap.appendChild(el(`<div class="your-hand-label">${escapeHtml(handLabel)}</div>`));
   const handRow = el(`<div class="your-hand"></div>`);
   const myGridSize = myPlayer ? myPlayer.gridSize : 0;
@@ -1658,7 +2129,7 @@ function renderTable(state) {
 
   // Log
   if (state.log && state.log.length) {
-    wrap.appendChild(el(`<div class="log-panel">${state.log.map(escapeHtml).join('<br/>')}</div>`));
+    wrap.appendChild(el(`<div class="log-panel">${state.log.map(formatLog).join('<br/>')}</div>`));
   }
 
   return wrap;
@@ -1668,25 +2139,25 @@ function turnBannerInfo(state) {
   const me = state.youId;
   if (state.matcherId) {
     return state.matcherId === me
-      ? { headline: '⏸ Matching — pick a card', sub: 'Play is paused', mine: true }
-      : { headline: `⏸ ${nameOf(state, state.matcherId)} is matching`, sub: 'Play is paused…', mine: false };
+      ? { headline: t('matchingPick'), sub: t('playPaused'), mine: true }
+      : { headline: t('xMatching', { name: nameOf(state, state.matcherId) }), sub: t('playPausedE'), mine: false };
   }
   if (state.phase === 'peeking') {
     const p = state.peekingPlayerId;
     if (p === me) {
-      return { headline: 'Your turn to peek', sub: `Look at ${state.peekCount} of your own cards (${state.peekedCells.length}/${state.peekCount} done)`, mine: true };
+      return { headline: t('yourTurnPeek'), sub: t('lookAtCards', { n: state.peekCount, done: state.peekedCells.length }), mine: true };
     }
-    return { headline: `${nameOf(state, p)} is peeking at their cards`, sub: 'Everyone else, hang tight…', mine: false };
+    return { headline: t('xPeeking', { name: nameOf(state, p) }), sub: t('everyoneHang'), mine: false };
   }
   const cur = state.currentPlayerId;
   const mine = cur === me;
-  let headline = mine ? t('yourTurn') : `${nameOf(state, cur)}'s turn`;
+  let headline = mine ? t('yourTurn') : t('xTurn', { name: nameOf(state, cur) });
   const subParts = [];
-  if (state.finalRound) subParts.push(`Final round! ${nameOf(state, state.dutchCallerId)} called Dutch — ${state.finalRoundRemaining} turn(s) left`);
-  if (state.turnMode === 'jackSwap') subParts.push(mine ? (state.jackFirst ? 'Jack: pick the second card' : 'Jack: pick the first card to swap') : 'Resolving a Jack…');
-  else if (state.turnMode === 'queenPeek') subParts.push(mine ? 'Queen: pick any card to peek at' : 'Resolving a Queen…');
-  else if (state.turnMode === 'aceGive') subParts.push(mine ? 'Ace: choose who receives a face-down card' : 'Resolving an Ace…');
-  else if (state.turnMode === 'endOfTurn') subParts.push(mine ? 'End your turn — or call Dutch' : `${nameOf(state, cur)} is finishing their turn…`);
+  if (state.finalRound) subParts.push(t('finalRound', { name: nameOf(state, state.dutchCallerId), n: state.finalRoundRemaining }));
+  if (state.turnMode === 'jackSwap') subParts.push(mine ? (state.jackFirst ? t('jackSecondMsg') : t('jackFirstMsg')) : t('jackResolving'));
+  else if (state.turnMode === 'queenPeek') subParts.push(mine ? t('queenPickMsg') : t('queenResolving'));
+  else if (state.turnMode === 'aceGive') subParts.push(mine ? t('aceChooseMsg') : t('aceResolving'));
+  else if (state.turnMode === 'endOfTurn') subParts.push(mine ? t('endOrDutch') : t('xFinishing', { name: nameOf(state, cur) }));
   return { headline, sub: subParts.join(' · '), mine };
 }
 
@@ -1729,10 +2200,10 @@ function renderActionBar(state) {
 
   if (state.phase === 'peeking') {
     if (state.peekingPlayerId !== me) {
-      bar.appendChild(el(`<span class="help-text">Waiting for ${escapeHtml(nameOf(state, state.peekingPlayerId))}…</span>`));
+      bar.appendChild(el(`<span class="help-text">${escapeHtml(t('waitingForX', { name: nameOf(state, state.peekingPlayerId) }))}</span>`));
       return bar;
     }
-    const doneBtn = el(`<button class="btn-gold">Done peeking</button>`);
+    const doneBtn = el(`<button class="btn-gold">${escapeHtml(t('donePeeking'))}</button>`);
     doneBtn.disabled = state.peekedCells.length < state.peekCount;
     doneBtn.onclick = () => sendMsg({ type: 'donePeeking' });
     bar.appendChild(doneBtn);
@@ -1742,8 +2213,8 @@ function renderActionBar(state) {
   // I'm the one matching — pick a card (play is paused for everyone).
   if (state.matcherId === me) {
     const secs = Math.ceil(matchPauseRemainingMs() / 1000);
-    bar.appendChild(el(`<span class="help-text">Matching! Tap one of your cards of the same rank as the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong = penalty card.${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}</span>`));
-    const cancel = el(`<button class="btn-ghost">Cancel</button>`);
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('matchPrompt', { card: cardLabel(state.discardTop) }))}${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}</span>`));
+    const cancel = el(`<button class="btn-ghost">${escapeHtml(t('cancel'))}</button>`);
     cancel.onclick = () => sendMsg({ type: 'cancelMatch' });
     bar.appendChild(cancel);
     return bar;
@@ -1752,7 +2223,7 @@ function renderActionBar(state) {
   // Someone else is matching — everyone waits.
   if (state.matcherId) {
     const secs = Math.ceil(matchPauseRemainingMs() / 1000);
-    bar.appendChild(el(`<span class="help-text">⏸ ${escapeHtml(nameOf(state, state.matcherId))} is matching — play paused${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}…</span>`));
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('xMatchingPaused', { name: nameOf(state, state.matcherId) }))}${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}…</span>`));
     return bar;
   }
 
@@ -1766,16 +2237,16 @@ function renderActionBar(state) {
   }
 
   if (state.currentPlayerId !== me) {
-    bar.appendChild(el(`<span class="help-text">Waiting for ${escapeHtml(nameOf(state, state.currentPlayerId))}…</span>`));
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('waitingForX', { name: nameOf(state, state.currentPlayerId) }))}</span>`));
     if (canMatch) bar.appendChild(matchButton());
     return bar;
   }
 
   if (state.turnMode === 'awaitingAction') {
     if (swapArmed) {
-      const cancel = el(`<button class="btn-ghost">Cancel</button>`);
+      const cancel = el(`<button class="btn-ghost">${escapeHtml(t('cancel'))}</button>`);
       cancel.onclick = () => { swapArmed = false; render(); };
-      bar.appendChild(el(`<span class="help-text">Click one of your own cards above.</span>`));
+      bar.appendChild(el(`<span class="help-text">${escapeHtml(t('clickOwnCard'))}</span>`));
       bar.appendChild(cancel);
       return bar;
     }
@@ -1789,7 +2260,8 @@ function renderActionBar(state) {
     bar.appendChild(flip); bar.appendChild(swap);
     if (canMatch) bar.appendChild(matchButton());
     if (remaining > 0) {
-      bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">You can act in <span id="buffer-count">${Math.ceil(remaining / 1000)}</span>s — anyone can match the discard now.</span>`));
+      const txt = t('youCanAct', { n: `<span id="buffer-count">${Math.ceil(remaining / 1000)}</span>` });
+      bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">${txt}</span>`));
     }
     return bar;
   }
@@ -1805,16 +2277,16 @@ function renderActionBar(state) {
   }
 
   if (state.turnMode === 'jackSwap') {
-    bar.appendChild(el(`<span class="help-text">${state.jackFirst ? 'Click the second card to swap with.' : 'Click any card on the table to start the blind swap.'}</span>`));
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(state.jackFirst ? t('jackClickSecond') : t('jackClickAny'))}</span>`));
     return bar;
   }
   if (state.turnMode === 'queenPeek') {
-    bar.appendChild(el(`<span class="help-text">Click any card on the table to peek at it.</span>`));
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('queenClickAny'))}</span>`));
     return bar;
   }
   if (state.turnMode === 'aceGive') {
     state.players.forEach((p) => {
-      const b = el(`<button class="btn-blue">${escapeHtml(p.name)}${p.isYou ? ' (you)' : ''}</button>`);
+      const b = el(`<button class="btn-blue">${escapeHtml(p.name)}${p.isYou ? ` (${t('youTag')})` : ''}</button>`);
       b.onclick = () => sendMsg({ type: 'aceGiveTo', targetPlayerId: p.id });
       bar.appendChild(b);
     });
@@ -1832,15 +2304,15 @@ function renderReveal(state) {
 
   const wrap = el(`<div class="reveal-wrap">
     <div class="brand" style="margin-bottom:18px;">
-      <h1 style="font-size:2rem;">Round Over</h1>
-      <div class="tagline">All cards revealed</div>
+      <h1 style="font-size:2rem;">${escapeHtml(t('roundOver'))}</h1>
+      <div class="tagline">${escapeHtml(t('allRevealed'))}</div>
     </div>
     <div id="reveal-rows"></div>
     <div id="series-standings"></div>
     <div class="row center" style="margin-top:20px;">
       ${isHost
         ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">${t('playAgain')}</button>`
-        : `<span class="help-text">Waiting for the host to start a new round…</span>`}
+        : `<span class="help-text">${escapeHtml(t('waitingNewRound'))}</span>`}
     </div>
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);
@@ -1850,11 +2322,11 @@ function renderReveal(state) {
   const series = (state.series || []).slice().sort((a, b) => a.total - b.total);
   if (state.roundsPlayed > 1 && series.length) {
     const lead = series[0].total;
-    const box = el(`<div class="series-box"><div class="section-label" style="text-align:center;">Match standings · ${state.roundsPlayed} rounds</div></div>`);
+    const box = el(`<div class="series-box"><div class="section-label" style="text-align:center;">${escapeHtml(t('matchStandings', { n: state.roundsPlayed }))}</div></div>`);
     series.forEach((s, i) => {
       const row = el(`<div class="series-row ${s.total === lead ? 'leader' : ''}">
         <span class="series-rank">${i + 1}</span>
-        <span class="grow">${escapeHtml(s.name)}${s.id === state.youId ? ' (you)' : ''}</span>
+        <span class="grow">${escapeHtml(s.name)}${s.id === state.youId ? ` (${t('youTag')})` : ''}</span>
         <span class="series-total">${s.total}</span>
       </div>`);
       box.appendChild(row);
@@ -1871,7 +2343,7 @@ function renderReveal(state) {
     const nameDiv = el(`<div class="rname"></div>`);
     nameDiv.appendChild(avatarEl(r.id, state, 'sm'));
     nameDiv.appendChild(document.createTextNode(r.name));
-    if (isWinner) nameDiv.appendChild(el(`<span class="badge-winner">🏆 WINNER</span>`));
+    if (isWinner) nameDiv.appendChild(el(`<span class="badge-winner">🏆 ${escapeHtml(t('winner'))}</span>`));
     if (r.id === state.dutchCallerId) nameDiv.appendChild(el(`<span class="badge-winner" style="background:#e2564f;color:white;">DUTCH</span>`));
     row.appendChild(nameDiv);
     const cardsDiv = el(`<div class="rcards"></div>`);
@@ -1883,7 +2355,7 @@ function renderReveal(state) {
       cardsDiv.appendChild(card);
     });
     row.appendChild(cardsDiv);
-    row.appendChild(el(`<div class="rtotal">${r.total} pts</div>`));
+    row.appendChild(el(`<div class="rtotal">${r.total} ${escapeHtml(t('ptsUnit'))}</div>`));
     rows.appendChild(row);
   });
 

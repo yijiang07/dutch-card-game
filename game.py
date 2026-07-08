@@ -95,8 +95,12 @@ class Game:
 
     # ---- helpers ----
 
-    def _log(self, msg):
-        self.log.append(msg)
+    def _log(self, code, **params):
+        # Structured log entry: {code, ...params}. The client localizes it.
+        # Card/name params are passed as display strings (card symbols are universal).
+        entry = {'code': code}
+        entry.update(params)
+        self.log.append(entry)
         if len(self.log) > 30:
             self.log.pop(0)
 
@@ -113,7 +117,7 @@ class Game:
                 self.deck = self.discard
                 random.shuffle(self.deck)
                 self.discard = [top]
-                self._log('Draw pile was empty — reshuffled the discard pile.')
+                self._log('reshuffle')
             else:
                 return None
         if not self.deck:
@@ -230,7 +234,7 @@ class Game:
             raise GameError('You are not in this game.')
         self.matcher = sender
         self.matcher_deadline = time.time() + MATCH_CLAIM_SECONDS
-        self._log(f"{self.names[sender]} is matching — play paused.")
+        self._log('matching', name=self.names[sender])
 
     def cancel_match(self, sender):
         if self.matcher == sender:
@@ -252,7 +256,7 @@ class Game:
         self.discard.append(card)
         self.action_seq += 1
         self.last_flip = {'seq': self.action_seq, 'playerId': sender, 'card': card}
-        self._log(f"{self.names[sender]} flipped {card_label(card)}.")
+        self._log('flip', name=self.names[sender], card=card_label(card))
         self._trigger_power_or_complete(card)
 
     def match_card(self, sender, cell_index):
@@ -280,14 +284,14 @@ class Game:
             self.discard.append(card)  # placed face-up; does NOT trigger its power
             self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
                                'card': card, 'matched': True}
-            self._log(f"{self.names[sender]} matched {card_label(card)} and dropped a card!")
+            self._log('matched', name=self.names[sender], card=card_label(card))
             return {'matched': True, 'cellIndex': cell_index, 'card': card}
         penalty = self.draw_one()
         if penalty is not None:
             grid.append(penalty)
         self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
                            'card': card, 'matched': False}
-        self._log(f"{self.names[sender]} tried to match {card_label(card)} — wrong! Drew a penalty card.")
+        self._log('wrongMatch', name=self.names[sender], card=card_label(card))
         return {'matched': False, 'cellIndex': cell_index, 'card': card}
 
     def swap_cell(self, sender, cell_index):
@@ -309,7 +313,7 @@ class Game:
         self.discard.append(old_card)
         self.action_seq += 1
         self.last_swap = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index, 'card': discard_top}
-        self._log(f"{self.names[sender]} swapped in {card_label(discard_top)}, discarded {card_label(old_card)}.")
+        self._log('swap', name=self.names[sender], card=card_label(discard_top), old=card_label(old_card))
         self._trigger_power_or_complete(old_card)
 
     def end_turn(self, sender):
@@ -335,7 +339,7 @@ class Game:
         self.final_round = True
         self.dutch_caller = sender
         self.final_round_remaining = len(self.order) - 1
-        self._log(f"{self.names[sender]} called Dutch!")
+        self._log('dutch', name=self.names[sender])
         self._advance_turn()
 
     def jack_select(self, sender, target_player, target_cell):
@@ -351,7 +355,7 @@ class Game:
             return None
         ga, gb = self.grids[a['playerId']], self.grids[target_player]
         ga[a['cellIndex']], gb[target_cell] = gb[target_cell], ga[a['cellIndex']]
-        self._log(f"{self.names[sender]} used the Jack to blind-swap two cards.")
+        self._log('jack', name=self.names[sender])
         loc_a = (a['playerId'], a['cellIndex'])
         loc_b = (target_player, target_cell)
         self.action_seq += 1
@@ -373,7 +377,7 @@ class Game:
         # Public: everyone sees WHICH card was peeked (not its value).
         self.last_queen = {'seq': self.action_seq, 'playerId': target_player,
                            'cellIndex': target_cell, 'by': sender}
-        self._log(f"{self.names[sender]} used the Queen to peek at {self.names[target_player]}'s card.")
+        self._log('queen', name=self.names[sender], target=self.names[target_player])
         self._action_resolved()
         return card
 
@@ -384,14 +388,14 @@ class Game:
             raise GameError('Invalid player.')
         card = self.draw_one()
         if card is None:
-            self._log('No cards left to give.')
+            self._log('noGive')
             self._action_resolved()
             return
         self.grids[target_player].append(card)
         self.action_seq += 1
         self.last_ace = {'seq': self.action_seq, 'playerId': target_player,
                          'cellIndex': len(self.grids[target_player]) - 1, 'by': sender}
-        self._log(f"{self.names[sender]} used the Ace to give {self.names[target_player]} a card.")
+        self._log('ace', name=self.names[sender], target=self.names[target_player])
         self._action_resolved()
 
     # ---- serialization ----

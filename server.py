@@ -256,7 +256,7 @@ async def expire_match(room, deadline):
     game = room.game
     if game and game.matcher is not None and game.matcher_deadline == deadline:
         game.matcher = None
-        game._log('Match window expired — play resumes.')
+        game._log('matchExpired')
         await broadcast_state(room)
         schedule_bots(room)
 
@@ -316,7 +316,7 @@ async def turn_monitor(room):
                 reason = 'disconnected'
             else:
                 reason = 'idle'
-            game._log(f"{game.names.get(actor, 'A player')} was {reason} — auto-playing their turn.")
+            game._log('autoplay', name=game.names.get(actor, ''), reason=reason)
             guard = 0
             while room.game and room.game.phase != 'reveal' and bots.required_actor(room.game) == actor and guard < 12:
                 guard += 1
