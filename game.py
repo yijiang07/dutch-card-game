@@ -13,6 +13,9 @@ SUIT_SYMBOL = {'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣'}
 # giving everyone a window to "match" the current discard card.
 BUFFER_SECONDS = 2.5
 
+# Once a player declares a match, play pauses this long for them to pick a card.
+MATCH_CLAIM_SECONDS = 6
+
 
 class GameError(Exception):
     pass
@@ -74,6 +77,9 @@ class Game:
         self.last_match = None
         self.action_seq = 0
         self.turn_started_at = 0.0
+        # Match lock: while set, play is paused for everyone until it resolves.
+        self.matcher = None
+        self.matcher_deadline = 0.0
 
         self.log = []
 
@@ -194,6 +200,30 @@ class Game:
 
     # ---- main turn actions ----
 
+    def _ensure_no_matcher(self):
+        if self.matcher is not None:
+            raise GameError('Hold on — a player is matching.')
+
+    def claim_match(self, sender):
+        """Declare a match — freezes play for everyone until it resolves or times out."""
+        if self.phase != 'playing':
+            raise GameError('Game is not in progress.')
+        if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
+            raise GameError('You can only match between actions.')
+        if not self.discard:
+            raise GameError('Nothing to match.')
+        if self.matcher is not None:
+            raise GameError('Someone is already matching.')
+        if sender not in self.grids:
+            raise GameError('You are not in this game.')
+        self.matcher = sender
+        self.matcher_deadline = time.time() + MATCH_CLAIM_SECONDS
+        self._log(f"{self.names[sender]} is matching — play paused.")
+
+    def cancel_match(self, sender):
+        if self.matcher == sender:
+            self.matcher = None
+
     def flip(self, sender):
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
@@ -201,6 +231,7 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'awaitingAction':
             raise GameError('Resolve the current power first.')
+        self._ensure_no_matcher()
         if not self.can_act_now():
             raise GameError('Hold on — players can still match the discard for a moment.')
         card = self.draw_one()
@@ -211,12 +242,14 @@ class Game:
         self._trigger_power_or_complete(card)
 
     def match_card(self, sender, cell_index):
-        """Any player may drop a grid card that equals the discard top (fewer cards
-        is better). A wrong guess costs a penalty card. Not gated by whose turn it is."""
+        """Drop a grid card of the discard top's rank (fewer cards is better).
+        A wrong guess costs a penalty card. Allowed off-turn; resolves the match lock."""
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
         if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
             raise GameError('You can only match between actions.')
+        if self.matcher is not None and self.matcher != sender:
+            raise GameError('Another player is matching right now.')
         if not self.discard:
             raise GameError('Nothing to match.')
         grid = self.grids.get(sender)
@@ -224,6 +257,7 @@ class Game:
             raise GameError('Invalid card.')
         top = self.discard[-1]
         card = grid[cell_index]
+        self.matcher = None  # match resolves (success or penalty) — release the lock
         self.action_seq += 1
         if card['rank'] == top['rank']:
             del grid[cell_index]
@@ -247,6 +281,7 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'awaitingAction':
             raise GameError('Resolve the current power first.')
+        self._ensure_no_matcher()
         if not self.can_act_now():
             raise GameError('Hold on — players can still match the discard for a moment.')
         grid = self.grids[sender]
@@ -268,6 +303,7 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'endOfTurn':
             raise GameError('Play your turn first.')
+        self._ensure_no_matcher()
         self._advance_turn()
 
     def call_dutch(self, sender):
@@ -277,6 +313,7 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'endOfTurn':
             raise GameError('Play your turn first — you call Dutch at the end of it.')
+        self._ensure_no_matcher()
         if self.final_round:
             raise GameError('Dutch has already been called.')
         self.final_round = True
@@ -358,6 +395,8 @@ class Game:
             'lastSwap': self.last_swap,
             'lastMatch': self.last_match,
             'actWaitMs': self._act_wait_ms(),
+            'matcherId': self.matcher,
+            'matchWaitMs': max(0, int((self.matcher_deadline - time.time()) * 1000)) if self.matcher else 0,
             'log': self.log[-8:],
         }
         if self.phase == 'reveal':

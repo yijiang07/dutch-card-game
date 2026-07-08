@@ -11,7 +11,7 @@ from aiohttp import web, WSMsgType
 
 import bots
 import storage
-from game import Game, GameError
+from game import Game, GameError, MATCH_CLAIM_SECONDS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
@@ -220,6 +220,8 @@ async def drive_bots(room):
             game = room.game
             if game is None or game.phase == 'reveal':
                 break
+            if game.matcher is not None:
+                continue  # play is paused while someone matches; wait it out
             if bots.required_actor(game) != actor:
                 continue
             try:
@@ -231,6 +233,17 @@ async def drive_bots(room):
             await broadcast_state(room)
     finally:
         room.bot_task_running = False
+
+
+async def expire_match(room, deadline):
+    """Auto-release the match lock if the matcher doesn't pick a card in time."""
+    await asyncio.sleep(MATCH_CLAIM_SECONDS + 0.3)
+    game = room.game
+    if game and game.matcher is not None and game.matcher_deadline == deadline:
+        game.matcher = None
+        game._log('Match window expired — play resumes.')
+        await broadcast_state(room)
+        schedule_bots(room)
 
 
 # ---- friends / presence ----
@@ -644,6 +657,18 @@ async def handle_message(ws, ctx, data):
         _score_play(room, game, pid, ('swap', cell))
         game.swap_cell(pid, cell)
         bots.record_placement(room, game, pid, cell)
+        await broadcast_state(room)
+        return
+
+    if mtype == 'claimMatch':
+        game.claim_match(pid)
+        deadline = game.matcher_deadline
+        await broadcast_state(room)
+        asyncio.create_task(expire_match(room, deadline))
+        return
+
+    if mtype == 'cancelMatch':
+        game.cancel_match(pid)
         await broadcast_state(room)
         return
 

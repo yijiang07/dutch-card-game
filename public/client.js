@@ -40,13 +40,13 @@ let recentSwap = null;
 let lastSwapSeq = 0;
 let swapInitialized = false;
 
-// Matching (drop a grid card equal to the discard top) + the turn-start buffer.
-let matchArmed = false;
+// Matching (drop a grid card of the discard top's rank) + the turn-start buffer.
 let recentWrong = null;    // {playerId, cellIndex, card} — flashes a failed match
 let lastMatchSeq = 0;
 let matchInitialized = false;
 let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
-let bufferTicker = null;
+let matchPauseUntil = 0;   // ms timestamp until which play is paused for a matcher
+let uiTicker = null;       // re-renders while a buffer / match countdown is running
 let discardPulse = false;  // brief pulse on the discard pile when a match lands
 
 function loadProfile() {
@@ -105,7 +105,7 @@ function handleServerMessage(data) {
     swapArmed = false;
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
-    updateBuffer(latestState);
+    updateTimers(latestState);
   } else if (data.type === 'privateReveal') {
     showRevealModal(data);
   } else if (data.type === 'identity') {
@@ -750,26 +750,25 @@ function wrongReveal(playerId, cellIndex) {
     ? recentWrong.card : null;
 }
 
-function updateBuffer(state) {
-  const mine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
-    && state.turnMode === 'awaitingAction' && state.actWaitMs > 0;
-  if (mine) {
-    bufferUntil = Date.now() + state.actWaitMs;
-    if (!bufferTicker) {
-      bufferTicker = setInterval(() => {
-        if (Date.now() >= bufferUntil) { clearInterval(bufferTicker); bufferTicker = null; }
-        render();
-      }, 300);
-    }
-  } else {
-    bufferUntil = 0;
-    if (bufferTicker) { clearInterval(bufferTicker); bufferTicker = null; }
+function updateTimers(state) {
+  const bufMine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
+    && state.turnMode === 'awaitingAction' && state.actWaitMs > 0 && !state.matcherId;
+  bufferUntil = bufMine ? Date.now() + state.actWaitMs : 0;
+  matchPauseUntil = (state && state.matcherId) ? Date.now() + state.matchWaitMs : 0;
+
+  const active = () => bufferRemainingMs() > 0 || matchPauseRemainingMs() > 0;
+  if (active() && !uiTicker) {
+    uiTicker = setInterval(() => {
+      if (!active()) { clearInterval(uiTicker); uiTicker = null; }
+      render();
+    }, 300);
+  } else if (!active() && uiTicker) {
+    clearInterval(uiTicker); uiTicker = null;
   }
 }
 
-function bufferRemainingMs() {
-  return Math.max(0, bufferUntil - Date.now());
-}
+function bufferRemainingMs() { return Math.max(0, bufferUntil - Date.now()); }
+function matchPauseRemainingMs() { return Math.max(0, matchPauseUntil - Date.now()); }
 
 function leaveRoom() {
   if (!confirm('Leave this game? You can’t rejoin the same round.')) return;
@@ -1080,7 +1079,7 @@ function renderTable(state) {
     const handler = cellClickHandler(state, me, i);
     if (handler) { c.classList.add('selectable'); c.onclick = handler; }
     if (isJackChosen(state, me, i)) c.classList.add('chosen');
-    if (matchArmed) c.classList.add('selectable');
+    if (state.matcherId === me) c.classList.add('selectable');
     if (state.phase === 'peeking' && state.peekingPlayerId === me && state.peekedCells.includes(i)) c.classList.add('dimmed');
     handRow.appendChild(c);
   }
@@ -1100,6 +1099,11 @@ function renderTable(state) {
 
 function turnBannerInfo(state) {
   const me = state.youId;
+  if (state.matcherId) {
+    return state.matcherId === me
+      ? { headline: '⏸ Matching — pick a card', sub: 'Play is paused', mine: true }
+      : { headline: `⏸ ${nameOf(state, state.matcherId)} is matching`, sub: 'Play is paused…', mine: false };
+  }
   if (state.phase === 'peeking') {
     const p = state.peekingPlayerId;
     if (p === me) {
@@ -1126,8 +1130,8 @@ function isJackChosen(state, playerId, cellIndex) {
 function cellClickHandler(state, playerId, cellIndex) {
   const me = state.youId;
   // Matching your own card is allowed any time during play, even off-turn.
-  if (matchArmed && state.phase === 'playing' && playerId === me) {
-    return () => { matchArmed = false; sendMsg({ type: 'matchCard', cellIndex }); };
+  if (state.matcherId === me && state.phase === 'playing' && playerId === me) {
+    return () => sendMsg({ type: 'matchCard', cellIndex });
   }
   if (state.phase === 'peeking') {
     if (playerId === me && state.peekingPlayerId === me) {
@@ -1168,21 +1172,30 @@ function renderActionBar(state) {
     return bar;
   }
 
+  // I'm the one matching — pick a card (play is paused for everyone).
+  if (state.matcherId === me) {
+    const secs = Math.ceil(matchPauseRemainingMs() / 1000);
+    bar.appendChild(el(`<span class="help-text">Matching! Tap one of your cards of the same rank as the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong = penalty card.${secs ? ` (${secs}s)` : ''}</span>`));
+    const cancel = el(`<button class="btn-ghost">Cancel</button>`);
+    cancel.onclick = () => sendMsg({ type: 'cancelMatch' });
+    bar.appendChild(cancel);
+    return bar;
+  }
+
+  // Someone else is matching — everyone waits.
+  if (state.matcherId) {
+    const secs = Math.ceil(matchPauseRemainingMs() / 1000);
+    bar.appendChild(el(`<span class="help-text">⏸ ${escapeHtml(nameOf(state, state.matcherId))} is matching — play paused${secs ? ` (${secs}s)` : ''}…</span>`));
+    return bar;
+  }
+
   const canMatch = state.phase === 'playing' && state.discardTop
     && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
 
   function matchButton() {
     const b = el(`<button class="btn-match">Match</button>`);
-    b.onclick = () => { matchArmed = true; swapArmed = false; render(); };
+    b.onclick = () => { swapArmed = false; sendMsg({ type: 'claimMatch' }); };
     return b;
-  }
-
-  if (matchArmed) {
-    bar.appendChild(el(`<span class="help-text">Tap one of your cards equal to the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong guess = penalty card.</span>`));
-    const cancel = el(`<button class="btn-ghost">Cancel</button>`);
-    cancel.onclick = () => { matchArmed = false; render(); };
-    bar.appendChild(cancel);
-    return bar;
   }
 
   if (state.currentPlayerId !== me) {
