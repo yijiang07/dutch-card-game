@@ -28,6 +28,10 @@ let friendsState = null; // {friends, incoming, outgoing} pushed by the server
 let friendsPanelOpen = false;
 let reclaimTried = false;
 
+let tutorialOpen = false;
+let tutorialIndex = 0;
+let autoTutorialDone = false;
+
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
   catch (e) { return null; }
@@ -324,6 +328,170 @@ function renderFriendsPanel() {
   return overlay;
 }
 
+/* ---------- Tutorial ---------- */
+
+function helpFab() {
+  const fab = el(`<button class="help-fab" title="How to play">?</button>`);
+  fab.onclick = () => openTutorial();
+  return fab;
+}
+
+function openTutorial() {
+  tutorialOpen = true;
+  tutorialIndex = 0;
+  renderTutorialRoot();
+}
+
+function closeTutorial() {
+  tutorialOpen = false;
+  try { localStorage.setItem('dutchTutorialSeen', '1'); } catch (e) {}
+  renderTutorialRoot();
+}
+
+function tutorialIllus(items, size) {
+  const row = el(`<div class="tutorial-illus"></div>`);
+  items.forEach((it) => {
+    if (it === 'back') { row.appendChild(cardBack(size)); return; }
+    if (it.gap) { row.appendChild(el(`<span class="tutorial-arrow">→</span>`)); return; }
+    const wrap = el(`<div class="tutorial-card-wrap"></div>`);
+    wrap.appendChild(cardFront(it.card, size));
+    if (it.tag) wrap.appendChild(el(`<div class="tutorial-tag ${it.tagClass || ''}">${escapeHtml(it.tag)}</div>`));
+    row.appendChild(wrap);
+  });
+  return row;
+}
+
+const TUTORIAL_PAGES = [
+  {
+    title: 'Welcome to Dutch',
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(tutorialIllus(['back', 'back', 'back', 'back'], 'size-md'));
+      box.appendChild(el(`<div class="tutorial-body">Everyone gets a row of face-down cards. The goal is simple: have the <strong>lowest total score</strong> when someone calls “Dutch”. Low cards good, high cards bad — and memory matters.</div>`));
+      return box;
+    },
+  },
+  {
+    title: 'What cards are worth',
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(tutorialIllus([
+        { card: { rank: 'K', suit: 'H' }, tag: '0 — best!', tagClass: 'good' },
+        { card: { rank: 'A', suit: 'S' }, tag: '1' },
+        { card: { rank: 'K', suit: 'S' }, tag: '13 — worst', tagClass: 'bad' },
+      ], 'size-md'));
+      box.appendChild(el(`<div class="tutorial-body">
+        Number cards are worth their face value. <strong>Ace = 1</strong>, <strong>Jack = 11</strong>, <strong>Queen = 12</strong>.<br/>
+        The twist: a <strong>red King is 0</strong> (the best card in the game!), but a <strong>black King is 13</strong> (the worst).
+      </div>`));
+      return box;
+    },
+  },
+  {
+    title: 'Peek at the start',
+    build: () => {
+      const box = el(`<div></div>`);
+      const row = el(`<div class="tutorial-illus"></div>`);
+      row.appendChild(cardFront({ rank: '3', suit: 'C' }, 'size-md'));
+      row.appendChild(cardFront({ rank: '7', suit: 'D' }, 'size-md'));
+      row.appendChild(cardBack('size-md'));
+      row.appendChild(cardBack('size-md'));
+      box.appendChild(row);
+      box.appendChild(el(`<div class="tutorial-body">Before play begins, one player picks a number (0–4). Everyone then <strong>secretly looks at that many of their own cards</strong>. Try to remember what and where they are!</div>`));
+      return box;
+    },
+  },
+  {
+    title: 'On your turn',
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(tutorialIllus([
+        { card: { rank: 'K', suit: 'D' } },
+      ], 'size-md'));
+      box.appendChild(el(`<div class="tutorial-body">Do <strong>one</strong> of two things:<br/>
+        • <strong>Swap</strong> the face-up discard card into your row — replace a high card with this lower one to cut your score.<br/>
+        • <strong>Flip</strong> the top of the draw pile onto the discard — mainly to trigger a power card.<br/>
+        Then end your turn.</div>`));
+      return box;
+    },
+  },
+  {
+    title: 'Power cards',
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(tutorialIllus([
+        { card: { rank: 'J', suit: 'S' }, tag: 'swap' },
+        { card: { rank: 'Q', suit: 'H' }, tag: 'peek' },
+        { card: { rank: 'A', suit: 'C' }, tag: 'give' },
+      ], 'size-md'));
+      box.appendChild(el(`<div class="tutorial-body">When a <strong>J</strong>, <strong>Q</strong>, or <strong>A</strong> lands face-up (you flipped it, or discarded it from your row) its power fires:<br/>
+        • <strong>Jack</strong> — blind-swap any two cards on the table.<br/>
+        • <strong>Queen</strong> — secretly peek at any one card.<br/>
+        • <strong>Ace</strong> — give a face-down card to any player (raising their score).</div>`));
+      return box;
+    },
+  },
+  {
+    title: 'Calling “Dutch”',
+    build: () => {
+      const box = el(`<div></div>`);
+      const chip = el(`<div class="tutorial-illus"><span class="tutorial-dutch-chip">Call Dutch</span></div>`);
+      box.appendChild(chip);
+      box.appendChild(el(`<div class="tutorial-body">Think you have the lowest total? Take your turn, then <strong>call Dutch</strong>. Everyone else gets <strong>one final turn</strong>, then all cards flip up and scores are revealed. Lowest wins — so call it when you're confident!</div>`));
+      return box;
+    },
+  },
+  {
+    title: "You're ready!",
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(el(`<div class="tutorial-illus" style="font-size:2.4rem;">♠ ♥ ♣ ♦</div>`));
+      box.appendChild(el(`<div class="tutorial-body"><strong>Create a game</strong> and share the code with friends, <strong>add bots</strong> to practice against, or open the 👥 menu to claim a username and add friends. Have fun!</div>`));
+      return box;
+    },
+  },
+];
+
+function renderTutorialRoot() {
+  const root = document.getElementById('tutorial-root');
+  root.innerHTML = '';
+  if (!tutorialOpen) return;
+
+  const page = TUTORIAL_PAGES[tutorialIndex];
+  const overlay = el(`<div class="overlay tutorial-overlay"></div>`);
+  overlay.onclick = (e) => { if (e.target === overlay) closeTutorial(); };
+
+  const box = el(`<div class="tutorial-box"></div>`);
+  const skip = el(`<button class="tutorial-skip" title="Close">✕</button>`);
+  skip.onclick = () => closeTutorial();
+  box.appendChild(skip);
+  box.appendChild(el(`<div class="tutorial-step">Step ${tutorialIndex + 1} of ${TUTORIAL_PAGES.length}</div>`));
+  box.appendChild(el(`<div class="tutorial-title">${escapeHtml(page.title)}</div>`));
+  box.appendChild(page.build());
+
+  const dots = el(`<div class="tutorial-dots"></div>`);
+  TUTORIAL_PAGES.forEach((_, i) => {
+    const d = el(`<span class="tutorial-dot ${i === tutorialIndex ? 'on' : ''}"></span>`);
+    d.onclick = () => { tutorialIndex = i; renderTutorialRoot(); };
+    dots.appendChild(d);
+  });
+
+  const nav = el(`<div class="tutorial-nav"></div>`);
+  const back = el(`<button class="btn-ghost">Back</button>`);
+  back.style.visibility = tutorialIndex === 0 ? 'hidden' : 'visible';
+  back.onclick = () => { if (tutorialIndex > 0) { tutorialIndex--; renderTutorialRoot(); } };
+  nav.appendChild(back);
+  nav.appendChild(dots);
+  const isLast = tutorialIndex === TUTORIAL_PAGES.length - 1;
+  const next = el(`<button class="btn-gold">${isLast ? "Let's play" : 'Next'}</button>`);
+  next.onclick = () => { if (isLast) closeTutorial(); else { tutorialIndex++; renderTutorialRoot(); } };
+  nav.appendChild(next);
+  box.appendChild(nav);
+
+  overlay.appendChild(box);
+  root.appendChild(overlay);
+}
+
 /* ---------- Root render ---------- */
 
 function render() {
@@ -339,9 +507,12 @@ function render() {
     showToastOnce();
   }
 
-  if (!latestState) {
+  const onLanding = !latestState;
+  const inLobby = latestState && latestState.phase === 'lobby';
+
+  if (onLanding) {
     app.appendChild(renderLanding());
-  } else if (latestState.phase === 'lobby') {
+  } else if (inLobby) {
     app.appendChild(renderLobby(latestState));
   } else if (latestState.phase === 'choosePeekCount') {
     app.appendChild(renderChoosePeekCount(latestState));
@@ -352,7 +523,17 @@ function render() {
   }
 
   app.appendChild(friendsFab());
+  if (onLanding || inLobby) app.appendChild(helpFab());
   refreshFriendsPanel();
+
+  // First-time players: auto-open the tutorial once on the landing screen.
+  if (onLanding && !autoTutorialDone) {
+    autoTutorialDone = true;
+    let seen = false;
+    try { seen = !!localStorage.getItem('dutchTutorialSeen'); } catch (e) {}
+    if (!seen) openTutorial();
+  }
+  renderTutorialRoot();
 }
 
 let toastedDisconnect = false;
