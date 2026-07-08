@@ -77,6 +77,11 @@ class Game:
         self.turn_mode = 'awaitingAction'
         self.jack_first = None
         self.turn_counter = 0
+        # Who resolves a pending power (J/Q/A). Usually the current player, but a
+        # player who *matches* a power card resolves it themselves, even off-turn.
+        self.power_actor = None
+        # When a matched power interrupts a turn, the turn_mode to restore afterward.
+        self.power_return_mode = None
 
         # Most recent discard-swap / match / flip / power, so clients can animate them.
         self.last_swap = None
@@ -127,6 +132,8 @@ class Game:
     def _advance_turn(self):
         self.turn_mode = 'awaitingAction'
         self.jack_first = None
+        self.power_actor = None
+        self.power_return_mode = None
         self.turn_counter += 1
         self.current_index = (self.current_index + 1) % len(self.order)
         self.turn_started_at = time.time()
@@ -155,14 +162,39 @@ class Game:
         else:
             self.turn_mode = 'endOfTurn'
 
+    _POWER_MODE = {'J': 'jackSwap', 'Q': 'queenPeek', 'A': 'aceGive'}
+
     def _trigger_power_or_complete(self, card):
-        if card['rank'] == 'J':
-            self.turn_mode = 'jackSwap'
+        """Flip / swap-discard: the current player resolves any power, then the
+        turn completes normally."""
+        mode = self._POWER_MODE.get(card['rank'])
+        if mode:
+            self.power_actor = self.current_player()
+            self.power_return_mode = None
             self.jack_first = None
-        elif card['rank'] == 'Q':
-            self.turn_mode = 'queenPeek'
-        elif card['rank'] == 'A':
-            self.turn_mode = 'aceGive'
+            self.turn_mode = mode
+        else:
+            self._action_resolved()
+
+    def _trigger_match_power(self, matcher, card):
+        """A matched power card fires its power for the matcher (who may be
+        off-turn). The interrupted turn's mode is restored once it resolves."""
+        mode = self._POWER_MODE.get(card['rank'])
+        if not mode:
+            return
+        self.power_actor = matcher
+        self.power_return_mode = self.turn_mode
+        self.jack_first = None
+        self.turn_mode = mode
+
+    def _power_complete(self):
+        """Finish a power. A match-triggered power restores the interrupted turn;
+        a flip/swap power completes the turn normally."""
+        self.jack_first = None
+        self.power_actor = None
+        if self.power_return_mode is not None:
+            self.turn_mode = self.power_return_mode
+            self.power_return_mode = None
         else:
             self._action_resolved()
 
@@ -281,10 +313,11 @@ class Game:
         self.action_seq += 1
         if card['rank'] == top['rank']:
             del grid[cell_index]
-            self.discard.append(card)  # placed face-up; does NOT trigger its power
+            self.discard.append(card)  # placed face-up — a power card fires for the matcher
             self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
                                'card': card, 'matched': True}
             self._log('matched', name=self.names[sender], card=card_label(card))
+            self._trigger_match_power(sender, card)
             return {'matched': True, 'cellIndex': cell_index, 'card': card}
         penalty = self.draw_one()
         if penalty is not None:
@@ -343,7 +376,7 @@ class Game:
         self._advance_turn()
 
     def jack_select(self, sender, target_player, target_cell):
-        if self.turn_mode != 'jackSwap' or sender != self.current_player():
+        if self.turn_mode != 'jackSwap' or sender != self.power_actor:
             raise GameError('Not resolving a Jack right now.')
         if target_player not in self.grids or not (0 <= target_cell < len(self.grids[target_player])):
             raise GameError('Invalid card.')
@@ -364,11 +397,11 @@ class Game:
                           'b': {'playerId': target_player, 'cellIndex': target_cell},
                           'by': sender}
         self.jack_first = None
-        self._action_resolved()
+        self._power_complete()
         return (loc_a, loc_b)
 
     def queen_select(self, sender, target_player, target_cell):
-        if self.turn_mode != 'queenPeek' or sender != self.current_player():
+        if self.turn_mode != 'queenPeek' or sender != self.power_actor:
             raise GameError('Not resolving a Queen right now.')
         if target_player not in self.grids or not (0 <= target_cell < len(self.grids[target_player])):
             raise GameError('Invalid card.')
@@ -378,25 +411,25 @@ class Game:
         self.last_queen = {'seq': self.action_seq, 'playerId': target_player,
                            'cellIndex': target_cell, 'by': sender}
         self._log('queen', name=self.names[sender], target=self.names[target_player])
-        self._action_resolved()
+        self._power_complete()
         return card
 
     def ace_give(self, sender, target_player):
-        if self.turn_mode != 'aceGive' or sender != self.current_player():
+        if self.turn_mode != 'aceGive' or sender != self.power_actor:
             raise GameError('Not resolving an Ace right now.')
         if target_player not in self.grids:
             raise GameError('Invalid player.')
         card = self.draw_one()
         if card is None:
             self._log('noGive')
-            self._action_resolved()
+            self._power_complete()
             return
         self.grids[target_player].append(card)
         self.action_seq += 1
         self.last_ace = {'seq': self.action_seq, 'playerId': target_player,
                          'cellIndex': len(self.grids[target_player]) - 1, 'by': sender}
         self._log('ace', name=self.names[sender], target=self.names[target_player])
-        self._action_resolved()
+        self._power_complete()
 
     # ---- serialization ----
 
@@ -414,6 +447,7 @@ class Game:
             'players': players,
             'currentPlayerId': self.current_player(),
             'turnMode': self.turn_mode,
+            'powerActorId': self.power_actor,
             'jackFirst': self.jack_first,
             'peekChooserId': self.peek_chooser,
             'peekCount': self.peek_count,

@@ -170,6 +170,7 @@ const TRANSLATIONS = {
     ratingCol: 'Rating', recordCol: 'W–L', statRating: 'rating', statRanked: 'ranked', unranked: 'unranked',
     ratingToast: 'Ranked rating: {rating} ({delta})',
     authCta: 'Log in / Sign up', authCtaSub: 'Save your stats, add friends & play ranked.',
+    powerYours: 'Matched power — your move!', powerOther: '{name} is using a matched power…',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -265,6 +266,7 @@ const TRANSLATIONS = {
     ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'clasif.', unranked: 'sin rating',
     ratingToast: 'Rating de clasificatoria: {rating} ({delta})',
     authCta: 'Entrar / Registrarse', authCtaSub: 'Guarda tus estadísticas, añade amigos y juega clasificatorias.',
+    powerYours: 'Poder emparejado — ¡te toca!', powerOther: '{name} está usando un poder emparejado…',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -359,6 +361,7 @@ const TRANSLATIONS = {
     ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'classé', unranked: 'non classé',
     ratingToast: 'Rating classé : {rating} ({delta})',
     authCta: 'Connexion / Inscription', authCtaSub: 'Enregistrez vos stats, ajoutez des amis et jouez en classé.',
+    powerYours: 'Pouvoir associé — à vous !', powerOther: '{name} utilise un pouvoir associé…',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -453,6 +456,7 @@ const TRANSLATIONS = {
     ratingCol: 'Wertung', recordCol: 'S–N', statRating: 'Wertung', statRanked: 'ranked', unranked: 'ohne Wertung',
     ratingToast: 'Ranglisten-Wertung: {rating} ({delta})',
     authCta: 'Anmelden / Registrieren', authCtaSub: 'Statistiken speichern, Freunde hinzufügen, ranked spielen.',
+    powerYours: 'Abgelegte Machtkarte — du bist dran!', powerOther: '{name} nutzt eine abgelegte Machtkarte…',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -547,6 +551,7 @@ const TRANSLATIONS = {
     ratingCol: '评分', recordCol: '胜–负', statRating: '评分', statRanked: '排位', unranked: '暂无评分',
     ratingToast: '排位评分：{rating}（{delta}）',
     authCta: '登录 / 注册', authCtaSub: '保存战绩、添加好友、畅玩排位。',
+    powerYours: '配对能力牌 — 该你了！', powerOther: '{name} 正在使用配对的能力牌…',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -2216,6 +2221,18 @@ function turnBannerInfo(state) {
     return { headline: t('xPeeking', { name: nameOf(state, p) }), sub: t('everyoneHang'), mine: false };
   }
   const cur = state.currentPlayerId;
+  // A power matched off-turn is resolved by the matcher, not the current player.
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  if (powerMode && state.powerActorId && state.powerActorId !== cur) {
+    const pa = state.powerActorId;
+    const paMine = pa === me;
+    const promptKey = state.turnMode === 'jackSwap' ? (state.jackFirst ? 'jackSecondMsg' : 'jackFirstMsg')
+      : state.turnMode === 'queenPeek' ? 'queenPickMsg' : 'aceChooseMsg';
+    return {
+      headline: paMine ? t('powerYours') : t('powerOther', { name: nameOf(state, pa) }),
+      sub: paMine ? t(promptKey) : '', mine: paMine,
+    };
+  }
   const mine = cur === me;
   let headline = mine ? t('yourTurn') : t('xTurn', { name: nameOf(state, cur) });
   const subParts = [];
@@ -2244,7 +2261,10 @@ function cellClickHandler(state, playerId, cellIndex) {
     return null;
   }
   if (state.phase !== 'playing') return null;
-  if (state.currentPlayerId !== me) return null;
+  // For a pending power, the actor is the matcher (maybe off-turn); otherwise the current player.
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  const actingPlayer = powerMode && state.powerActorId ? state.powerActorId : state.currentPlayerId;
+  if (actingPlayer !== me) return null;
   if (state.turnMode === 'awaitingAction') {
     if (swapArmed && playerId === me) {
       return () => { swapArmed = false; sendMsg({ type: 'swapCell', cellIndex }); };
@@ -2302,8 +2322,11 @@ function renderActionBar(state) {
     return b;
   }
 
-  if (state.currentPlayerId !== me) {
-    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('waitingForX', { name: nameOf(state, state.currentPlayerId) }))}</span>`));
+  // A matched power is resolved by its (possibly off-turn) actor; otherwise the current player acts.
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  const actingPlayer = powerMode && state.powerActorId ? state.powerActorId : state.currentPlayerId;
+  if (actingPlayer !== me) {
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('waitingForX', { name: nameOf(state, actingPlayer) }))}</span>`));
     if (canMatch) bar.appendChild(matchButton());
     return bar;
   }

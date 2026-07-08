@@ -187,6 +187,10 @@ def required_actor(game):
     if game.phase == 'peeking':
         return game.peeking_player()
     if game.phase == 'playing':
+        # A pending power is resolved by its actor — usually the current player,
+        # but a matcher (possibly off-turn) resolves a power they matched.
+        if game.turn_mode in ('jackSwap', 'queenPeek', 'aceGive') and game.power_actor:
+            return game.power_actor
         return game.current_player()
     return None
 
