@@ -74,6 +74,7 @@ class Room:
         self.settings = {'cardsPer': 4, 'bufferSeconds': 2.5, 'matching': True, 'turnLimit': 30}
         self.monitor_running = False
         self.deal_seq = 0         # bumps each new round so clients can deal-in cards
+        self.ranked = False       # ranked 1v1: standard rules, no bots, Glicko-rated
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -131,6 +132,7 @@ def lobby_state(room, viewer_id):
             for pid, p in room.players.items()
         ],
         'settings': room.settings,
+        'ranked': room.ranked,
     }
 
 
@@ -150,6 +152,7 @@ def build_state(room, viewer_id):
         p['left'] = info.get('left', False)
     state['roundsPlayed'] = room.rounds_played
     state['dealSeq'] = room.deal_seq
+    state['ranked'] = room.ranked
     state['series'] = [{'id': pid, 'name': meta[pid]['name'], 'total': tot}
                        for pid, tot in room.series.items() if pid in meta]
     return state
@@ -195,10 +198,32 @@ async def record_game_if_needed(room):
     if not results:
         return
     await asyncio.to_thread(storage.record_game, results)
+
+    # Ranked 1v1: update Glicko ratings when both seats are still real accounts.
+    ranked_out = None
+    if room.ranked and len(room.players) == 2:
+        seats = [(pid, room.players[pid]) for pid in totals if pid in room.players]
+        if len(seats) == 2 and all(
+                p.get('account_id') and not p.get('is_bot') and not p.get('left') for _, p in seats):
+            (pa, ainfo), (pb, binfo) = seats
+            a_total, b_total = totals[pa], totals[pb]
+            a_score = 1.0 if a_total < b_total else (0.0 if a_total > b_total else 0.5)
+            ranked_out = await asyncio.to_thread(
+                storage.record_ranked_1v1, ainfo['account_id'], binfo['account_id'], a_score)
+            room.players[pa]['_ranked_acct'] = ainfo['account_id']
+            room.players[pb]['_ranked_acct'] = binfo['account_id']
+
     for r in results:
         stats = await asyncio.to_thread(storage.get_stats, r['user_id'])
         for w in list(ONLINE.get(r['user_id'], ())):
             await send(w, {'type': 'statsUpdate', 'stats': stats, 'won': r['won']})
+    if ranked_out:
+        for pid, p in room.players.items():
+            acct = p.get('_ranked_acct')
+            res = ranked_out.get(acct) if acct else None
+            if res and p.get('ws'):
+                await send(p['ws'], {'type': 'rankedUpdate', 'rating': res['rating'],
+                                     'delta': res['delta'], 'won': res['won']})
 
 
 async def broadcast_state(room):
@@ -580,8 +605,12 @@ async def handle_message(ws, ctx, data):
 
     if mtype == 'createRoom':
         name = clean_name(data.get('name'))
+        ranked = bool(data.get('ranked'))
+        if ranked and not acct_id:
+            raise GameError('Log in to play ranked games.')
         code = new_code()
         room = Room(code)
+        room.ranked = ranked
         pid, token = new_id(), new_token()
         room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id}
         room.host_id = pid
@@ -598,6 +627,10 @@ async def handle_message(ws, ctx, data):
             raise GameError('Room not found. Check the code and try again.')
         if room.game is not None:
             raise GameError('That game has already started.')
+        if room.ranked and not acct_id:
+            raise GameError('Log in to join a ranked game.')
+        if room.ranked and len(room.players) >= 2:
+            raise GameError('Ranked games are 1v1 — this room is full.')
         if len(room.players) >= 8:
             raise GameError('That room is full.')
         name = clean_name(data.get('name'))
@@ -663,6 +696,8 @@ async def handle_message(ws, ctx, data):
     if mtype == 'addBot':
         if pid != room.host_id:
             raise GameError('Only the host can add bots.')
+        if room.ranked:
+            raise GameError('Ranked games are 1v1 — no bots.')
         if room.game is not None:
             raise GameError('Add bots before the game starts.')
         if len(room.players) >= 8:
@@ -680,6 +715,8 @@ async def handle_message(ws, ctx, data):
     if mtype == 'setSettings':
         if pid != room.host_id:
             raise GameError('Only the host can change settings.')
+        if room.ranked:
+            raise GameError('Ranked games use standard rules.')
         if room.game is not None:
             raise GameError('Change settings before the game starts.')
         s = data.get('settings') or {}
@@ -732,6 +769,11 @@ async def handle_message(ws, ctx, data):
             raise GameError('Game already started.')
         if len(room.players) < 2:
             raise GameError('Need at least 2 players to start.')
+        if room.ranked:
+            if len(room.players) != 2:
+                raise GameError('Ranked games need exactly 2 players.')
+            if not all(p.get('account_id') and not p.get('is_bot') for p in room.players.values()):
+                raise GameError('Both players must be logged in for a ranked game.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False

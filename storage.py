@@ -13,6 +13,8 @@ import re
 import secrets
 import time
 
+import glicko2
+
 DATABASE_URL = os.environ.get('DATABASE_URL')
 USE_PG = bool(DATABASE_URL)
 
@@ -110,17 +112,29 @@ def init_db():
             total_score INTEGER NOT NULL DEFAULT 0,
             best_score INTEGER,
             plays_correct INTEGER NOT NULL DEFAULT 0,
-            plays_total INTEGER NOT NULL DEFAULT 0
+            plays_total INTEGER NOT NULL DEFAULT 0,
+            rating REAL NOT NULL DEFAULT 1500,
+            rd REAL NOT NULL DEFAULT 350,
+            vol REAL NOT NULL DEFAULT 0.06,
+            ranked_games INTEGER NOT NULL DEFAULT 0,
+            ranked_wins INTEGER NOT NULL DEFAULT 0
         )''')
-        # Add play-accuracy columns to stats tables created before this feature.
+        # Add newer columns to stats tables created before those features.
+        int_cols = ('plays_correct', 'plays_total', 'ranked_games', 'ranked_wins')
+        real_cols = (('rating', 1500), ('rd', 350), ('vol', 0.06))
         if USE_PG:
-            for col in ('plays_correct', 'plays_total'):
+            for col in int_cols:
                 cur.execute(f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 0')
+            for col, dflt in real_cols:
+                cur.execute(f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS {col} REAL NOT NULL DEFAULT {dflt}')
         else:
             have = {r[1] for r in cur.execute('PRAGMA table_info(stats)').fetchall()}
-            for col in ('plays_correct', 'plays_total'):
+            for col in int_cols:
                 if col not in have:
                     cur.execute(f'ALTER TABLE stats ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0')
+            for col, dflt in real_cols:
+                if col not in have:
+                    cur.execute(f'ALTER TABLE stats ADD COLUMN {col} REAL NOT NULL DEFAULT {dflt}')
         cur.execute(f'''CREATE TABLE IF NOT EXISTS password_resets (
             token_hash TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -473,20 +487,61 @@ def record_game(results):
         conn.close()
 
 
+def _ensure_stats_row(cur, user_id):
+    cur.execute(_ph('SELECT 1 FROM stats WHERE user_id=?'), (user_id,))
+    if not cur.fetchone():
+        cur.execute(_ph('INSERT INTO stats (user_id) VALUES (?)'), (user_id,))
+
+
+def record_ranked_1v1(a_id, b_id, a_score):
+    """Update Glicko-2 ratings for a 1v1 ranked round.
+    a_score is player a's result: 1.0 win, 0.0 loss, 0.5 draw.
+    Returns {a_id: {rating, delta, won}, b_id: {...}} with rounded ratings."""
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        _ensure_stats_row(cur, a_id)
+        _ensure_stats_row(cur, b_id)
+        cur.execute(_ph('SELECT user_id, rating, rd, vol, ranked_games, ranked_wins FROM stats WHERE user_id IN (?,?)'),
+                    (a_id, b_id))
+        rows = {r['user_id']: r for r in cur.fetchall()}
+        ra, rb = rows[a_id], rows[b_id]
+        na, nb = glicko2.rate_pair((ra['rating'], ra['rd'], ra['vol']),
+                                   (rb['rating'], rb['rd'], rb['vol']), a_score)
+        out = {}
+        for uid, old, new, score in ((a_id, ra, na, a_score), (b_id, rb, nb, 1.0 - a_score)):
+            won = 1 if score == 1.0 else 0
+            cur.execute(_ph('''UPDATE stats SET rating=?, rd=?, vol=?, ranked_games=?, ranked_wins=?
+                               WHERE user_id=?'''),
+                        (new[0], new[1], new[2], old['ranked_games'] + 1, old['ranked_wins'] + won, uid))
+            out[uid] = {'rating': round(new[0]), 'delta': round(new[0]) - round(old['rating']), 'won': bool(won)}
+        conn.commit()
+        return out
+    finally:
+        conn.close()
+
+
 def get_stats(user_id):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT games, wins, total_score, best_score, plays_correct, plays_total FROM stats WHERE user_id=?'),
+        cur.execute(_ph('''SELECT games, wins, total_score, best_score, plays_correct, plays_total,
+                                  rating, rd, ranked_games, ranked_wins FROM stats WHERE user_id=?'''),
                     (user_id,))
         r = cur.fetchone()
         if not r:
-            return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'accuracy': None, 'rank': None}
-        cur.execute(_ph('SELECT count(*) AS c FROM stats WHERE wins > ?'), (r['wins'],))
-        rank = cur.fetchone()['c'] + 1
+            return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'accuracy': None,
+                    'rank': None, 'rating': None, 'ranked_games': 0, 'ranked_wins': 0, 'ranked_rank': None}
+        # Ranked ladder rank (by rating, among players who've played ranked).
+        ranked_rank = None
+        if r['ranked_games'] > 0:
+            cur.execute(_ph('SELECT count(*) AS c FROM stats WHERE ranked_games > 0 AND rating > ?'), (r['rating'],))
+            ranked_rank = cur.fetchone()['c'] + 1
         return {'games': r['games'], 'wins': r['wins'], 'total_score': r['total_score'],
                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total']),
-                'rank': rank}
+                'rank': ranked_rank,
+                'rating': round(r['rating']) if r['ranked_games'] > 0 else None,
+                'ranked_games': r['ranked_games'], 'ranked_wins': r['ranked_wins']}
     finally:
         conn.close()
 
@@ -495,11 +550,16 @@ def get_leaderboard(limit=10):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('''SELECT u.username, s.games, s.wins, s.best_score, s.plays_correct, s.plays_total
+        # Ranked players (by Glicko rating) first, then casual players by wins.
+        cur.execute(_ph('''SELECT u.username, s.games, s.wins, s.best_score, s.plays_correct, s.plays_total,
+                                  s.rating, s.ranked_games, s.ranked_wins
                            FROM stats s JOIN users u ON u.id = s.user_id
-                           ORDER BY s.wins DESC, s.games DESC LIMIT ?'''), (limit,))
+                           ORDER BY (CASE WHEN s.ranked_games > 0 THEN 1 ELSE 0 END) DESC,
+                                    s.rating DESC, s.wins DESC, s.games DESC LIMIT ?'''), (limit,))
         return [{'username': r['username'], 'games': r['games'], 'wins': r['wins'],
-                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total'])}
+                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total']),
+                 'rating': round(r['rating']) if r['ranked_games'] > 0 else None,
+                 'ranked_games': r['ranked_games'], 'ranked_wins': r['ranked_wins']}
                 for r in cur.fetchall()]
     finally:
         conn.close()

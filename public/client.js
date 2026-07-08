@@ -38,6 +38,7 @@ let leaderboardData = null;
 let chatOpen = false;
 let chatLog = [];
 let chatUnread = 0;
+let lastRankedUpdate = null;  // {rating, delta, won} for the most recent ranked round, shown on reveal
 
 // Briefly reveal which card a player just swapped in from the discard pile.
 let recentSwap = null;
@@ -163,6 +164,11 @@ const TRANSLATIONS = {
     accuracyExplain: 'Accuracy = share of your draw/swap decisions that were the best move given what you knew at the time.',
     loginForLb: 'Log in (👥) to have your games counted on the leaderboard.', topPlayers: 'Top players',
     lbPlayer: 'Player', lbWins: 'Wins', lbAcc: 'Acc', noGames: 'No games played yet — be the first!',
+    ranked1v1: 'Ranked 1v1', rankedNeedLogin: 'Log in to play ranked — open the 👥 menu.',
+    rankedTag: 'Ranked 1v1', rankedRules: 'Standard rules · Glicko-rated',
+    rankedWaitOpp: 'Share the code — waiting for an opponent to join…',
+    ratingCol: 'Rating', recordCol: 'W–L', statRating: 'rating', statRanked: 'ranked', unranked: 'unranked',
+    ratingToast: 'Ranked rating: {rating} ({delta})',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -252,6 +258,11 @@ const TRANSLATIONS = {
     accuracyExplain: 'Precisión = proporción de tus decisiones de robar/cambiar que fueron la mejor jugada según lo que sabías en ese momento.',
     loginForLb: 'Entra (👥) para que tus partidas cuenten en la clasificación.', topPlayers: 'Mejores jugadores',
     lbPlayer: 'Jugador', lbWins: 'Victorias', lbAcc: 'Prec', noGames: 'Aún no hay partidas — ¡sé el primero!',
+    ranked1v1: 'Clasificatoria 1v1', rankedNeedLogin: 'Entra para jugar clasificatorias — abre el menú 👥.',
+    rankedTag: 'Clasificatoria 1v1', rankedRules: 'Reglas estándar · con rating Glicko',
+    rankedWaitOpp: 'Comparte el código — esperando a un rival…',
+    ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'clasif.', unranked: 'sin rating',
+    ratingToast: 'Rating de clasificatoria: {rating} ({delta})',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -340,6 +351,11 @@ const TRANSLATIONS = {
     accuracyExplain: 'Précision = part de vos décisions de pioche/échange qui étaient le meilleur coup selon ce que vous saviez à ce moment-là.',
     loginForLb: 'Connectez-vous (👥) pour que vos parties comptent au classement.', topPlayers: 'Meilleurs joueurs',
     lbPlayer: 'Joueur', lbWins: 'Victoires', lbAcc: 'Préc', noGames: 'Aucune partie jouée — soyez le premier !',
+    ranked1v1: 'Classé 1v1', rankedNeedLogin: 'Connectez-vous pour jouer en classé — ouvrez le menu 👥.',
+    rankedTag: 'Classé 1v1', rankedRules: 'Règles standard · classement Glicko',
+    rankedWaitOpp: 'Partagez le code — en attente d\'un adversaire…',
+    ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'classé', unranked: 'non classé',
+    ratingToast: 'Rating classé : {rating} ({delta})',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -428,6 +444,11 @@ const TRANSLATIONS = {
     accuracyExplain: 'Genauigkeit = Anteil deiner Zieh-/Tausch-Entscheidungen, die der beste Zug waren, gemessen an dem, was du damals wusstest.',
     loginForLb: 'Melde dich an (👥), damit deine Spiele in der Bestenliste zählen.', topPlayers: 'Top-Spieler',
     lbPlayer: 'Spieler', lbWins: 'Siege', lbAcc: 'Gen', noGames: 'Noch keine Spiele — sei der Erste!',
+    ranked1v1: 'Rangliste 1v1', rankedNeedLogin: 'Melde dich an, um ranked zu spielen — öffne das 👥-Menü.',
+    rankedTag: 'Rangliste 1v1', rankedRules: 'Standardregeln · Glicko-gewertet',
+    rankedWaitOpp: 'Teile den Code — warte auf einen Gegner…',
+    ratingCol: 'Wertung', recordCol: 'S–N', statRating: 'Wertung', statRanked: 'ranked', unranked: 'ohne Wertung',
+    ratingToast: 'Ranglisten-Wertung: {rating} ({delta})',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -516,6 +537,11 @@ const TRANSLATIONS = {
     accuracyExplain: '准确率 = 在你当时已知信息下，你的抽牌/交换决策中属于最佳选择的比例。',
     loginForLb: '登录（👥）后你的对局才会计入排行榜。', topPlayers: '顶尖玩家',
     lbPlayer: '玩家', lbWins: '胜场', lbAcc: '准确', noGames: '还没有对局 — 来当第一人吧！',
+    ranked1v1: '排位 1v1', rankedNeedLogin: '登录后可玩排位 — 打开 👥 菜单。',
+    rankedTag: '排位 1v1', rankedRules: '标准规则 · Glicko 计分',
+    rankedWaitOpp: '分享房间码 — 等待对手加入…',
+    ratingCol: '评分', recordCol: '胜–负', statRating: '评分', statRanked: '排位', unranked: '暂无评分',
+    ratingToast: '排位评分：{rating}（{delta}）',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -734,6 +760,7 @@ function handleServerMessage(data) {
     const prev = latestState;
     latestState = data.state;
     myId = latestState.youId;
+    if (latestState.phase !== 'reveal') lastRankedUpdate = null;  // stale after a new round starts
     swapArmed = false;
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
@@ -779,6 +806,10 @@ function handleServerMessage(data) {
     if (prof) { prof.email = data.email || null; saveProfile(prof); }
   } else if (data.type === 'statsUpdate') {
     showToast(data.won ? t('youWon', { n: data.stats.wins }) : t('gameRecorded', { n: data.stats.games }));
+  } else if (data.type === 'rankedUpdate') {
+    lastRankedUpdate = { rating: data.rating, delta: data.delta, won: data.won };
+    const sign = data.delta > 0 ? '+' : '';
+    showToast(t('ratingToast', { rating: data.rating, delta: sign + data.delta }));
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
     if (leaderboardOpen) renderLeaderboardRoot();
@@ -1224,11 +1255,13 @@ function renderLeaderboard() {
     drawer.appendChild(el(`<div class="my-stats">
       <div class="section-label">${escapeHtml(t('yourStats'))}</div>
       <div class="row wrap" style="gap:14px; margin-top:6px;">
+        <span>${escapeHtml(t('statRating'))} <strong>${s.rating == null ? escapeHtml(t('unranked')) : s.rating}</strong></span>
+        ${s.ranked_games ? `<span>${escapeHtml(t('statRanked'))} <strong>${s.ranked_wins}–${s.ranked_games - s.ranked_wins}</strong></span>` : ''}
+        ${s.rank ? `<span>${escapeHtml(t('statRank'))} <strong>#${s.rank}</strong></span>` : ''}
         <span><strong>${s.wins}</strong> ${escapeHtml(t('statWins'))}</span>
         <span><strong>${s.games}</strong> ${escapeHtml(t('statGames'))}</span>
         <span>${escapeHtml(t('statBestRound'))} <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
         <span>${escapeHtml(t('statAccuracy'))} <strong>${s.accuracy == null ? '—' : s.accuracy + '%'}</strong></span>
-        ${s.rank ? `<span>${escapeHtml(t('statRank'))} <strong>#${s.rank}</strong></span>` : ''}
       </div>
       <div class="help-text" style="margin-top:8px;">${escapeHtml(t('accuracyExplain'))}</div>
     </div>`));
@@ -1238,17 +1271,18 @@ function renderLeaderboard() {
 
   drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('topPlayers'))}</div>`));
   const table = el(`<div class="lb-table"></div>`);
-  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num">${escapeHtml(t('lbWins'))}</span><span class="lb-num">${escapeHtml(t('lbAcc'))}</span></div>`));
+  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num lb-rating">${escapeHtml(t('ratingCol'))}</span><span class="lb-num">${escapeHtml(t('recordCol'))}</span></div>`));
   if (!board.length) {
     table.appendChild(el(`<div class="help-text" style="padding:10px;">${escapeHtml(t('noGames'))}</div>`));
   }
   board.forEach((r, i) => {
     const mine = leaderboardData.myUsername && r.username === leaderboardData.myUsername;
+    const record = r.ranked_games ? `${r.ranked_wins}–${r.ranked_games - r.ranked_wins}` : '—';
     const row = el(`<div class="lb-row ${mine ? 'me' : ''}">
       <span class="lb-rank">${i + 1}</span>
       <span class="grow">${escapeHtml(r.username)}</span>
-      <span class="lb-num">${r.wins}</span>
-      <span class="lb-num">${r.accuracy == null ? '—' : r.accuracy + '%'}</span>
+      <span class="lb-num lb-rating">${r.rating == null ? '—' : r.rating}</span>
+      <span class="lb-num">${record}</span>
     </div>`);
     table.appendChild(row);
   });
@@ -1833,6 +1867,7 @@ function renderLanding() {
       <h1>DUTCH</h1>
       <div class="tagline">${escapeHtml(t('tagline'))}</div>
     </div>
+    <div class="ranked-cta"><button class="btn-blue" id="ranked-btn">⚔️ ${escapeHtml(t('ranked1v1'))}</button></div>
     <div class="landing-cards">
       <div class="card-panel">
         <h2>${escapeHtml(t('createTitle'))}</h2>
@@ -1874,6 +1909,16 @@ function renderLanding() {
     if (!name) { showToast(t('enterName'), true); return; }
     saveLastName(name);
     sendMsg({ type: 'createRoom', name });
+  };
+  wrap.querySelector('#ranked-btn').onclick = () => {
+    const p = loadProfile();
+    if (!p || !p.username) {
+      showToast(t('rankedNeedLogin'), true);
+      friendsPanelOpen = true; leaderboardOpen = false; chatOpen = false; refreshFriendsPanel();
+      return;
+    }
+    saveLastName(p.username);
+    sendMsg({ type: 'createRoom', name: p.username, ranked: true });
   };
   wrap.querySelector('#join-btn').onclick = () => {
     const name = wrap.querySelector('#join-name').value.trim();
@@ -1930,7 +1975,12 @@ function renderSettings(state, isHost) {
 
 function renderLobby(state) {
   const isHost = state.hostId === state.youId;
+  const ranked = !!state.ranked;
+  const startHelp = ranked && state.players.length < 2
+    ? escapeHtml(t('rankedWaitOpp'))
+    : (state.players.length < 2 ? escapeHtml(t('needTwo')) : escapeHtml(t('readyPlayers', { n: state.players.length })));
   const wrap = el(`<div class="lobby-wrap">
+    ${ranked ? `<div class="ranked-banner">⚔️ ${escapeHtml(t('rankedTag'))} · <span class="ranked-sub">${escapeHtml(t('rankedRules'))}</span></div>` : ''}
     <div class="room-code-box">
       <div class="label">${escapeHtml(t('roomShare'))}</div>
       <div class="code" id="room-code-text">${escapeHtml(state.code)}</div>
@@ -1938,7 +1988,7 @@ function renderLobby(state) {
       <button class="btn-ghost" id="copy-link-btn" style="margin-top:12px; padding:8px 16px; font-size:0.85rem;">🔗 ${escapeHtml(t('copyInvite'))}</button>
     </div>
     <div class="player-chip-list" id="player-chips"></div>
-    ${isHost ? `<div class="add-bot-box">
+    ${isHost && !ranked ? `<div class="add-bot-box">
       <div class="section-label" style="text-align:center;">${escapeHtml(t('addBotTitle'))}</div>
       <div class="row center wrap" id="bot-buttons"></div>
     </div>` : ''}
@@ -1946,7 +1996,7 @@ function renderLobby(state) {
     <div class="col" style="align-items:center;">
       ${isHost
         ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>${t('startGame')}</button>
-           <div class="help-text">${state.players.length < 2 ? escapeHtml(t('needTwo')) : escapeHtml(t('readyPlayers', { n: state.players.length }))}</div>`
+           <div class="help-text">${startHelp}</div>`
         : `<div class="help-text">${escapeHtml(t('waitingHost'))}</div>`}
       <div id="lobby-leave" style="margin-top:6px;"></div>
     </div>
@@ -1961,7 +2011,7 @@ function renderLobby(state) {
     navigator.clipboard?.writeText(link).then(() => showToast(t('inviteLinkCopied')))
       .catch(() => showToast(link));
   };
-  wrap.querySelector('#settings-box').appendChild(renderSettings(state, isHost));
+  if (!ranked) wrap.querySelector('#settings-box').appendChild(renderSettings(state, isHost));
 
   const chipList = wrap.querySelector('#player-chips');
   state.players.forEach((p) => {
@@ -1980,13 +2030,15 @@ function renderLobby(state) {
 
   if (isHost) {
     const botRow = wrap.querySelector('#bot-buttons');
-    const full = state.players.length >= 8;
-    [['easy', t('diffEasy')], ['medium', t('diffMedium')], ['hard', t('diffHard')], ['impossible', t('diffImpossible')]].forEach(([diff, label]) => {
-      const b = el(`<button class="btn-ghost diff-btn ${diff}">+ ${escapeHtml(label)}</button>`);
-      b.disabled = full;
-      b.onclick = () => sendMsg({ type: 'addBot', difficulty: diff });
-      botRow.appendChild(b);
-    });
+    if (botRow) {
+      const full = state.players.length >= 8;
+      [['easy', t('diffEasy')], ['medium', t('diffMedium')], ['hard', t('diffHard')], ['impossible', t('diffImpossible')]].forEach(([diff, label]) => {
+        const b = el(`<button class="btn-ghost diff-btn ${diff}">+ ${escapeHtml(label)}</button>`);
+        b.disabled = full;
+        b.onclick = () => sendMsg({ type: 'addBot', difficulty: diff });
+        botRow.appendChild(b);
+      });
+    }
     wrap.querySelector('#start-btn').onclick = () => sendMsg({ type: 'startGame' });
   }
   return wrap;
@@ -2302,11 +2354,17 @@ function renderReveal(state) {
   const reveal = state.reveal || [];
   const minTotal = Math.min(...reveal.map((r) => r.total));
 
+  const ru = state.ranked && lastRankedUpdate ? lastRankedUpdate : null;
+  const ruSign = ru && ru.delta > 0 ? '+' : '';
   const wrap = el(`<div class="reveal-wrap">
     <div class="brand" style="margin-bottom:18px;">
       <h1 style="font-size:2rem;">${escapeHtml(t('roundOver'))}</h1>
       <div class="tagline">${escapeHtml(t('allRevealed'))}</div>
     </div>
+    ${ru ? `<div class="rating-change ${ru.delta >= 0 ? 'up' : 'down'}">
+      <span class="rating-delta">${ruSign}${ru.delta}</span>
+      <span class="rating-new">${escapeHtml(t('ratingCol'))} ${ru.rating}</span>
+    </div>` : ''}
     <div id="reveal-rows"></div>
     <div id="series-standings"></div>
     <div class="row center" style="margin-top:20px;">
