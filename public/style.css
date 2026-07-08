@@ -1018,3 +1018,44 @@ button:active:not(:disabled) { transform: scale(0.95); }
   .card.selectable, .turn-banner.your-turn, .opp-card.active, .brand .suits,
   .reveal-row, .reveal-row.winner { animation: none; }
 }
+
+/* ---------- QoL: sound toggle, series standings ---------- */
+
+.sound-fab {
+  position: fixed;
+  top: 8px;
+  left: 58px;
+  z-index: 40;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--panel-border);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sound-fab:hover { background: rgba(0,0,0,0.5); }
+
+.series-box {
+  max-width: 420px;
+  margin: 18px auto 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+.series-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+}
+.series-row.leader { background: rgba(232,185,63,0.14); font-weight: 700; }
+.series-rank { width: 20px; text-align: center; color: var(--ink-dim); font-weight: 700; }
+.series-row.leader .series-rank { color: var(--gold); }
+.series-total { font-weight: 800; }
+.series-row.leader .series-total { color: var(--gold); }

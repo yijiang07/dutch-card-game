@@ -46,6 +46,8 @@ let lastMatchSeq = 0;
 let matchInitialized = false;
 let lastFlipSeq = 0;
 let flipInitialized = false;
+let prevMyTurn = false;
+let titleFlash = null;
 let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
 let matchPauseUntil = 0;   // ms timestamp until which play is paused for a matcher
 let uiTicker = null;       // re-renders while a buffer / match countdown is running
@@ -57,6 +59,50 @@ function loadProfile() {
 }
 function saveProfile(p) { localStorage.setItem('dutchProfile', JSON.stringify(p)); }
 function clearProfile() { localStorage.removeItem('dutchProfile'); friendsState = null; }
+
+function loadLastName() { try { return localStorage.getItem('dutchLastName') || ''; } catch (e) { return ''; } }
+function saveLastName(n) { try { localStorage.setItem('dutchLastName', n); } catch (e) {} }
+
+/* ---------- Sound effects (synthesized, no assets) ---------- */
+const sound = {
+  ctx: null,
+  enabled: (() => { try { return localStorage.getItem('dutchSound') !== 'off'; } catch (e) { return true; } })(),
+  unlock() {
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) {}
+  },
+  setEnabled(on) { this.enabled = on; try { localStorage.setItem('dutchSound', on ? 'on' : 'off'); } catch (e) {} },
+  tone(freq, dur, type, vol, when) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + (when || 0);
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g).connect(this.ctx.destination);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  },
+  play(name) {
+    if (!this.enabled) return;
+    this.unlock();
+    if (!this.ctx) return;
+    switch (name) {
+      case 'flip': this.tone(300, 0.12, 'triangle', 0.16); this.tone(190, 0.13, 'sine', 0.1, 0.03); break;
+      case 'swap': this.tone(440, 0.09, 'triangle', 0.15); this.tone(580, 0.1, 'triangle', 0.13, 0.06); break;
+      case 'match': this.tone(523, 0.12, 'sine', 0.2); this.tone(784, 0.18, 'sine', 0.2, 0.1); break;
+      case 'wrong': this.tone(160, 0.24, 'sawtooth', 0.14); break;
+      case 'dutch': this.tone(330, 0.16, 'square', 0.14); this.tone(247, 0.32, 'square', 0.14, 0.13); break;
+      case 'turn': this.tone(660, 0.11, 'sine', 0.17); this.tone(880, 0.14, 'sine', 0.15, 0.09); break;
+      case 'win': [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.24, 'sine', 0.2, i * 0.11)); break;
+    }
+  },
+};
+document.addEventListener('pointerdown', () => sound.unlock(), { passive: true });
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -109,6 +155,7 @@ function handleServerMessage(data) {
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
     detectFlip(latestState);
+    detectYourTurn(latestState);
     updateTimers(latestState);
     // One-shot celebrations (fired outside render so they aren't re-triggered)
     if (latestState.finalRound && (!prev || !prev.finalRound) && latestState.dutchCallerId) {
@@ -488,6 +535,16 @@ function helpFab() {
   return fab;
 }
 
+function soundFab() {
+  const fab = el(`<button class="sound-fab" title="Sound">${sound.enabled ? '🔊' : '🔇'}</button>`);
+  fab.onclick = () => {
+    sound.setEnabled(!sound.enabled);
+    if (sound.enabled) { sound.unlock(); sound.play('turn'); }
+    fab.textContent = sound.enabled ? '🔊' : '🔇';
+  };
+  return fab;
+}
+
 /* ---------- Leaderboard ---------- */
 
 function leaderboardFab() {
@@ -725,6 +782,7 @@ function detectSwapReveal(state) {
   if (!ls) { lastSwapSeq = 0; swapInitialized = true; return; }
   if (swapInitialized && ls.seq > lastSwapSeq) {
     const seq = ls.seq;
+    sound.play('swap');
     recentSwap = { playerId: ls.playerId, cellIndex: ls.cellIndex, card: ls.card, seq };
     setTimeout(() => {
       if (recentSwap && recentSwap.seq === seq) { recentSwap = null; render(); }
@@ -745,9 +803,11 @@ function detectMatchReveal(state) {
   if (matchInitialized && lm.seq > lastMatchSeq) {
     const seq = lm.seq;
     if (lm.matched) {
+      sound.play('match');
       discardPulse = true;
       setTimeout(() => { discardPulse = false; render(); }, 700);
     } else {
+      sound.play('wrong');
       // A wrong match — briefly flash the mis-guessed card in red.
       recentWrong = { playerId: lm.playerId, cellIndex: lm.cellIndex, card: lm.card, seq };
       setTimeout(() => {
@@ -764,10 +824,32 @@ function wrongReveal(playerId, cellIndex) {
     ? recentWrong.card : null;
 }
 
+function detectYourTurn(state) {
+  const mine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
+    && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
+  if (mine && !prevMyTurn) {
+    sound.play('turn');
+    if (document.hidden) startTitleFlash();
+  }
+  if (!mine) stopTitleFlash();
+  prevMyTurn = mine;
+}
+
+function startTitleFlash() {
+  if (titleFlash) return;
+  let on = false;
+  titleFlash = setInterval(() => { document.title = on ? 'Dutch' : '▶ Your turn!'; on = !on; }, 900);
+}
+function stopTitleFlash() {
+  if (titleFlash) { clearInterval(titleFlash); titleFlash = null; document.title = 'Dutch'; }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) stopTitleFlash(); });
+
 function detectFlip(state) {
   const lf = state && state.lastFlip;
   if (!lf) { lastFlipSeq = 0; flipInitialized = true; return; }
   if (flipInitialized && lf.seq > lastFlipSeq) {
+    sound.play('flip');
     // let render() paint the new discard first, then fly a card over it
     requestAnimationFrame(() => flyFlip(lf.card));
   }
@@ -872,6 +954,7 @@ function leaveBtn(label) {
 /* ---------- Celebratory effects (one-shot, in #fx-root) ---------- */
 
 function flashDutch(name) {
+  sound.play('dutch');
   const root = document.getElementById('fx-root');
   if (!root) return;
   const fx = el(`<div class="dutch-flash"><div class="dutch-flash-text">DUTCH!</div><div class="dutch-flash-sub">${escapeHtml(name)} called it</div></div>`);
@@ -880,6 +963,7 @@ function flashDutch(name) {
 }
 
 function launchConfetti() {
+  sound.play('win');
   const root = document.getElementById('fx-root');
   if (!root) return;
   const canvas = el(`<canvas class="confetti-canvas"></canvas>`);
@@ -953,6 +1037,7 @@ function render() {
 
   app.appendChild(friendsFab());
   app.appendChild(leaderboardFab());
+  app.appendChild(soundFab());
   if (onLanding || inLobby) app.appendChild(helpFab());
   refreshFriendsPanel();
 
@@ -1003,14 +1088,24 @@ function renderLanding() {
   </div>`);
 
   const prof = loadProfile();
-  if (prof && prof.username) {
-    wrap.querySelector('#create-name').value = prof.username;
-    wrap.querySelector('#join-name').value = prof.username;
+  const savedName = (prof && prof.username) || loadLastName();
+  if (savedName) {
+    wrap.querySelector('#create-name').value = savedName;
+    wrap.querySelector('#join-name').value = savedName;
+  }
+
+  // Invite link: /?join=CODE prefills the join form so friends join in one tap.
+  const joinCode = new URLSearchParams(location.search).get('join');
+  if (joinCode) {
+    wrap.querySelector('#join-code').value = joinCode.toUpperCase().slice(0, 4);
+    const jn = wrap.querySelector('#join-name');
+    setTimeout(() => (savedName ? wrap.querySelector('#join-btn') : jn).focus(), 50);
   }
 
   wrap.querySelector('#create-btn').onclick = () => {
     const name = wrap.querySelector('#create-name').value.trim();
     if (!name) { showToast('Enter your name first.', true); return; }
+    saveLastName(name);
     sendMsg({ type: 'createRoom', name });
   };
   wrap.querySelector('#join-btn').onclick = () => {
@@ -1018,6 +1113,7 @@ function renderLanding() {
     const code = wrap.querySelector('#join-code').value.trim();
     if (!name) { showToast('Enter your name first.', true); return; }
     if (!code) { showToast('Enter a room code.', true); return; }
+    saveLastName(name);
     sendMsg({ type: 'joinRoom', name, code });
   };
   wrap.querySelectorAll('input').forEach((inp) => {
@@ -1040,6 +1136,7 @@ function renderLobby(state) {
       <div class="label">ROOM CODE — SHARE THIS</div>
       <div class="code" id="room-code-text">${escapeHtml(state.code)}</div>
       <div class="copy-hint">Tap the code to copy</div>
+      <button class="btn-ghost" id="copy-link-btn" style="margin-top:12px; padding:8px 16px; font-size:0.85rem;">🔗 Copy invite link</button>
     </div>
     <div class="player-chip-list" id="player-chips"></div>
     ${isHost ? `<div class="add-bot-box">
@@ -1058,6 +1155,11 @@ function renderLobby(state) {
 
   wrap.querySelector('#room-code-text').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
+  };
+  wrap.querySelector('#copy-link-btn').onclick = () => {
+    const link = `${location.origin}/?join=${state.code}`;
+    navigator.clipboard?.writeText(link).then(() => showToast('Invite link copied!'))
+      .catch(() => showToast(link));
   };
 
   const chipList = wrap.querySelector('#player-chips');
@@ -1402,6 +1504,7 @@ function renderReveal(state) {
       <div class="tagline">All cards revealed</div>
     </div>
     <div id="reveal-rows"></div>
+    <div id="series-standings"></div>
     <div class="row center" style="margin-top:20px;">
       ${isHost
         ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">Play Again</button>`
@@ -1410,6 +1513,22 @@ function renderReveal(state) {
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);
   wrap.querySelector('#reveal-leave').appendChild(leaveBtn('Leave room'));
+
+  // Cumulative match standings once more than one round has been played.
+  const series = (state.series || []).slice().sort((a, b) => a.total - b.total);
+  if (state.roundsPlayed > 1 && series.length) {
+    const lead = series[0].total;
+    const box = el(`<div class="series-box"><div class="section-label" style="text-align:center;">Match standings · ${state.roundsPlayed} rounds</div></div>`);
+    series.forEach((s, i) => {
+      const row = el(`<div class="series-row ${s.total === lead ? 'leader' : ''}">
+        <span class="series-rank">${i + 1}</span>
+        <span class="grow">${escapeHtml(s.name)}${s.id === state.youId ? ' (you)' : ''}</span>
+        <span class="series-total">${s.total}</span>
+      </div>`);
+      box.appendChild(row);
+    });
+    wrap.querySelector('#series-standings').appendChild(box);
+  }
 
   const rows = wrap.querySelector('#reveal-rows');
   let flipIdx = 0;

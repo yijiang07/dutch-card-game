@@ -68,6 +68,8 @@ class Room:
         self.brains = {}
         self.bot_task_running = False
         self.stats_recorded = False
+        self.series = {}          # player_id -> cumulative score across rounds
+        self.rounds_played = 0
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -141,6 +143,9 @@ def build_state(room, viewer_id):
         p['isBot'] = info.get('is_bot', False)
         p['difficulty'] = info.get('difficulty')
         p['left'] = info.get('left', False)
+    state['roundsPlayed'] = room.rounds_played
+    state['series'] = [{'id': pid, 'name': meta[pid]['name'], 'total': tot}
+                       for pid, tot in room.series.items() if pid in meta]
     return state
 
 
@@ -169,6 +174,10 @@ async def record_game_if_needed(room):
     totals = {pid: sum(c['value'] for c in grid) for pid, grid in game.grids.items()}
     if not totals:
         return
+    # Cumulative match standings across rounds (all players, incl. bots/guests).
+    for pid, total in totals.items():
+        room.series[pid] = room.series.get(pid, 0) + total
+    room.rounds_played += 1
     min_total = min(totals.values())
     results = []
     for pid, total in totals.items():
