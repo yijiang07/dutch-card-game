@@ -32,6 +32,8 @@ let tutorialIndex = 0;
 let autoTutorialDone = false;
 
 let authTab = 'login'; // 'login' | 'signup' | 'recover'
+let leaderboardOpen = false;
+let leaderboardData = null;
 
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
@@ -91,13 +93,21 @@ function handleServerMessage(data) {
     showRevealModal(data);
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
-    saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username });
+    saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null });
     if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
   } else if (data.type === 'identityFailed') {
     // Stored session is no longer valid (expired, logged out elsewhere, or data reset).
     clearProfile();
   } else if (data.type === 'loggedOut') {
     clearProfile();
+  } else if (data.type === 'emailUpdated') {
+    const prof = loadProfile();
+    if (prof) { prof.email = data.email || null; saveProfile(prof); }
+  } else if (data.type === 'statsUpdate') {
+    showToast(data.won ? `🏆 You won! (${data.stats.wins} wins)` : `Game recorded (${data.stats.games} played)`);
+  } else if (data.type === 'leaderboard') {
+    leaderboardData = data;
+    if (leaderboardOpen) renderLeaderboardRoot();
   } else if (data.type === 'friendsUpdate') {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
   } else if (data.type === 'infoMsg') {
@@ -215,15 +225,15 @@ function showInviteToast(fromUsername, code) {
 function friendsFab() {
   const incoming = friendsState ? friendsState.incoming.length : 0;
   const fab = el(`<button class="friends-fab" title="Friends">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
-  fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; refreshFriendsPanel(); };
+  fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; leaderboardOpen = false; refreshFriendsPanel(); };
   return fab;
 }
 
 function refreshFriendsPanel() {
   const root = document.getElementById('panel-root');
   root.innerHTML = '';
-  if (!friendsPanelOpen) return;
-  root.appendChild(renderFriendsPanel());
+  if (leaderboardOpen) { root.appendChild(renderLeaderboard()); return; }
+  if (friendsPanelOpen) root.appendChild(renderFriendsPanel());
 }
 
 function showRecoveryModal(code) {
@@ -263,7 +273,6 @@ function renderAuthForm() {
       <input type="text" id="auth-code" placeholder="recovery code" autocomplete="off" />
       <input type="password" id="auth-newpw" placeholder="new password (min 6)" autocomplete="new-password" />
       <button class="btn-gold" id="auth-submit">Reset & log in</button>
-      <button class="btn-ghost" id="auth-back" style="background:transparent;">← Back to log in</button>
     </div>`);
     form.querySelector('#auth-submit').onclick = () => {
       const u = form.querySelector('#auth-user').value.trim();
@@ -271,8 +280,22 @@ function renderAuthForm() {
       const pw = form.querySelector('#auth-newpw').value;
       if (u && c) sendMsg({ type: 'recover', username: u, code: c, newPassword: pw || undefined });
     };
-    form.querySelector('#auth-back').onclick = () => { authTab = 'login'; refreshFriendsPanel(); };
     wrap.appendChild(form);
+
+    wrap.appendChild(el(`<div class="section-label">Or email me a reset link</div>`));
+    const emForm = el(`<div class="row">
+      <input type="text" id="reset-ident" class="grow" placeholder="username or email" autocomplete="off" />
+      <button class="btn-blue" id="reset-send">Send</button>
+    </div>`);
+    emForm.querySelector('#reset-send').onclick = () => {
+      const v = emForm.querySelector('#reset-ident').value.trim();
+      if (v) sendMsg({ type: 'requestEmailReset', identifier: v });
+    };
+    wrap.appendChild(emForm);
+
+    const back = el(`<button class="btn-ghost" style="background:transparent;">← Back to log in</button>`);
+    back.onclick = () => { authTab = 'login'; refreshFriendsPanel(); };
+    wrap.appendChild(back);
     return wrap;
   }
 
@@ -283,6 +306,7 @@ function renderAuthForm() {
   const form = el(`<div class="col">
     <input type="text" id="auth-user" placeholder="username (3–16 letters/numbers)" maxlength="16" autocomplete="username" />
     <input type="password" id="auth-pw" placeholder="password (min 6)" autocomplete="${isSignup ? 'new-password' : 'current-password'}" />
+    ${isSignup ? '<input type="email" id="auth-email" placeholder="email (optional — for password resets)" autocomplete="email" />' : ''}
     <button class="btn-gold" id="auth-submit">${isSignup ? 'Create account' : 'Log in'}</button>
     ${isSignup ? '' : '<button class="btn-ghost" id="auth-forgot" style="background:transparent;">Forgot password?</button>'}
   </div>`);
@@ -290,7 +314,9 @@ function renderAuthForm() {
     const u = form.querySelector('#auth-user').value.trim();
     const pw = form.querySelector('#auth-pw').value;
     if (!u || !pw) { showToast('Enter a username and password.', true); return; }
-    sendMsg({ type: isSignup ? 'signup' : 'login', username: u, password: pw });
+    const msg = { type: isSignup ? 'signup' : 'login', username: u, password: pw };
+    if (isSignup) { const em = form.querySelector('#auth-email').value.trim(); if (em) msg.email = em; }
+    sendMsg(msg);
   };
   const forgot = form.querySelector('#auth-forgot');
   if (forgot) forgot.onclick = () => { authTab = 'recover'; refreshFriendsPanel(); };
@@ -298,6 +324,10 @@ function renderAuthForm() {
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') form.querySelector('#auth-submit').click(); });
   });
   wrap.appendChild(form);
+
+  const guest = el(`<button class="btn-ghost" style="background:transparent; margin-top:4px;">Play as guest →</button>`);
+  guest.onclick = () => { friendsPanelOpen = false; refreshFriendsPanel(); showToast('Playing as guest — create or join a game below.'); };
+  wrap.appendChild(guest);
   return wrap;
 }
 
@@ -328,6 +358,16 @@ function renderFriendsPanel() {
     refreshFriendsPanel();
   };
   drawer.appendChild(signedRow);
+
+  // Email — enables "email me a reset link"
+  const emailRow = el(`<div class="row">
+    <input type="email" id="acct-email" class="grow" placeholder="add email for password resets" value="${escapeHtml(prof.email || '')}" autocomplete="email" />
+    <button class="btn-ghost" id="acct-email-save" style="padding:8px 12px;">Save</button>
+  </div>`);
+  emailRow.querySelector('#acct-email-save').onclick = () => {
+    sendMsg({ type: 'setEmail', email: emailRow.querySelector('#acct-email').value.trim() });
+  };
+  drawer.appendChild(emailRow);
 
   const addForm = el(`<div class="row">
     <input type="text" id="add-friend-input" class="grow" placeholder="Add friend by username" maxlength="16" autocomplete="off" />
@@ -406,6 +446,68 @@ function helpFab() {
   const fab = el(`<button class="help-fab" title="How to play">?</button>`);
   fab.onclick = () => openTutorial();
   return fab;
+}
+
+/* ---------- Leaderboard ---------- */
+
+function leaderboardFab() {
+  const fab = el(`<button class="lb-fab" title="Leaderboard">🏆</button>`);
+  fab.onclick = () => { leaderboardOpen = true; friendsPanelOpen = false; leaderboardData = null; sendMsg({ type: 'getLeaderboard' }); refreshFriendsPanel(); };
+  return fab;
+}
+
+function renderLeaderboardRoot() { refreshFriendsPanel(); }
+
+function renderLeaderboard() {
+  const overlay = el(`<div class="overlay drawer-overlay"></div>`);
+  overlay.onclick = (e) => { if (e.target === overlay) { leaderboardOpen = false; renderLeaderboardRoot(); } };
+  const drawer = el(`<div class="friends-drawer"></div>`);
+  overlay.appendChild(drawer);
+
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">🏆 Leaderboard</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  header.querySelector('button').onclick = () => { leaderboardOpen = false; renderLeaderboardRoot(); };
+  drawer.appendChild(header);
+
+  if (!leaderboardData) {
+    drawer.appendChild(el(`<div class="help-text">Loading…</div>`));
+    return overlay;
+  }
+
+  const board = leaderboardData.board || [];
+  if (leaderboardData.myStats && leaderboardData.myUsername) {
+    const s = leaderboardData.myStats;
+    drawer.appendChild(el(`<div class="my-stats">
+      <div class="section-label">Your stats</div>
+      <div class="row wrap" style="gap:14px; margin-top:6px;">
+        <span><strong>${s.wins}</strong> wins</span>
+        <span><strong>${s.games}</strong> games</span>
+        <span>best round <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
+        ${s.rank ? `<span>rank <strong>#${s.rank}</strong></span>` : ''}
+      </div>
+    </div>`));
+  } else {
+    drawer.appendChild(el(`<div class="help-text">Log in (👥) to have your games counted on the leaderboard.</div>`));
+  }
+
+  drawer.appendChild(el(`<div class="section-label">Top players</div>`));
+  const table = el(`<div class="lb-table"></div>`);
+  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">Player</span><span class="lb-num">Wins</span><span class="lb-num">Games</span><span class="lb-num">Best</span></div>`));
+  if (!board.length) {
+    table.appendChild(el(`<div class="help-text" style="padding:10px;">No games played yet — be the first!</div>`));
+  }
+  board.forEach((r, i) => {
+    const mine = leaderboardData.myUsername && r.username === leaderboardData.myUsername;
+    const row = el(`<div class="lb-row ${mine ? 'me' : ''}">
+      <span class="lb-rank">${i + 1}</span>
+      <span class="grow">${escapeHtml(r.username)}</span>
+      <span class="lb-num">${r.wins}</span>
+      <span class="lb-num">${r.games}</span>
+      <span class="lb-num">${r.best_score == null ? '—' : r.best_score}</span>
+    </div>`);
+    table.appendChild(row);
+  });
+  drawer.appendChild(table);
+  return overlay;
 }
 
 function openTutorial() {
@@ -595,6 +697,7 @@ function render() {
   }
 
   app.appendChild(friendsFab());
+  app.appendChild(leaderboardFab());
   if (onLanding || inLobby) app.appendChild(helpFab());
   refreshFriendsPanel();
 

@@ -3,7 +3,9 @@ import json
 import os
 import random
 import secrets
+import smtplib
 import string
+from email.message import EmailMessage
 
 from aiohttp import web, WSMsgType
 
@@ -19,8 +21,41 @@ CODE_ALPHABET = ''.join(c for c in string.ascii_uppercase if c not in 'IO')
 # Seconds a bot "thinks" between steps, so humans can follow the action.
 BOT_DELAY = 0.9
 
+# Email (optional) — configure these env vars to enable "email me a reset link".
+SMTP_HOST = os.environ.get('SMTP_HOST')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_USER = os.environ.get('SMTP_USER')
+SMTP_PASS = os.environ.get('SMTP_PASS')
+SMTP_FROM = os.environ.get('SMTP_FROM') or SMTP_USER
+APP_BASE_URL = (os.environ.get('APP_BASE_URL') or '').rstrip('/')
+EMAIL_ENABLED = bool(SMTP_HOST and SMTP_FROM and APP_BASE_URL)
+
 # user_id -> set of live websockets for that signed-in user (presence)
 ONLINE = {}
+
+
+def _send_email_sync(to_addr, subject, body):
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['From'] = SMTP_FROM
+    msg['To'] = to_addr
+    msg.set_content(body)
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+        s.starttls()
+        if SMTP_USER:
+            s.login(SMTP_USER, SMTP_PASS)
+        s.send_message(msg)
+
+
+async def send_email(to_addr, subject, body):
+    if not EMAIL_ENABLED:
+        return False
+    try:
+        await asyncio.to_thread(_send_email_sync, to_addr, subject, body)
+        return True
+    except Exception as e:
+        print(f'[email] failed to send to {to_addr}: {e}')
+        return False
 
 
 class Room:
@@ -32,6 +67,7 @@ class Room:
         self.game = None
         self.bot_brains = {}
         self.bot_task_running = False
+        self.stats_recorded = False
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -98,7 +134,32 @@ def build_state(room, viewer_id):
     return state
 
 
+async def record_game_if_needed(room):
+    """Once a round reaches reveal, record stats for account-linked players."""
+    game = room.game
+    if game is None or game.phase != 'reveal' or room.stats_recorded:
+        return
+    room.stats_recorded = True
+    totals = {pid: sum(c['value'] for c in grid) for pid, grid in game.grids.items()}
+    if not totals:
+        return
+    min_total = min(totals.values())
+    results = []
+    for pid, total in totals.items():
+        acct = room.players.get(pid, {}).get('account_id')
+        if acct:
+            results.append({'user_id': acct, 'total': total, 'won': total == min_total})
+    if not results:
+        return
+    await asyncio.to_thread(storage.record_game, results)
+    for r in results:
+        stats = await asyncio.to_thread(storage.get_stats, r['user_id'])
+        for w in list(ONLINE.get(r['user_id'], ())):
+            await send(w, {'type': 'statsUpdate', 'stats': stats, 'won': r['won']})
+
+
 async def broadcast_state(room):
+    await record_game_if_needed(room)
     for pid, p in room.players.items():
         if p['ws'] is not None:
             await send(p['ws'], {'type': 'state', 'state': build_state(room, pid)})
@@ -167,7 +228,8 @@ async def notify_friends_of(user_id):
 async def set_online(ws, ctx, user):
     ctx['user'] = {'id': user['id'], 'username': user['username']}
     ONLINE.setdefault(user['id'], set()).add(ws)
-    payload = {'type': 'identity', 'userId': user['id'], 'username': user['username']}
+    payload = {'type': 'identity', 'userId': user['id'], 'username': user['username'],
+               'email': user.get('email')}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -241,9 +303,10 @@ async def handle_message(ws, ctx, data):
     if mtype == 'signup':
         if ctx.get('user'):
             raise GameError('You are already signed in.')
-        created = storage.create_user(data.get('username'), data.get('password') or '')
+        created = storage.create_user(data.get('username'), data.get('password') or '', data.get('email'))
         secret = storage.create_session(created['id'])
         await set_online(ws, ctx, {'id': created['id'], 'username': created['username'],
+                                   'email': data.get('email') or None,
                                    'secret': secret, 'recovery_code': created['recovery_code']})
         return
 
@@ -275,6 +338,50 @@ async def handle_message(ws, ctx, data):
         await set_offline(ws, ctx)
         ctx['user'] = None
         await send(ws, {'type': 'loggedOut'})
+        return
+
+    if mtype == 'setEmail':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Log in first.')
+        email = storage.set_email(user['id'], data.get('email'))
+        await send(ws, {'type': 'emailUpdated', 'email': email})
+        await send(ws, {'type': 'infoMsg', 'message': 'Email saved.' if email else 'Email removed.'})
+        return
+
+    if mtype == 'requestEmailReset':
+        # Respond generically to avoid revealing which accounts / emails exist.
+        generic = 'If an account with that email exists, a reset link is on its way.'
+        ident = (data.get('identifier') or '').strip()
+        target = storage.get_by_email(ident) or storage.get_by_username(ident)
+        if target:
+            full = storage.get_by_id(target['id'])
+            if full and full.get('email') and EMAIL_ENABLED:
+                token = storage.create_reset_token(full['id'])
+                link = f"{APP_BASE_URL}/reset.html?token={token}"
+                await send_email(full['email'], 'Reset your Dutch password',
+                                 f"Hi {full['username']},\n\nReset your password with this link (valid 1 hour):\n{link}\n\n"
+                                 "If you didn't request this, you can ignore this email.")
+        if not EMAIL_ENABLED:
+            await send(ws, {'type': 'infoMsg', 'message': 'Email isn’t set up on this server yet — use your recovery code instead.'})
+        else:
+            await send(ws, {'type': 'infoMsg', 'message': generic})
+        return
+
+    if mtype == 'resetPassword':
+        uid = storage.consume_reset_token(data.get('token'))
+        if not uid:
+            raise GameError('That reset link is invalid or has expired.')
+        storage.set_password(uid, data.get('newPassword') or '')
+        await send(ws, {'type': 'resetDone'})
+        return
+
+    if mtype == 'getLeaderboard':
+        board = await asyncio.to_thread(storage.get_leaderboard, 10)
+        me = ctx.get('user')
+        my_stats = await asyncio.to_thread(storage.get_stats, me['id']) if me else None
+        await send(ws, {'type': 'leaderboard', 'board': board, 'myStats': my_stats,
+                        'myUsername': me['username'] if me else None})
         return
 
     if mtype == 'friendRequest':
@@ -328,12 +435,14 @@ async def handle_message(ws, ctx, data):
         await send(ws, {'type': 'infoMsg', 'message': 'Invite sent!'})
         return
 
+    acct_id = ctx['user']['id'] if ctx.get('user') else None
+
     if mtype == 'createRoom':
         name = clean_name(data.get('name'))
         code = new_code()
         room = Room(code)
         pid, token = new_id(), new_token()
-        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True}
+        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id}
         room.host_id = pid
         rooms[code] = room
         ctx['code'], ctx['player_id'] = code, pid
@@ -352,7 +461,7 @@ async def handle_message(ws, ctx, data):
             raise GameError('That room is full.')
         name = clean_name(data.get('name'))
         pid, token = new_id(), new_token()
-        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True}
+        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id}
         ctx['code'], ctx['player_id'] = code, pid
         await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
         await broadcast_state(room)
@@ -423,6 +532,7 @@ async def handle_message(ws, ctx, data):
             raise GameError('Need at least 2 players to start.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
+        room.stats_recorded = False
         bots.init_brains(room)
         await broadcast_state(room)
         return
@@ -434,6 +544,7 @@ async def handle_message(ws, ctx, data):
             raise GameError('Round is not over yet.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
+        room.stats_recorded = False
         bots.init_brains(room)
         await broadcast_state(room)
         return

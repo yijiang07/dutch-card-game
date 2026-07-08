@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reset password · Dutch</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<div class="landing-wrap">
+  <div class="brand" style="margin-bottom:20px;">
+    <div class="suits">&spades; &hearts; &clubs; &diams;</div>
+    <h1 style="font-size:2rem;">Reset password</h1>
+  </div>
+  <div class="card-panel" style="max-width:360px;">
+    <div id="content">
+      <p class="help-text">Choose a new password for your account.</p>
+      <div class="col" style="margin-top:12px;">
+        <input type="password" id="pw" placeholder="new password (min 6)" autocomplete="new-password" />
+        <button class="btn-gold" id="submit">Set new password</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const token = params.get('token');
+const content = document.getElementById('content');
+
+function show(html) { content.innerHTML = html; }
+
+if (!token) {
+  show('<p class="help-text">This reset link is missing its token. Please use the link from your email.</p>');
+} else {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  let ready = false;
+  ws.onopen = () => { ready = true; };
+  ws.onmessage = (e) => {
+    let d; try { d = JSON.parse(e.data); } catch (_) { return; }
+    if (d.type === 'resetDone') {
+      show('<p class="help-text">✅ Your password has been reset. You can close this page and log in with your new password.</p><div class="row center" style="margin-top:14px;"><a href="/"><button class="btn-gold">Go to Dutch</button></a></div>');
+    } else if (d.type === 'errorMsg') {
+      const btn = document.getElementById('submit');
+      if (btn) { btn.disabled = false; btn.textContent = 'Set new password'; }
+      const err = document.getElementById('err') || (() => { const e2 = document.createElement('div'); e2.id = 'err'; e2.className = 'help-text'; e2.style.color = '#ff9a94'; e2.style.marginTop = '10px'; content.appendChild(e2); return e2; })();
+      err.textContent = d.message;
+    }
+  };
+  document.getElementById('submit').onclick = () => {
+    const pw = document.getElementById('pw').value;
+    if (pw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+    if (!ready) { alert('Still connecting — try again in a moment.'); return; }
+    const btn = document.getElementById('submit');
+    btn.disabled = true; btn.textContent = 'Resetting…';
+    ws.send(JSON.stringify({ type: 'resetPassword', token, newPassword: pw }));
+  };
+  document.getElementById('pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('submit').click(); });
+}
+</script>
+</body>
+</html>

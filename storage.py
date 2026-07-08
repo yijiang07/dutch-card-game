@@ -27,8 +27,10 @@ else:
     DUP_ERRORS = (sqlite3.IntegrityError,)
 
 USERNAME_RE = re.compile(r'^[A-Za-z0-9_]{3,16}$')
+EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 MIN_PASSWORD = 6
 PBKDF2_ROUNDS = 200_000
+RESET_TTL_SECONDS = 3600
 
 
 def _connect():
@@ -66,11 +68,12 @@ def init_db():
             pw_salt TEXT,
             pw_hash TEXT,
             recovery_hash TEXT,
+            email TEXT,
             created_at {ts_type} NOT NULL
         )''')
         # Migrate installs created before passwords existed.
         if USE_PG:
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email'):
                 cur.execute(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} TEXT')
             # The old passwordless schema had a NOT NULL secret_hash; new signups
             # don't set it, so relax the constraint if that column is still around.
@@ -80,7 +83,7 @@ def init_db():
                 cur.execute('ALTER TABLE users ALTER COLUMN secret_hash DROP NOT NULL')
         else:
             have = {r[1] for r in cur.execute('PRAGMA table_info(users)').fetchall()}
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email'):
                 if col not in have:
                     cur.execute(f'ALTER TABLE users ADD COLUMN {col} TEXT')
         # Case-insensitive uniqueness via an expression index (both backends).
@@ -100,6 +103,19 @@ def init_db():
             status TEXT NOT NULL DEFAULT 'pending',
             PRIMARY KEY (low, high)
         )''')
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS stats (
+            user_id TEXT PRIMARY KEY,
+            games INTEGER NOT NULL DEFAULT 0,
+            wins INTEGER NOT NULL DEFAULT 0,
+            total_score INTEGER NOT NULL DEFAULT 0,
+            best_score INTEGER
+        )''')
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS password_resets (
+            token_hash TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            expires_at {ts_type} NOT NULL,
+            used INTEGER NOT NULL DEFAULT 0
+        )''')
         conn.commit()
     finally:
         conn.close()
@@ -114,23 +130,65 @@ def _validate_credentials(username, password):
     return username
 
 
-def create_user(username, password):
+def _clean_email(email):
+    email = (email or '').strip()
+    if not email:
+        return None
+    if not EMAIL_RE.match(email) or len(email) > 254:
+        raise ValueError('That email address looks invalid.')
+    return email
+
+
+def create_user(username, password, email=None):
     username = _validate_credentials(username, password)
+    email = _clean_email(email)
+    if email and get_by_email(email):
+        raise ValueError('That email is already in use.')
     uid = secrets.token_hex(8)
     salt = secrets.token_hex(16)
     recovery = secrets.token_urlsafe(9)
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('''INSERT INTO users (id, username, pw_salt, pw_hash, recovery_hash, created_at)
-                           VALUES (?,?,?,?,?,?)'''),
-                    (uid, username, salt, _pw_hash(password, salt), _hash(recovery), time.time()))
+        cur.execute(_ph('''INSERT INTO users (id, username, pw_salt, pw_hash, recovery_hash, email, created_at)
+                           VALUES (?,?,?,?,?,?,?)'''),
+                    (uid, username, salt, _pw_hash(password, salt), _hash(recovery), email, time.time()))
         conn.commit()
     except DUP_ERRORS:
         raise ValueError('That username is taken.')
     finally:
         conn.close()
     return {'id': uid, 'username': username, 'recovery_code': recovery}
+
+
+def get_by_email(email):
+    email = (email or '').strip()
+    if not email:
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT id, username, email FROM users WHERE lower(email)=lower(?)'), (email,))
+        r = cur.fetchone()
+    finally:
+        conn.close()
+    return {'id': r['id'], 'username': r['username'], 'email': r['email']} if r else None
+
+
+def set_email(user_id, email):
+    email = _clean_email(email)
+    if email:
+        other = get_by_email(email)
+        if other and other['id'] != user_id:
+            raise ValueError('That email is already in use.')
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('UPDATE users SET email=? WHERE id=?'), (email, user_id))
+        conn.commit()
+    finally:
+        conn.close()
+    return email
 
 
 def _get_auth_row(username):
@@ -180,11 +238,11 @@ def get_by_id(uid):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT id, username FROM users WHERE id=?'), (uid,))
+        cur.execute(_ph('SELECT id, username, email FROM users WHERE id=?'), (uid,))
         r = cur.fetchone()
     finally:
         conn.close()
-    return {'id': r['id'], 'username': r['username']} if r else None
+    return {'id': r['id'], 'username': r['username'], 'email': r['email']} if r else None
 
 
 def create_session(user_id):
@@ -323,3 +381,89 @@ def relations_of(user_id):
     for k in out:
         out[k].sort(key=lambda u: u['username'].lower())
     return out
+
+
+# ---- password-reset tokens (for email recovery) ----
+
+def create_reset_token(user_id):
+    token = secrets.token_urlsafe(24)
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('INSERT INTO password_resets (token_hash, user_id, expires_at, used) VALUES (?,?,?,0)'),
+                    (_hash(token), user_id, time.time() + RESET_TTL_SECONDS))
+        conn.commit()
+    finally:
+        conn.close()
+    return token
+
+
+def consume_reset_token(token):
+    """Validate a one-time reset token; returns user_id or None. Marks it used."""
+    if not token:
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT user_id, expires_at, used FROM password_resets WHERE token_hash=?'), (_hash(token),))
+        r = cur.fetchone()
+        if not r or r['used'] or r['expires_at'] < time.time():
+            return None
+        cur.execute(_ph('UPDATE password_resets SET used=1 WHERE token_hash=?'), (_hash(token),))
+        conn.commit()
+        return r['user_id']
+    finally:
+        conn.close()
+
+
+# ---- stats & leaderboard ----
+
+def record_game(results):
+    """results: list of {user_id, total, won}. Updates each account's stats."""
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        for r in results:
+            cur.execute(_ph('SELECT games, wins, total_score, best_score FROM stats WHERE user_id=?'), (r['user_id'],))
+            row = cur.fetchone()
+            if row:
+                best = row['best_score']
+                best = r['total'] if best is None else min(best, r['total'])
+                cur.execute(_ph('UPDATE stats SET games=?, wins=?, total_score=?, best_score=? WHERE user_id=?'),
+                            (row['games'] + 1, row['wins'] + (1 if r['won'] else 0),
+                             row['total_score'] + r['total'], best, r['user_id']))
+            else:
+                cur.execute(_ph('INSERT INTO stats (user_id, games, wins, total_score, best_score) VALUES (?,?,?,?,?)'),
+                            (r['user_id'], 1, 1 if r['won'] else 0, r['total'], r['total']))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_stats(user_id):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT games, wins, total_score, best_score FROM stats WHERE user_id=?'), (user_id,))
+        r = cur.fetchone()
+        if not r:
+            return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'rank': None}
+        cur.execute(_ph('SELECT count(*) AS c FROM stats WHERE wins > ?'), (r['wins'],))
+        rank = cur.fetchone()['c'] + 1
+        return {'games': r['games'], 'wins': r['wins'], 'total_score': r['total_score'],
+                'best_score': r['best_score'], 'rank': rank}
+    finally:
+        conn.close()
+
+
+def get_leaderboard(limit=10):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('''SELECT u.username, s.games, s.wins, s.best_score
+                           FROM stats s JOIN users u ON u.id = s.user_id
+                           ORDER BY s.wins DESC, s.games DESC LIMIT ?'''), (limit,))
+        return [{'username': r['username'], 'games': r['games'], 'wins': r['wins'], 'best_score': r['best_score']}
+                for r in cur.fetchall()]
+    finally:
+        conn.close()
