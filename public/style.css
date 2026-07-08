@@ -255,6 +255,14 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   cursor: pointer;
   letter-spacing: 1px;
 }
+.leave-btn {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  background: rgba(226,86,79,0.15);
+  border: 1px solid rgba(226,86,79,0.4);
+  color: #ff9a94;
+}
+.leave-btn:hover { background: rgba(226,86,79,0.28); }
 
 .turn-banner {
   text-align: center;
@@ -349,6 +357,18 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .card.front.red { color: #c8202d; }
 .card.front.black { color: #1a1a1a; }
 .card.empty { background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.25); box-shadow: none; }
+
+.card.just-swapped {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+  animation: swapPulse 0.5s ease;
+  z-index: 2;
+}
+@keyframes swapPulse {
+  0% { transform: scale(0.6) rotateY(90deg); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
 
 .card.selectable { cursor: pointer; }
 .card.selectable:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.45); }

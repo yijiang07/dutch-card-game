@@ -35,6 +35,11 @@ let authTab = 'login'; // 'login' | 'signup' | 'recover'
 let leaderboardOpen = false;
 let leaderboardData = null;
 
+// Briefly reveal which card a player just swapped in from the discard pile.
+let recentSwap = null;
+let lastSwapSeq = 0;
+let swapInitialized = false;
+
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
   catch (e) { return null; }
@@ -89,6 +94,7 @@ function handleServerMessage(data) {
     latestState = data.state;
     myId = latestState.youId;
     swapArmed = false;
+    detectSwapReveal(latestState);
   } else if (data.type === 'privateReveal') {
     showRevealModal(data);
   } else if (data.type === 'identity') {
@@ -100,6 +106,11 @@ function handleServerMessage(data) {
     clearProfile();
   } else if (data.type === 'loggedOut') {
     clearProfile();
+  } else if (data.type === 'leftRoom') {
+    clearSession();
+    latestState = null;
+    friendsPanelOpen = false;
+    leaderboardOpen = false;
   } else if (data.type === 'emailUpdated') {
     const prof = loadProfile();
     if (prof) { prof.email = data.email || null; saveProfile(prof); }
@@ -667,6 +678,43 @@ function renderTutorialRoot() {
   root.appendChild(overlay);
 }
 
+function detectSwapReveal(state) {
+  const ls = state && state.lastSwap;
+  if (!ls) { lastSwapSeq = 0; swapInitialized = true; return; }
+  if (swapInitialized && ls.seq > lastSwapSeq) {
+    const seq = ls.seq;
+    recentSwap = { playerId: ls.playerId, cellIndex: ls.cellIndex, card: ls.card, seq };
+    setTimeout(() => {
+      if (recentSwap && recentSwap.seq === seq) { recentSwap = null; render(); }
+    }, 3500);
+  }
+  lastSwapSeq = ls.seq;
+  swapInitialized = true;
+}
+
+function swapReveal(playerId, cellIndex) {
+  return (recentSwap && recentSwap.playerId === playerId && recentSwap.cellIndex === cellIndex)
+    ? recentSwap.card : null;
+}
+
+function leaveRoom() {
+  if (!confirm('Leave this game? You can’t rejoin the same round.')) return;
+  sendMsg({ type: 'leaveRoom' });
+  clearSession();
+  latestState = null;
+  friendsPanelOpen = false;
+  leaderboardOpen = false;
+  recentSwap = null;
+  lastSwapSeq = 0;
+  render();
+}
+
+function leaveBtn(label) {
+  const b = el(`<button class="btn-ghost leave-btn">${label || 'Leave'}</button>`);
+  b.onclick = leaveRoom;
+  return b;
+}
+
 /* ---------- Root render ---------- */
 
 function render() {
@@ -797,8 +845,10 @@ function renderLobby(state) {
         ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>Start Game</button>
            <div class="help-text">${state.players.length < 2 ? 'Need at least 2 players to start.' : `Ready — ${state.players.length} players`}</div>`
         : `<div class="help-text">Waiting for the host to start the game…</div>`}
+      <div id="lobby-leave" style="margin-top:6px;"></div>
     </div>
   </div>`);
+  wrap.querySelector('#lobby-leave').appendChild(leaveBtn('Leave room'));
 
   wrap.querySelector('#room-code-text').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
@@ -869,11 +919,14 @@ function renderTable(state) {
 
   const topBar = el(`<div class="top-bar">
     <div class="brand-mini">DUTCH</div>
-    <div class="room-tag" id="room-tag">Room ${escapeHtml(state.code)}</div>
+    <div class="row" style="gap:8px;">
+      <div class="room-tag" id="room-tag">Room ${escapeHtml(state.code)}</div>
+    </div>
   </div>`);
   topBar.querySelector('#room-tag').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast('Room code copied!'));
   };
+  topBar.querySelector('.row').appendChild(leaveBtn('Leave'));
   wrap.appendChild(topBar);
 
   const banner = turnBannerInfo(state);
@@ -893,7 +946,8 @@ function renderTable(state) {
     nameRow.appendChild(document.createTextNode((p.isBot ? '🤖 ' : '') + p.name));
     card.appendChild(nameRow);
     const tags = el(`<div class="opp-tags"></div>`);
-    if (p.isBot) tags.appendChild(el(`<span class="mini-tag bot ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
+    if (p.left) tags.appendChild(el(`<span class="mini-tag offline">LEFT</span>`));
+    else if (p.isBot) tags.appendChild(el(`<span class="mini-tag bot ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
     if (isActive) tags.appendChild(el(`<span class="mini-tag turn">TURN</span>`));
     if (isDutch) tags.appendChild(el(`<span class="mini-tag dutch">DUTCH</span>`));
     if (!p.connected && !p.isBot) tags.appendChild(el(`<span class="mini-tag offline">OFFLINE</span>`));
@@ -901,7 +955,9 @@ function renderTable(state) {
 
     const cardsRow = el(`<div class="row" style="gap:4px;"></div>`);
     for (let i = 0; i < p.gridSize; i++) {
-      const c = cardBack('size-sm');
+      const rc = swapReveal(p.id, i);
+      const c = rc ? cardFront(rc, 'size-sm') : cardBack('size-sm');
+      if (rc) c.classList.add('just-swapped');
       const handler = cellClickHandler(state, p.id, i);
       if (handler) { c.classList.add('selectable'); c.onclick = handler; }
       if (isJackChosen(state, p.id, i)) c.classList.add('chosen');
@@ -936,7 +992,9 @@ function renderTable(state) {
   const handRow = el(`<div class="your-hand"></div>`);
   const myGridSize = myPlayer ? myPlayer.gridSize : 0;
   for (let i = 0; i < myGridSize; i++) {
-    const c = cardBack('size-lg');
+    const rc = swapReveal(me, i);
+    const c = rc ? cardFront(rc, 'size-lg') : cardBack('size-lg');
+    if (rc) c.classList.add('just-swapped');
     const handler = cellClickHandler(state, me, i);
     if (handler) { c.classList.add('selectable'); c.onclick = handler; }
     if (isJackChosen(state, me, i)) c.classList.add('chosen');
@@ -1092,7 +1150,9 @@ function renderReveal(state) {
         ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">Play Again</button>`
         : `<span class="help-text">Waiting for the host to start a new round…</span>`}
     </div>
+    <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);
+  wrap.querySelector('#reveal-leave').appendChild(leaveBtn('Leave room'));
 
   const rows = wrap.querySelector('#reveal-rows');
   reveal.forEach((r) => {

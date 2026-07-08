@@ -77,6 +77,51 @@ def judge_main_play(room, game, player_id, actual):
     return actual[0] == 'flip'
 
 
+def judge_jack(room, game, player_id, la, lb):
+    """Optimal Jack: dump your highest card onto an opponent, take their lowest."""
+    brain = _brains(room).get(player_id) or Brain()
+    own_vals = [_est_cell(brain, game, player_id, i, False) for i in range(len(game.grids[player_id]))]
+    own_max = max(own_vals) if own_vals else 0
+    opp_cells = [(p, i) for p in game.order if p != player_id for i in range(len(game.grids[p]))]
+    if not opp_cells:
+        return True
+    opp_min = min(_est_cell(brain, game, p, i, False) for p, i in opp_cells)
+    if own_max <= opp_min:
+        return True  # no beneficial cross-swap exists; don't penalize
+    best_own = {(player_id, i) for i, v in enumerate(own_vals) if v == own_max}
+    best_opp = {(p, i) for p, i in opp_cells if _est_cell(brain, game, p, i, False) == opp_min}
+    return (la in best_own and lb in best_opp) or (lb in best_own and la in best_opp)
+
+
+def judge_queen(room, game, player_id, owner, cell):
+    """Optimal Queen: peek a card you don't already know (peeking a known card wastes it)."""
+    brain = _brains(room).get(player_id) or Brain()
+    return (owner, cell) not in brain.known
+
+
+def judge_ace(room, game, player_id, target):
+    """Optimal Ace: burden the opponent currently doing best (lowest estimated total)."""
+    brain = _brains(room).get(player_id) or Brain()
+    opps = _opponents(game, player_id)
+    if not opps:
+        return True
+    lo = min(_est_total(brain, game, p, False) for p in opps)
+    return target in {p for p in opps if _est_total(brain, game, p, False) == lo}
+
+
+def judge_dutch(room, game, player_id, called):
+    """Was calling / not calling Dutch reasonable given the player's knowledge?
+    Reference: call only with a confident, genuinely low hand that leads the table."""
+    brain = _brains(room).get(player_id) or Brain()
+    n = len(game.grids[player_id])
+    own = _est_total(brain, game, player_id, False)
+    known_ct = sum(1 for i in range(n) if (player_id, i) in brain.known)
+    opps = _opponents(game, player_id)
+    min_opp = min((_est_total(brain, game, p, False) for p in opps), default=999)
+    should_call = known_ct >= n - 1 and own <= min_opp and own <= 12
+    return called == should_call
+
+
 # ---- knowledge updates (called by the server for ANY player's action) ----
 
 def record_placement(room, game, owner, cell):

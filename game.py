@@ -64,6 +64,10 @@ class Game:
         self.jack_first = None
         self.turn_counter = 0
 
+        # Most recent discard-swap, so clients can show which card went where.
+        self.last_swap = None
+        self.action_seq = 0
+
         self.log = []
 
     # ---- helpers ----
@@ -199,6 +203,8 @@ class Game:
         old_card = grid[cell_index]
         grid[cell_index] = discard_top
         self.discard.append(old_card)
+        self.action_seq += 1
+        self.last_swap = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index, 'card': discard_top}
         self._log(f"{self.names[sender]} swapped in {card_label(discard_top)}, discarded {card_label(old_card)}.")
         self._trigger_power_or_complete(old_card)
 
@@ -296,6 +302,7 @@ class Game:
             'finalRound': self.final_round,
             'dutchCallerId': self.dutch_caller,
             'finalRoundRemaining': self.final_round_remaining,
+            'lastSwap': self.last_swap,
             'log': self.log[-8:],
         }
         if self.phase == 'reveal':

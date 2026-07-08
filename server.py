@@ -91,6 +91,15 @@ def new_token():
     return secrets.token_urlsafe(16)
 
 
+def _humans(room):
+    return [pid for pid, p in room.players.items() if not p.get('is_bot')]
+
+
+def _reassign_host(room):
+    humans = _humans(room)
+    room.host_id = humans[0] if humans else next(iter(room.players), None)
+
+
 def clean_name(raw):
     name = (raw or '').strip()[:20]
     return name or 'Player'
@@ -131,19 +140,24 @@ def build_state(room, viewer_id):
         p['connected'] = info.get('connected', False)
         p['isBot'] = info.get('is_bot', False)
         p['difficulty'] = info.get('difficulty')
+        p['left'] = info.get('left', False)
     return state
+
+
+def _count_play(room, pid, correct):
+    """Tally one judged decision for a human player (bots/guests-without-account ignored)."""
+    p = room.players.get(pid)
+    if not p or p.get('is_bot'):
+        return
+    p['play_total'] = p.get('play_total', 0) + 1
+    if correct:
+        p['play_correct'] = p.get('play_correct', 0) + 1
 
 
 def _score_play(room, game, pid, actual):
     """Tally whether a human's flip/swap matched the knowledge-optimal play."""
-    p = room.players.get(pid)
-    if not p or p.get('is_bot'):
-        return
-    if game.phase != 'playing' or game.turn_mode != 'awaitingAction' or game.current_player() != pid:
-        return  # not a real main-action decision; let the game method reject it
-    p['play_total'] = p.get('play_total', 0) + 1
-    if bots.judge_main_play(room, game, pid, actual):
-        p['play_correct'] = p.get('play_correct', 0) + 1
+    if game.phase == 'playing' and game.turn_mode == 'awaitingAction' and game.current_player() == pid:
+        _count_play(room, pid, bots.judge_main_play(room, game, pid, actual))
 
 
 async def record_game_if_needed(room):
@@ -507,6 +521,32 @@ async def handle_message(ws, ctx, data):
     if not room or pid not in room.players:
         raise GameError('You are not in a room.')
 
+    if mtype == 'leaveRoom':
+        code = ctx['code']
+        if room.game is not None and room.game.phase != 'reveal':
+            # Mid-game: hand the seat to an easy bot so the round continues for others.
+            p = room.players[pid]
+            p['is_bot'] = True
+            p['difficulty'] = 'easy'
+            p['left'] = True
+            p['ws'] = None
+            p['connected'] = True
+            p['account_id'] = None
+            room.brains.setdefault(pid, bots.Brain())
+        else:
+            del room.players[pid]
+            room.brains.pop(pid, None)
+        if room.host_id == pid:
+            _reassign_host(room)
+        ctx['code'], ctx['player_id'] = None, None
+        await send(ws, {'type': 'leftRoom'})
+        if not _humans(room):
+            rooms.pop(code, None)  # nobody left to play — abandon the room
+        else:
+            await broadcast_state(room)
+            schedule_bots(room)
+        return
+
     if mtype == 'addBot':
         if pid != room.host_id:
             raise GameError('Only the host can add bots.')
@@ -606,25 +646,42 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'endTurn':
+        if game.phase == 'playing' and game.turn_mode == 'endOfTurn' and game.current_player() == pid:
+            _count_play(room, pid, bots.judge_dutch(room, game, pid, False))
         game.end_turn(pid)
         await broadcast_state(room)
         return
 
     if mtype == 'callDutch':
+        if game.phase == 'playing' and game.turn_mode == 'endOfTurn' and game.current_player() == pid and not game.final_round:
+            _count_play(room, pid, bots.judge_dutch(room, game, pid, True))
         game.call_dutch(pid)
         await broadcast_state(room)
         return
 
     if mtype == 'jackSelect':
-        res = game.jack_select(pid, data.get('targetPlayerId'), int(data.get('targetCellIndex', -1)))
+        tp = data.get('targetPlayerId')
+        tc = int(data.get('targetCellIndex', -1))
+        first = game.jack_first
+        # Judge the completing selection using pre-swap state.
+        judge_correct = None
+        if (game.turn_mode == 'jackSwap' and game.current_player() == pid and first is not None
+                and not (first['playerId'] == tp and first['cellIndex'] == tc)
+                and tp in game.grids and 0 <= tc < len(game.grids[tp])):
+            judge_correct = bots.judge_jack(room, game, pid, (first['playerId'], first['cellIndex']), (tp, tc))
+        res = game.jack_select(pid, tp, tc)
         if res:
             bots.record_table_swap(room, res[0], res[1])
+            if judge_correct is not None:
+                _count_play(room, pid, judge_correct)
         await broadcast_state(room)
         return
 
     if mtype == 'queenSelect':
         target_player = data.get('targetPlayerId')
         target_cell = int(data.get('targetCellIndex', -1))
+        if game.turn_mode == 'queenPeek' and game.current_player() == pid:
+            _count_play(room, pid, bots.judge_queen(room, game, pid, target_player, target_cell))
         card = game.queen_select(pid, target_player, target_cell)
         bots.record_private_peek(room, pid, target_player, target_cell, card)
         await send(ws, {'type': 'privateReveal', 'context': 'queen', 'card': card,
@@ -633,6 +690,8 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'aceGiveTo':
+        if game.turn_mode == 'aceGive' and game.current_player() == pid:
+            _count_play(room, pid, bots.judge_ace(room, game, pid, data.get('targetPlayerId')))
         game.ace_give(pid, data.get('targetPlayerId'))
         await broadcast_state(room)
         return
