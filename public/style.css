@@ -318,9 +318,17 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   justify-content: center;
   align-items: center;
   gap: 34px;
-  padding: 18px 16px;
+  padding: 26px 16px;
+  background: radial-gradient(ellipse 260px 150px at 50% 52%, rgba(255,255,255,0.07), transparent 72%);
 }
 .pile { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+/* Stacked-deck look for the draw pile */
+#draw-slot .card.back {
+  box-shadow: 0 3px 8px rgba(0,0,0,0.45),
+    3px 4px 0 -1px var(--card-back-b), 3px 4px 1px -1px rgba(0,0,0,0.4),
+    6px 8px 0 -2px var(--card-back-b), 6px 8px 1px -2px rgba(0,0,0,0.35);
+}
+#discard-slot .card { box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 .pile-label { font-size: 0.75rem; color: var(--ink-dim); letter-spacing: 1px; text-transform: uppercase; }
 
 .card {
@@ -340,23 +348,79 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .card.size-sm { width: 44px; height: 62px; font-size: 0.85rem; }
 
 .card.back {
-  background: repeating-linear-gradient(135deg, var(--card-back-a), var(--card-back-a) 6px, var(--card-back-b) 6px, var(--card-back-b) 12px);
-  border: 2px solid rgba(255,255,255,0.35);
+  background: linear-gradient(140deg, var(--card-back-a), var(--card-back-b));
+  border: 2px solid rgba(255,255,255,0.22);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.card.back::before {
+  content: "";
+  position: absolute;
+  inset: 13%;
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.07) 0 3px, transparent 3px 7px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,0.05) 0 3px, transparent 3px 7px);
 }
 .card.back::after {
   content: "♦";
-  color: rgba(255,255,255,0.55);
-  font-size: 0.9em;
+  position: relative;
+  color: var(--gold);
+  opacity: 0.9;
+  font-size: 1em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 .card.front {
-  background: #fbfbf9;
-  border: 2px solid #e2e2df;
-  flex-direction: column;
-  gap: 1px;
+  background: linear-gradient(158deg, #ffffff, #eef0ec);
+  border: 1px solid rgba(0,0,0,0.14);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9);
+  overflow: hidden;
 }
-.card.front.red { color: #c8202d; }
-.card.front.black { color: #1a1a1a; }
-.card.empty { background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.25); box-shadow: none; }
+.card.front.red { color: #d1202f; }
+.card.front.black { color: #1b1b1b; }
+.card.front .corner {
+  position: absolute;
+  font-size: 0.5em;
+  font-weight: 800;
+  line-height: 0.9;
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+.card.front .corner.tl { top: 6%; left: 9%; }
+.card.front .corner.br { bottom: 6%; right: 9%; transform: rotate(180deg); }
+.card.front .pip {
+  font-size: 2.05em;
+  line-height: 1;
+  opacity: 0.92;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12));
+}
+.card.empty { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.2); box-shadow: none; }
+
+/* Flying card for the deck→discard flip animation */
+.fly-card {
+  position: fixed;
+  z-index: 115;
+  perspective: 700px;
+  transition: transform 0.52s cubic-bezier(0.3, 0.7, 0.3, 1);
+  pointer-events: none;
+}
+.fly-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.52s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.fly-face {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  backface-visibility: hidden;
+  margin: 0;
+}
+.fly-front { transform: rotateY(180deg); }
 
 .card.just-swapped {
   outline: 3px solid var(--gold);

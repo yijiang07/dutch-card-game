@@ -72,9 +72,10 @@ class Game:
         self.jack_first = None
         self.turn_counter = 0
 
-        # Most recent discard-swap / match, so clients can flash what happened.
+        # Most recent discard-swap / match / flip, so clients can animate them.
         self.last_swap = None
         self.last_match = None
+        self.last_flip = None
         self.action_seq = 0
         self.turn_started_at = 0.0
         # Match lock: while set, play is paused for everyone until it resolves.
@@ -238,6 +239,8 @@ class Game:
         if card is None:
             raise GameError('No cards left to draw.')
         self.discard.append(card)
+        self.action_seq += 1
+        self.last_flip = {'seq': self.action_seq, 'playerId': sender, 'card': card}
         self._log(f"{self.names[sender]} flipped {card_label(card)}.")
         self._trigger_power_or_complete(card)
 
@@ -394,6 +397,7 @@ class Game:
             'finalRoundRemaining': self.final_round_remaining,
             'lastSwap': self.last_swap,
             'lastMatch': self.last_match,
+            'lastFlip': self.last_flip,
             'actWaitMs': self._act_wait_ms(),
             'matcherId': self.matcher,
             'matchWaitMs': max(0, int((self.matcher_deadline - time.time()) * 1000)) if self.matcher else 0,

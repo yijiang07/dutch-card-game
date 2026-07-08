@@ -737,9 +737,19 @@ async def handle_message(ws, ctx, data):
     raise GameError(f'Unknown action: {mtype}')
 
 
+@web.middleware
+async def no_cache(request, handler):
+    resp = await handler(request)
+    # Frequently-updated static assets should always revalidate so players
+    # never get a stale UI after a deploy.
+    if request.path == '/' or request.path.endswith(('.html', '.css', '.js')):
+        resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
 def make_app():
     storage.init_db()
-    app = web.Application()
+    app = web.Application(middlewares=[no_cache])
     app.router.add_get('/ws', ws_handler)
     app.router.add_get('/', handle_index)
     app.router.add_static('/', path=PUBLIC_DIR, show_index=False)

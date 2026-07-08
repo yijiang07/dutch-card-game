@@ -44,6 +44,8 @@ let swapInitialized = false;
 let recentWrong = null;    // {playerId, cellIndex, card} — flashes a failed match
 let lastMatchSeq = 0;
 let matchInitialized = false;
+let lastFlipSeq = 0;
+let flipInitialized = false;
 let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
 let matchPauseUntil = 0;   // ms timestamp until which play is paused for a matcher
 let uiTicker = null;       // re-renders while a buffer / match countdown is running
@@ -106,6 +108,7 @@ function handleServerMessage(data) {
     swapArmed = false;
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
+    detectFlip(latestState);
     updateTimers(latestState);
     // One-shot celebrations (fired outside render so they aren't re-triggered)
     if (latestState.finalRound && (!prev || !prev.finalRound) && latestState.dutchCallerId) {
@@ -191,8 +194,11 @@ function avatarEl(playerId, state, sizeClass) {
 
 function cardFront(card, sizeClass) {
   const color = RED_SUITS.includes(card.suit) ? 'red' : 'black';
+  const s = SUIT_SYMBOL[card.suit];
   return el(`<div class="card front ${color} ${sizeClass}">
-    <div>${card.rank}</div><div>${SUIT_SYMBOL[card.suit]}</div>
+    <span class="corner tl">${card.rank}<br>${s}</span>
+    <span class="pip">${s}</span>
+    <span class="corner br">${card.rank}<br>${s}</span>
   </div>`);
 }
 
@@ -756,6 +762,60 @@ function detectMatchReveal(state) {
 function wrongReveal(playerId, cellIndex) {
   return (recentWrong && recentWrong.playerId === playerId && recentWrong.cellIndex === cellIndex)
     ? recentWrong.card : null;
+}
+
+function detectFlip(state) {
+  const lf = state && state.lastFlip;
+  if (!lf) { lastFlipSeq = 0; flipInitialized = true; return; }
+  if (flipInitialized && lf.seq > lastFlipSeq) {
+    // let render() paint the new discard first, then fly a card over it
+    requestAnimationFrame(() => flyFlip(lf.card));
+  }
+  lastFlipSeq = lf.seq;
+  flipInitialized = true;
+}
+
+// Animate a card travelling from the draw pile to the discard pile, flipping face-up.
+function flyFlip(card) {
+  const root = document.getElementById('fx-root');
+  const draw = document.getElementById('draw-slot');
+  const disc = document.getElementById('discard-slot');
+  if (!root || !draw || !disc) return;
+  const from = draw.getBoundingClientRect();
+  const to = disc.getBoundingClientRect();
+  if (!from.width || !to.width) return;
+
+  // hide the real discard card until the flying one lands, so the reveal feels live
+  const discCard = disc.querySelector('.card');
+  if (discCard) discCard.style.visibility = 'hidden';
+
+  const color = RED_SUITS.includes(card.suit) ? 'red' : 'black';
+  const fly = el(`<div class="fly-card">
+    <div class="fly-inner">
+      <div class="fly-face card back size-md"></div>
+      <div class="fly-face fly-front card front ${color} size-md">
+        <span class="corner tl">${card.rank}<br>${SUIT_SYMBOL[card.suit]}</span>
+        <span class="pip">${SUIT_SYMBOL[card.suit]}</span>
+        <span class="corner br">${card.rank}<br>${SUIT_SYMBOL[card.suit]}</span>
+      </div>
+    </div>
+  </div>`);
+  fly.style.left = from.left + 'px';
+  fly.style.top = from.top + 'px';
+  fly.style.width = from.width + 'px';
+  fly.style.height = from.height + 'px';
+  root.appendChild(fly);
+
+  const dx = to.left - from.left;
+  const dy = to.top - from.top;
+  requestAnimationFrame(() => {
+    fly.style.transform = `translate(${dx}px, ${dy}px)`;
+    fly.querySelector('.fly-inner').style.transform = 'rotateY(180deg)';
+  });
+  setTimeout(() => {
+    fly.remove();
+    if (discCard) discCard.style.visibility = '';
+  }, 560);
 }
 
 function updateTimers(state) {
