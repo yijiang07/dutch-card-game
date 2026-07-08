@@ -48,6 +48,10 @@ let lastFlipSeq = 0;
 let flipInitialized = false;
 let prevMyTurn = false;
 let titleFlash = null;
+// Power highlights (Jack swap / Queen peek / Ace gift) — which cells were affected.
+let recentJack = null, recentQueen = null, recentAce = null;
+let lastJackSeq = 0, lastQueenSeq = 0, lastAceSeq = 0;
+let powersInitialized = false;
 let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
 let matchPauseUntil = 0;   // ms timestamp until which play is paused for a matcher
 let uiTicker = null;       // re-renders while a buffer / match countdown is running
@@ -155,6 +159,7 @@ function handleServerMessage(data) {
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
     detectFlip(latestState);
+    detectPowers(latestState);
     detectYourTurn(latestState);
     updateTimers(latestState);
     // One-shot celebrations (fired outside render so they aren't re-triggered)
@@ -824,6 +829,54 @@ function wrongReveal(playerId, cellIndex) {
     ? recentWrong.card : null;
 }
 
+function detectPowers(state) {
+  if (!state) return;
+  const clearLater = (which, seq) => setTimeout(() => {
+    if (which === 'jack' && recentJack && recentJack.seq === seq) recentJack = null;
+    else if (which === 'queen' && recentQueen && recentQueen.seq === seq) recentQueen = null;
+    else if (which === 'ace' && recentAce && recentAce.seq === seq) recentAce = null;
+    else return;
+    render();
+  }, 3200);
+
+  const lj = state.lastJack;
+  if (lj && powersInitialized && lj.seq > lastJackSeq) { recentJack = lj; sound.play('swap'); clearLater('jack', lj.seq); }
+  if (lj) lastJackSeq = lj.seq;
+
+  const lq = state.lastQueen;
+  if (lq && powersInitialized && lq.seq > lastQueenSeq) { recentQueen = lq; sound.play('turn'); clearLater('queen', lq.seq); }
+  if (lq) lastQueenSeq = lq.seq;
+
+  const la = state.lastAce;
+  if (la && powersInitialized && la.seq > lastAceSeq) { recentAce = la; sound.play('wrong'); clearLater('ace', la.seq); }
+  if (la) lastAceSeq = la.seq;
+
+  powersInitialized = true;
+}
+
+// Returns a transient highlight for a grid cell affected by a recent power.
+function cellFx(pid, i) {
+  if (recentJack && ((recentJack.a.playerId === pid && recentJack.a.cellIndex === i) ||
+                     (recentJack.b.playerId === pid && recentJack.b.cellIndex === i))) {
+    return { cls: 'fx-jack', badge: '⇄' };
+  }
+  if (recentQueen && recentQueen.playerId === pid && recentQueen.cellIndex === i) {
+    return { cls: 'fx-queen', badge: '👁' };
+  }
+  if (recentAce && recentAce.playerId === pid && recentAce.cellIndex === i) {
+    return { cls: 'fx-ace', badge: '+' };
+  }
+  return null;
+}
+
+function applyCellFx(cardEl, pid, i) {
+  const fx = cellFx(pid, i);
+  if (fx) {
+    cardEl.classList.add(fx.cls);
+    cardEl.appendChild(el(`<span class="cell-badge ${fx.cls}-badge">${fx.badge}</span>`));
+  }
+}
+
 function detectYourTurn(state) {
   const mine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
     && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
@@ -1272,6 +1325,7 @@ function renderTable(state) {
       const handler = cellClickHandler(state, p.id, i);
       if (handler) { c.classList.add('selectable'); c.onclick = handler; }
       if (isJackChosen(state, p.id, i)) c.classList.add('chosen');
+      applyCellFx(c, p.id, i);
       cardsRow.appendChild(c);
     }
     card.appendChild(cardsRow);
@@ -1316,6 +1370,7 @@ function renderTable(state) {
     if (isJackChosen(state, me, i)) c.classList.add('chosen');
     if (state.matcherId === me) c.classList.add('selectable');
     if (state.phase === 'peeking' && state.peekingPlayerId === me && state.peekedCells.includes(i)) c.classList.add('dimmed');
+    applyCellFx(c, me, i);
     handRow.appendChild(c);
   }
   handWrap.appendChild(handRow);

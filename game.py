@@ -72,10 +72,13 @@ class Game:
         self.jack_first = None
         self.turn_counter = 0
 
-        # Most recent discard-swap / match / flip, so clients can animate them.
+        # Most recent discard-swap / match / flip / power, so clients can animate them.
         self.last_swap = None
         self.last_match = None
         self.last_flip = None
+        self.last_jack = None
+        self.last_queen = None
+        self.last_ace = None
         self.action_seq = 0
         self.turn_started_at = 0.0
         # Match lock: while set, play is paused for everyone until it resolves.
@@ -341,6 +344,11 @@ class Game:
         self._log(f"{self.names[sender]} used the Jack to blind-swap two cards.")
         loc_a = (a['playerId'], a['cellIndex'])
         loc_b = (target_player, target_cell)
+        self.action_seq += 1
+        self.last_jack = {'seq': self.action_seq,
+                          'a': {'playerId': a['playerId'], 'cellIndex': a['cellIndex']},
+                          'b': {'playerId': target_player, 'cellIndex': target_cell},
+                          'by': sender}
         self.jack_first = None
         self._action_resolved()
         return (loc_a, loc_b)
@@ -351,7 +359,11 @@ class Game:
         if target_player not in self.grids or not (0 <= target_cell < len(self.grids[target_player])):
             raise GameError('Invalid card.')
         card = self.grids[target_player][target_cell]
-        self._log(f"{self.names[sender]} used the Queen to peek at a card.")
+        self.action_seq += 1
+        # Public: everyone sees WHICH card was peeked (not its value).
+        self.last_queen = {'seq': self.action_seq, 'playerId': target_player,
+                           'cellIndex': target_cell, 'by': sender}
+        self._log(f"{self.names[sender]} used the Queen to peek at {self.names[target_player]}'s card.")
         self._action_resolved()
         return card
 
@@ -366,7 +378,10 @@ class Game:
             self._action_resolved()
             return
         self.grids[target_player].append(card)
-        self._log(f"{self.names[sender]} used the Ace to give {self.names[target_player]} a face-down card.")
+        self.action_seq += 1
+        self.last_ace = {'seq': self.action_seq, 'playerId': target_player,
+                         'cellIndex': len(self.grids[target_player]) - 1, 'by': sender}
+        self._log(f"{self.names[sender]} used the Ace to give {self.names[target_player]} a card.")
         self._action_resolved()
 
     # ---- serialization ----
@@ -398,6 +413,9 @@ class Game:
             'lastSwap': self.last_swap,
             'lastMatch': self.last_match,
             'lastFlip': self.last_flip,
+            'lastJack': self.last_jack,
+            'lastQueen': self.last_queen,
+            'lastAce': self.last_ace,
             'actWaitMs': self._act_wait_ms(),
             'matcherId': self.matcher,
             'matchWaitMs': max(0, int((self.matcher_deadline - time.time()) * 1000)) if self.matcher else 0,

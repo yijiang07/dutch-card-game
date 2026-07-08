@@ -1059,3 +1059,40 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .series-row.leader .series-rank { color: var(--gold); }
 .series-total { font-weight: 800; }
 .series-row.leader .series-total { color: var(--gold); }
+
+/* ---------- Power-action highlights (Jack / Queen / Ace) ---------- */
+
+.card.fx-jack   { outline: 3px solid #a259e6; outline-offset: 2px; animation: fxPulse 0.9s ease-in-out infinite; }
+.card.fx-queen  { outline: 3px solid #4f9bed; outline-offset: 2px; animation: fxPulse 0.9s ease-in-out infinite; }
+.card.fx-ace    { outline: 3px solid var(--red); outline-offset: 2px; animation: fxPulse 0.9s ease-in-out infinite; }
+@keyframes fxPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,255,255,0); }
+  50%      { box-shadow: 0 0 16px rgba(255,255,255,0.35); }
+}
+
+.cell-badge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  z-index: 3;
+  animation: badgePop 0.25s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.fx-jack-badge  { background: #a259e6; }
+.fx-queen-badge { background: #4f9bed; }
+.fx-ace-badge   { background: var(--red); }
+@keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .card.fx-jack, .card.fx-queen, .card.fx-ace { animation: none; }
+}
