@@ -48,12 +48,18 @@ def card_label(card):
 
 
 class Game:
-    def __init__(self, player_ids, names_by_id):
+    def __init__(self, player_ids, names_by_id, settings=None):
         self.order = list(player_ids)
         self.names = dict(names_by_id)
 
+        s = settings or {}
+        self.cards_per = max(2, min(6, int(s.get('cardsPer', 4))))
+        self.buffer_seconds = max(0, float(s.get('bufferSeconds', BUFFER_SECONDS)))
+        self.matching_enabled = bool(s.get('matching', True))
+        self.turn_limit = max(0, int(s.get('turnLimit', 30)))
+
         deck = make_deck()
-        self.grids = {pid: [deck.pop(), deck.pop(), deck.pop(), deck.pop()] for pid in self.order}
+        self.grids = {pid: [deck.pop() for _ in range(self.cards_per)] for pid in self.order}
         self.discard = [deck.pop()]
         self.deck = deck
 
@@ -123,12 +129,12 @@ class Game:
 
     def can_act_now(self):
         """False during the post-turn-start buffer, when only matching is allowed."""
-        return time.time() - self.turn_started_at >= BUFFER_SECONDS
+        return time.time() - self.turn_started_at >= self.buffer_seconds
 
     def _act_wait_ms(self):
         if self.phase != 'playing' or self.turn_mode != 'awaitingAction':
             return 0
-        return max(0, int((BUFFER_SECONDS - (time.time() - self.turn_started_at)) * 1000))
+        return max(0, int((self.buffer_seconds - (time.time() - self.turn_started_at)) * 1000))
 
     def _action_resolved(self):
         """Called once the turn's action (and any power) has fully resolved.
@@ -163,8 +169,8 @@ class Game:
             raise GameError('Not choosing a peek count right now.')
         if sender != self.peek_chooser:
             raise GameError("It's not your choice to make.")
-        if count not in (0, 1, 2, 3, 4):
-            raise GameError('Pick a number from 0 to 4.')
+        if not (0 <= count <= self.cards_per):
+            raise GameError(f'Pick a number from 0 to {self.cards_per}.')
         self.peek_count = count
         if count == 0:
             self.phase = 'playing'
@@ -210,6 +216,8 @@ class Game:
 
     def claim_match(self, sender):
         """Declare a match — freezes play for everyone until it resolves or times out."""
+        if not self.matching_enabled:
+            raise GameError('Matching is turned off in this game.')
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
         if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
@@ -250,6 +258,8 @@ class Game:
     def match_card(self, sender, cell_index):
         """Drop a grid card of the discard top's rank (fewer cards is better).
         A wrong guess costs a penalty card. Allowed off-turn; resolves the match lock."""
+        if not self.matching_enabled:
+            raise GameError('Matching is turned off in this game.')
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
         if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
@@ -416,6 +426,8 @@ class Game:
             'lastJack': self.last_jack,
             'lastQueen': self.last_queen,
             'lastAce': self.last_ace,
+            'cardsPer': self.cards_per,
+            'matchingEnabled': self.matching_enabled,
             'actWaitMs': self._act_wait_ms(),
             'matcherId': self.matcher,
             'matchWaitMs': max(0, int((self.matcher_deadline - time.time()) * 1000)) if self.matcher else 0,

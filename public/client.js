@@ -52,6 +52,7 @@ let titleFlash = null;
 let recentJack = null, recentQueen = null, recentAce = null;
 let lastJackSeq = 0, lastQueenSeq = 0, lastAceSeq = 0;
 let powersInitialized = false;
+let dealtSeq = 0;
 let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
 let matchPauseUntil = 0;   // ms timestamp until which play is paused for a matcher
 let uiTicker = null;       // re-renders while a buffer / match countdown is running
@@ -180,6 +181,9 @@ function handleServerMessage(data) {
     clearProfile();
   } else if (data.type === 'loggedOut') {
     clearProfile();
+  } else if (data.type === 'emote') {
+    popEmote(data.playerId, data.emoji);
+    return;
   } else if (data.type === 'leftRoom') {
     clearSession();
     latestState = null;
@@ -953,6 +957,80 @@ function flyFlip(card) {
   }, 560);
 }
 
+/* ---------- Emotes ---------- */
+
+function emoteFab() {
+  const fab = el(`<button class="emote-fab" title="React">😀</button>`);
+  fab.onclick = (e) => { e.stopPropagation(); sound.unlock(); toggleEmotePicker(); };
+  return fab;
+}
+
+function toggleEmotePicker() {
+  const root = document.getElementById('fx-root');
+  if (!root) return;
+  const existing = document.getElementById('emote-picker');
+  if (existing) { existing.remove(); return; }
+  const p = el(`<div id="emote-picker" class="emote-picker"></div>`);
+  ['👍', '😂', '😮', '🎉', '😎', '😢', '🔥', '🤔'].forEach((em) => {
+    const b = el(`<button>${em}</button>`);
+    b.onclick = () => { sendMsg({ type: 'emote', emoji: em }); p.remove(); };
+    p.appendChild(b);
+  });
+  root.appendChild(p);
+  setTimeout(() => document.addEventListener('pointerdown', function h() {
+    p.remove(); document.removeEventListener('pointerdown', h);
+  }, { once: true }), 0);
+}
+
+function popEmote(playerId, emoji) {
+  const root = document.getElementById('fx-root');
+  if (!root) return;
+  const anchor = document.querySelector(`[data-pid="${playerId}"]`);
+  let x = window.innerWidth / 2, y = window.innerHeight / 2;
+  if (anchor) { const r = anchor.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + 8; }
+  const e = el(`<div class="emote-pop">${emoji}</div>`);
+  e.style.left = x + 'px';
+  e.style.top = y + 'px';
+  root.appendChild(e);
+  setTimeout(() => e.remove(), 1700);
+}
+
+/* ---------- Deal-out animation ---------- */
+
+function maybeDeal(state) {
+  if (!state || (state.phase !== 'peeking' && state.phase !== 'playing')) return;
+  if (!state.dealSeq || state.dealSeq === dealtSeq) return;
+  dealtSeq = state.dealSeq;
+  requestAnimationFrame(() => requestAnimationFrame(dealAnimation));
+}
+
+function dealAnimation() {
+  const root = document.getElementById('fx-root');
+  const deck = document.getElementById('draw-slot');
+  if (!root || !deck) return;
+  const from = deck.getBoundingClientRect();
+  if (!from.width) return;
+  const cells = [...document.querySelectorAll('.opponents-row .opp-card .row .card, .your-hand .card')];
+  cells.forEach((cell, idx) => {
+    const to = cell.getBoundingClientRect();
+    if (!to.width) return;
+    cell.style.visibility = 'hidden';
+    const fly = el(`<div class="card back deal-fly"></div>`);
+    fly.style.left = from.left + 'px';
+    fly.style.top = from.top + 'px';
+    fly.style.width = from.width + 'px';
+    fly.style.height = from.height + 'px';
+    root.appendChild(fly);
+    const delay = idx * 55;
+    setTimeout(() => {
+      fly.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px)`;
+      fly.style.width = to.width + 'px';
+      fly.style.height = to.height + 'px';
+    }, delay + 20);
+    setTimeout(() => { cell.style.visibility = ''; fly.remove(); }, delay + 430);
+  });
+}
+
 function updateTimers(state) {
   const bufMine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
     && state.turnMode === 'awaitingAction' && state.actWaitMs > 0 && !state.matcherId;
@@ -1092,6 +1170,7 @@ function render() {
   app.appendChild(leaderboardFab());
   app.appendChild(soundFab());
   if (onLanding || inLobby) app.appendChild(helpFab());
+  if (latestState && latestState.code) app.appendChild(emoteFab());
   refreshFriendsPanel();
 
   // First-time players: auto-open the tutorial once on the landing screen.
@@ -1102,6 +1181,7 @@ function render() {
     if (!seen) openTutorial();
   }
   renderTutorialRoot();
+  maybeDeal(latestState);
 }
 
 let toastedDisconnect = false;
@@ -1180,6 +1260,36 @@ function renderLanding() {
   return wrap;
 }
 
+/* ---------- Game settings (lobby) ---------- */
+
+function renderSettings(state, isHost) {
+  const s = state.settings || { cardsPer: 4, bufferSeconds: 2.5, matching: true, turnLimit: 30 };
+  if (!isHost) {
+    const lim = s.turnLimit ? `${s.turnLimit}s turn limit` : 'no turn limit';
+    return el(`<div class="settings-box"><div class="section-label" style="text-align:center;">House rules</div>
+      <div class="help-text" style="text-align:center;">${s.cardsPer} cards · ${s.bufferSeconds}s match window · matching ${s.matching ? 'on' : 'off'} · ${lim}</div></div>`);
+  }
+  const box = el(`<div class="settings-box"><div class="section-label" style="text-align:center;">House rules</div></div>`);
+  const set = (patch) => sendMsg({ type: 'setSettings', settings: patch });
+
+  const group = (label, options, current, key) => {
+    const row = el(`<div class="settings-row"><span class="settings-label">${label}</span><div class="seg"></div></div>`);
+    const seg = row.querySelector('.seg');
+    options.forEach(([val, text]) => {
+      const b = el(`<button class="seg-btn ${current === val ? 'on' : ''}">${text}</button>`);
+      b.onclick = () => set({ [key]: val });
+      seg.appendChild(b);
+    });
+    return row;
+  };
+
+  box.appendChild(group('Cards each', [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], s.cardsPer, 'cardsPer'));
+  box.appendChild(group('Match window', [[0, 'off'], [1.5, '1.5s'], [2.5, '2.5s'], [4, '4s']], s.bufferSeconds, 'bufferSeconds'));
+  box.appendChild(group('Matching', [[true, 'on'], [false, 'off']], s.matching, 'matching'));
+  box.appendChild(group('Turn limit', [[0, 'off'], [15, '15s'], [30, '30s'], [45, '45s']], s.turnLimit, 'turnLimit'));
+  return box;
+}
+
 /* ---------- Lobby ---------- */
 
 function renderLobby(state) {
@@ -1196,6 +1306,7 @@ function renderLobby(state) {
       <div class="section-label" style="text-align:center;">Add a bot</div>
       <div class="row center wrap" id="bot-buttons"></div>
     </div>` : ''}
+    <div id="settings-box"></div>
     <div class="col" style="align-items:center;">
       ${isHost
         ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>Start Game</button>
@@ -1214,6 +1325,7 @@ function renderLobby(state) {
     navigator.clipboard?.writeText(link).then(() => showToast('Invite link copied!'))
       .catch(() => showToast(link));
   };
+  wrap.querySelector('#settings-box').appendChild(renderSettings(state, isHost));
 
   const chipList = wrap.querySelector('#player-chips');
   state.players.forEach((p) => {
@@ -1255,13 +1367,13 @@ function renderChoosePeekCount(state) {
   const wrap = el(`<div class="lobby-wrap">
     <div class="card-panel" style="max-width:420px; text-align:center;">
       <h2>${isChooser ? 'Choose the peek count' : `${escapeHtml(nameOf(state, state.peekChooserId))} is choosing`}</h2>
-      <div class="sub">Everyone will privately look at this many of their own 4 cards before play begins.</div>
+      <div class="sub">Everyone will privately look at this many of their own ${state.cardsPer || 4} cards before play begins.</div>
       <div class="row center wrap" id="peek-buttons" style="margin-top:8px;"></div>
     </div>
   </div>`);
   const row = wrap.querySelector('#peek-buttons');
   if (isChooser) {
-    for (let n = 0; n <= 4; n++) {
+    for (let n = 0; n <= (state.cardsPer || 4); n++) {
       const b = el(`<button class="btn-blue">${n}</button>`);
       b.onclick = () => sendMsg({ type: 'choosePeekCount', count: n });
       row.appendChild(b);
@@ -1301,7 +1413,7 @@ function renderTable(state) {
   state.players.filter((p) => !p.isYou).forEach((p) => {
     const isActive = p.id === state.currentPlayerId && state.phase === 'playing';
     const isDutch = p.id === state.dutchCallerId;
-    const card = el(`<div class="opp-card ${isActive ? 'active' : ''} ${isDutch ? 'dutch' : ''}"></div>`);
+    const card = el(`<div class="opp-card ${isActive ? 'active' : ''} ${isDutch ? 'dutch' : ''}" data-pid="${p.id}"></div>`);
     const nameRow = el(`<div class="opp-name"></div>`);
     nameRow.appendChild(avatarEl(p.id, state, 'sm'));
     nameRow.appendChild(document.createTextNode((p.isBot ? '🤖 ' : '') + p.name));
@@ -1352,7 +1464,7 @@ function renderTable(state) {
 
   // Your hand
   const myPlayer = state.players.find((p) => p.isYou);
-  const handWrap = el(`<div class="your-hand-wrap"></div>`);
+  const handWrap = el(`<div class="your-hand-wrap" data-pid="${me}"></div>`);
   let handLabel = 'Your Hand';
   if (myPlayer && myPlayer.id === state.dutchCallerId) handLabel = 'Your Hand — you called Dutch';
   handWrap.appendChild(el(`<div class="your-hand-label">${escapeHtml(handLabel)}</div>`));
@@ -1479,7 +1591,7 @@ function renderActionBar(state) {
     return bar;
   }
 
-  const canMatch = state.phase === 'playing' && state.discardTop
+  const canMatch = state.matchingEnabled && state.phase === 'playing' && state.discardTop
     && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
 
   function matchButton() {

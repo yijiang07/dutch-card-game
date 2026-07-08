@@ -1096,3 +1096,84 @@ button:active:not(:disabled) { transform: scale(0.95); }
 @media (prefers-reduced-motion: reduce) {
   .card.fx-jack, .card.fx-queen, .card.fx-ace { animation: none; }
 }
+
+/* ---------- Game settings / emotes / deal ---------- */
+
+.settings-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  max-width: 440px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.settings-label { font-size: 0.85rem; color: var(--ink-dim); }
+.seg { display: flex; gap: 4px; background: rgba(0,0,0,0.25); border-radius: 8px; padding: 3px; }
+.seg-btn {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--ink-dim);
+  border-radius: 6px;
+  min-width: 32px;
+}
+.seg-btn.on { background: var(--gold); color: var(--gold-ink); }
+
+.emote-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 45;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--panel-border);
+  font-size: 1.3rem;
+  box-shadow: var(--shadow-md);
+}
+.emote-fab:hover { background: rgba(0,0,0,0.55); }
+.emote-picker {
+  position: fixed;
+  right: 16px;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  z-index: 46;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+  animation: badgePop 0.16s ease both;
+}
+.emote-picker button { background: transparent; font-size: 1.4rem; padding: 6px; border-radius: 8px; }
+.emote-picker button:hover { background: rgba(255,255,255,0.1); }
+
+.emote-pop {
+  position: fixed;
+  margin-left: -18px;
+  font-size: 2.4rem;
+  z-index: 120;
+  pointer-events: none;
+  animation: emoteFloat 1.7s ease-out forwards;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+}
+@keyframes emoteFloat {
+  0% { opacity: 0; transform: translateY(6px) scale(0.4); }
+  20% { opacity: 1; transform: translateY(-4px) scale(1.2); }
+  40% { transform: translateY(-14px) scale(1); }
+  100% { opacity: 0; transform: translateY(-70px) scale(0.95); }
+}
+
+.deal-fly {
+  position: fixed;
+  z-index: 114;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.25, 0.6, 0.3, 1), width 0.4s ease, height 0.4s ease;
+}

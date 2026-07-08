@@ -5,6 +5,7 @@ import random
 import secrets
 import smtplib
 import string
+import time
 from email.message import EmailMessage
 
 from aiohttp import web, WSMsgType
@@ -70,6 +71,9 @@ class Room:
         self.stats_recorded = False
         self.series = {}          # player_id -> cumulative score across rounds
         self.rounds_played = 0
+        self.settings = {'cardsPer': 4, 'bufferSeconds': 2.5, 'matching': True, 'turnLimit': 30}
+        self.monitor_running = False
+        self.deal_seq = 0         # bumps each new round so clients can deal-in cards
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -126,6 +130,7 @@ def lobby_state(room, viewer_id):
              'isBot': p.get('is_bot', False), 'difficulty': p.get('difficulty')}
             for pid, p in room.players.items()
         ],
+        'settings': room.settings,
     }
 
 
@@ -144,6 +149,7 @@ def build_state(room, viewer_id):
         p['difficulty'] = info.get('difficulty')
         p['left'] = info.get('left', False)
     state['roundsPlayed'] = room.rounds_played
+    state['dealSeq'] = room.deal_seq
     state['series'] = [{'id': pid, 'name': meta[pid]['name'], 'total': tot}
                        for pid, tot in room.series.items() if pid in meta]
     return state
@@ -253,6 +259,62 @@ async def expire_match(room, deadline):
         game._log('Match window expired — play resumes.')
         await broadcast_state(room)
         schedule_bots(room)
+
+
+def _turn_sig(game):
+    """A signature that changes whenever the game moves to a new actor/turn."""
+    return (game.phase, game.turn_counter, game.peeking_index if game.phase == 'peeking' else -1,
+            bots.required_actor(game))
+
+
+async def turn_monitor(room):
+    """Never let the game stall: if a human is disconnected (short grace) or idle
+    past the turn limit on their turn, auto-play their turn like a bot."""
+    if room.monitor_running:
+        return
+    room.monitor_running = True
+    last_sig, since = None, time.time()
+    try:
+        while room.game and room.game.phase != 'reveal':
+            await asyncio.sleep(1)
+            game = room.game
+            if not game or game.phase == 'reveal':
+                break
+            sig = _turn_sig(game)
+            if sig != last_sig:
+                last_sig, since = sig, time.time()
+                continue
+            actor = bots.required_actor(game)
+            if not actor or game.matcher is not None:
+                since = time.time()
+                continue
+            p = room.players.get(actor, {})
+            if p.get('is_bot'):
+                continue  # bots are driven by drive_bots
+            limit = 5 if not p.get('connected') else game.turn_limit
+            if not limit or time.time() - since < limit:
+                continue
+            # Idle/disconnected human — finish their turn automatically.
+            reason = 'disconnected' if not p.get('connected') else 'idle'
+            game._log(f"{game.names.get(actor, 'A player')} was {reason} — auto-playing their turn.")
+            guard = 0
+            while room.game and room.game.phase != 'reveal' and bots.required_actor(room.game) == actor and guard < 12:
+                guard += 1
+                try:
+                    st = bots.take_action(room, room.game, actor)
+                except GameError:
+                    break
+                await broadcast_state(room)
+                await asyncio.sleep(0.6 if st == 'wait' else 0.35)
+            last_sig, since = _turn_sig(room.game) if room.game else (None, 0), time.time()
+            schedule_bots(room)
+    finally:
+        room.monitor_running = False
+
+
+def start_monitor(room):
+    if not room.monitor_running:
+        asyncio.create_task(turn_monitor(room))
 
 
 # ---- friends / presence ----
@@ -588,6 +650,32 @@ async def handle_message(ws, ctx, data):
         await broadcast_state(room)
         return
 
+    if mtype == 'setSettings':
+        if pid != room.host_id:
+            raise GameError('Only the host can change settings.')
+        if room.game is not None:
+            raise GameError('Change settings before the game starts.')
+        s = data.get('settings') or {}
+        if 'cardsPer' in s:
+            room.settings['cardsPer'] = max(2, min(6, int(s['cardsPer'])))
+        if 'bufferSeconds' in s:
+            room.settings['bufferSeconds'] = max(0, min(6, float(s['bufferSeconds'])))
+        if 'matching' in s:
+            room.settings['matching'] = bool(s['matching'])
+        if 'turnLimit' in s:
+            room.settings['turnLimit'] = max(0, min(120, int(s['turnLimit'])))
+        await broadcast_state(room)
+        return
+
+    if mtype == 'emote':
+        emoji = (data.get('emoji') or '')[:4]
+        allowed = {'👍', '😂', '😮', '🎉', '😎', '😢', '🔥', '🤔'}
+        if emoji in allowed:
+            for other in room.players.values():
+                if other.get('ws') is not None:
+                    await send(other['ws'], {'type': 'emote', 'playerId': pid, 'emoji': emoji})
+        return
+
     if mtype == 'removeBot':
         if pid != room.host_id:
             raise GameError('Only the host can remove bots.')
@@ -609,12 +697,14 @@ async def handle_message(ws, ctx, data):
         if len(room.players) < 2:
             raise GameError('Need at least 2 players to start.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
-        room.game = Game(list(room.players.keys()), names)
+        room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
         bots.init_brains(room)
+        room.deal_seq += 1
+        start_monitor(room)
         await broadcast_state(room)
         return
 
@@ -624,12 +714,14 @@ async def handle_message(ws, ctx, data):
         if room.game is None or room.game.phase != 'reveal':
             raise GameError('Round is not over yet.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
-        room.game = Game(list(room.players.keys()), names)
+        room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
         bots.init_brains(room)
+        room.deal_seq += 1
+        start_monitor(room)
         await broadcast_state(room)
         return
 
