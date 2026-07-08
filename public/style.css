@@ -1525,3 +1525,83 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .account-cta .account-cta-sub { font-family: var(--font); font-weight: 500; color: var(--ink-dim); font-size: 0.8rem; }
 .account-cta.signed { flex-direction: row; font-weight: 600; font-size: 0.92rem; color: var(--ink); }
 .account-cta.signed strong { color: var(--champagne); margin-left: 4px; }
+
+/* ================= Mobile / small screens ================= */
+@media (max-width: 560px) {
+  /* Fit the whole game on one phone screen (dvh accounts for browser chrome). */
+  #app, .game-wrap { min-height: 100dvh; }
+
+  /* Keep the top bar and action bar on screen at all times. */
+  .top-bar {
+    position: sticky; top: 0; z-index: 30;
+    padding: 8px 92px 8px 12px;
+    background: linear-gradient(180deg, rgba(6,14,10,0.92), rgba(6,14,10,0.78));
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .top-bar .brand-mini { font-size: 0.82rem; letter-spacing: 0.1em; }
+
+  /* Compact cards */
+  .card.size-lg { width: 50px; height: 70px; font-size: 0.9rem; }
+  .card.size-md { width: 42px; height: 59px; font-size: 0.8rem; }
+  .card.size-sm { width: 33px; height: 46px; font-size: 0.66rem; }
+
+  /* Compact felt table */
+  .table-area {
+    min-width: min(430px, 94vw); min-height: 132px;
+    padding: 22px 26px; border-radius: 110px; margin: 8px auto; gap: 18px;
+  }
+  .pile-label { font-size: 0.62rem; letter-spacing: 1px; }
+
+  /* Tighten vertical rhythm */
+  .turn-banner { padding: 8px 12px 2px; }
+  .turn-banner .headline { font-size: 1rem; }
+  .turn-banner .sub { font-size: 0.76rem; margin-top: 2px; }
+  /* Keep opponent panels centered so the edge columns stay free for the FABs. */
+  .opponents-row { gap: 8px; padding: 6px 48px 2px; }
+  .opp-card { padding: 7px 9px; min-width: 74px; gap: 4px; }
+  .opp-card .opp-name { font-size: 0.74rem; max-width: 84px; }
+  .your-hand-wrap { padding: 8px 8px 6px; }
+  .your-hand-label { margin-bottom: 5px; font-size: 0.68rem; }
+  .your-hand { gap: 6px; }
+
+  /* Action bar pinned to the bottom, single compact row where possible */
+  .action-bar {
+    position: sticky; bottom: 0; z-index: 30;
+    padding: 9px 10px calc(9px + env(safe-area-inset-bottom));
+    gap: 7px;
+    background: linear-gradient(0deg, rgba(6,14,10,0.94), rgba(6,14,10,0.82));
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .action-bar button { padding: 11px 14px; font-size: 0.9rem; }
+  .action-bar .help-text { font-size: 0.76rem; }
+
+  /* The event log lives under the action bar in the DOM — keep it short. */
+  .log-panel { font-size: 0.68rem; line-height: 1.35; padding: 6px 10px; margin-bottom: 6px; max-height: 3.1em; overflow: hidden; }
+
+  /* Utility FABs: smaller, tucked into corners clear of the sticky action bar. */
+  .friends-fab, .lb-fab, .help-fab, .sound-fab, .lang-fab, .emote-fab, .chat-fab {
+    width: 38px !important; height: 38px !important; font-size: 1.05rem !important;
+  }
+  /* Trophy + friends in the top-right; sound/emote/chat as a left-edge stack —
+     both clear of the centered opponents, table, hand, and sticky action bar. */
+  .lb-fab { top: 6px; right: 10px; }
+  .friends-fab { top: 6px; right: 54px; }
+  .sound-fab { left: 8px !important; right: auto !important; bottom: auto !important; top: 52px !important; }
+  .emote-fab { left: 8px !important; right: auto !important; bottom: auto !important; top: 98px !important; }
+  .chat-fab { left: 8px !important; right: auto !important; bottom: auto !important; top: 144px !important; }
+  .emote-picker { left: 52px !important; right: auto !important; bottom: auto !important; top: 98px !important; }
+
+  /* Landing: keep the ornamental divider off the corner buttons */
+  .brand .suits::before, .brand .suits::after { display: none; }
+  .landing-wrap { padding-top: 60px; }
+  .brand { margin-bottom: 22px; }
+  .brand h1 { font-size: clamp(2.4rem, 13vw, 3.2rem); }
+
+  /* Lobby: top-align so the room code isn't clipped under the corner buttons */
+  .lobby-wrap { justify-content: flex-start; padding-top: 56px; gap: 16px; }
+  .room-code-box { padding: 20px 24px; }
+  .room-code-box .code { font-size: 2.3rem; letter-spacing: 9px; }
+
+  /* Reveal / peek: give the header room below the corner buttons */
+  .reveal-wrap { padding-top: 52px; }
+}

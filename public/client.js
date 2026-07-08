@@ -1845,6 +1845,7 @@ function render() {
   app.appendChild(soundFab());
   if (onLanding || inLobby) { app.appendChild(helpFab()); app.appendChild(langFab()); }
   if (latestState && latestState.code) { app.appendChild(emoteFab()); app.appendChild(chatFab()); }
+  else { document.getElementById('emote-picker')?.remove(); }  // clear a stale picker after leaving a game
   refreshFriendsPanel();
 
   // First-time players: auto-open the tutorial once on the landing screen.
