@@ -581,6 +581,38 @@ input[type="text"]:focus { border-color: var(--gold); background: rgba(255,255,2
   margin-top: 6px;
 }
 
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 4px;
+}
+.auth-tab {
+  flex: 1;
+  background: transparent;
+  color: var(--ink-dim);
+  padding: 8px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+}
+.auth-tab.on { background: var(--panel-2); color: var(--ink); box-shadow: var(--shadow-md); }
+
+.recovery-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold);
+  background: rgba(0,0,0,0.35);
+  border: 1px dashed var(--panel-border);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 16px 0 0;
+  word-break: break-all;
+  user-select: all;
+}
+
 .toast.invite {
   display: flex;
   gap: 10px;

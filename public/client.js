@@ -26,11 +26,12 @@ function clearSession() { sessionStorage.removeItem('dutchSession'); }
 // per-tab game session): all tabs in this browser are the same person.
 let friendsState = null; // {friends, incoming, outgoing} pushed by the server
 let friendsPanelOpen = false;
-let reclaimTried = false;
 
 let tutorialOpen = false;
 let tutorialIndex = 0;
 let autoTutorialDone = false;
+
+let authTab = 'login'; // 'login' | 'signup' | 'recover'
 
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
@@ -91,14 +92,12 @@ function handleServerMessage(data) {
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
     saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username });
+    if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
   } else if (data.type === 'identityFailed') {
-    // Server no longer knows this account (e.g. data reset) — reclaim the name once.
-    const prof = loadProfile();
+    // Stored session is no longer valid (expired, logged out elsewhere, or data reset).
     clearProfile();
-    if (prof && prof.username && !reclaimTried) {
-      reclaimTried = true;
-      sendMsg({ type: 'identify', username: prof.username });
-    }
+  } else if (data.type === 'loggedOut') {
+    clearProfile();
   } else if (data.type === 'friendsUpdate') {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
   } else if (data.type === 'infoMsg') {
@@ -227,6 +226,81 @@ function refreshFriendsPanel() {
   root.appendChild(renderFriendsPanel());
 }
 
+function showRecoveryModal(code) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const box = el(`<div class="overlay" style="z-index:100;">
+    <div class="overlay-box">
+      <h2>Save your recovery code</h2>
+      <p class="help-text">There's no email reset. If you ever forget your password, this code is the only way back into your account. Keep it somewhere safe.</p>
+      <div class="recovery-code" id="rec-code">${escapeHtml(code)}</div>
+      <div class="row center" style="gap:10px; margin-top:16px;">
+        <button class="btn-ghost" id="rec-copy">Copy</button>
+        <button class="btn-gold" id="rec-done">I've saved it</button>
+      </div>
+    </div>
+  </div>`);
+  box.querySelector('#rec-copy').onclick = () => navigator.clipboard?.writeText(code).then(() => showToast('Recovery code copied!'));
+  box.querySelector('#rec-done').onclick = () => { root.innerHTML = ''; };
+  root.appendChild(box);
+}
+
+function renderAuthForm() {
+  const wrap = el(`<div class="col"></div>`);
+  const tabs = el(`<div class="auth-tabs">
+    <button class="auth-tab ${authTab === 'login' ? 'on' : ''}" data-tab="login">Log in</button>
+    <button class="auth-tab ${authTab === 'signup' ? 'on' : ''}" data-tab="signup">Sign up</button>
+  </div>`);
+  tabs.querySelectorAll('.auth-tab').forEach((t) => {
+    t.onclick = () => { authTab = t.dataset.tab; refreshFriendsPanel(); };
+  });
+  wrap.appendChild(tabs);
+
+  if (authTab === 'recover') {
+    wrap.appendChild(el(`<p class="help-text">Enter your username and recovery code to get back in and set a new password.</p>`));
+    const form = el(`<div class="col">
+      <input type="text" id="auth-user" placeholder="username" maxlength="16" autocomplete="username" />
+      <input type="text" id="auth-code" placeholder="recovery code" autocomplete="off" />
+      <input type="password" id="auth-newpw" placeholder="new password (min 6)" autocomplete="new-password" />
+      <button class="btn-gold" id="auth-submit">Reset & log in</button>
+      <button class="btn-ghost" id="auth-back" style="background:transparent;">← Back to log in</button>
+    </div>`);
+    form.querySelector('#auth-submit').onclick = () => {
+      const u = form.querySelector('#auth-user').value.trim();
+      const c = form.querySelector('#auth-code').value.trim();
+      const pw = form.querySelector('#auth-newpw').value;
+      if (u && c) sendMsg({ type: 'recover', username: u, code: c, newPassword: pw || undefined });
+    };
+    form.querySelector('#auth-back').onclick = () => { authTab = 'login'; refreshFriendsPanel(); };
+    wrap.appendChild(form);
+    return wrap;
+  }
+
+  const isSignup = authTab === 'signup';
+  wrap.appendChild(el(`<p class="help-text">${isSignup
+    ? 'Create an account so friends can find you and you can log in from any device.'
+    : 'Log in to see your friends and invites.'}</p>`));
+  const form = el(`<div class="col">
+    <input type="text" id="auth-user" placeholder="username (3–16 letters/numbers)" maxlength="16" autocomplete="username" />
+    <input type="password" id="auth-pw" placeholder="password (min 6)" autocomplete="${isSignup ? 'new-password' : 'current-password'}" />
+    <button class="btn-gold" id="auth-submit">${isSignup ? 'Create account' : 'Log in'}</button>
+    ${isSignup ? '' : '<button class="btn-ghost" id="auth-forgot" style="background:transparent;">Forgot password?</button>'}
+  </div>`);
+  form.querySelector('#auth-submit').onclick = () => {
+    const u = form.querySelector('#auth-user').value.trim();
+    const pw = form.querySelector('#auth-pw').value;
+    if (!u || !pw) { showToast('Enter a username and password.', true); return; }
+    sendMsg({ type: isSignup ? 'signup' : 'login', username: u, password: pw });
+  };
+  const forgot = form.querySelector('#auth-forgot');
+  if (forgot) forgot.onclick = () => { authTab = 'recover'; refreshFriendsPanel(); };
+  form.querySelectorAll('input').forEach((inp) => {
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') form.querySelector('#auth-submit').click(); });
+  });
+  wrap.appendChild(form);
+  return wrap;
+}
+
 function renderFriendsPanel() {
   const prof = loadProfile();
   const overlay = el(`<div class="overlay drawer-overlay"></div>`);
@@ -239,23 +313,21 @@ function renderFriendsPanel() {
   drawer.appendChild(header);
 
   if (!prof || !prof.username) {
-    drawer.appendChild(el(`<p class="help-text">Claim a username so friends can find you. You'll stay signed in on this browser — no password needed.</p>`));
-    const form = el(`<div class="col">
-      <input type="text" id="claim-input" placeholder="username (3–16 letters/numbers)" maxlength="16" autocomplete="off" />
-      <button class="btn-gold" id="claim-btn">Claim Username</button>
-    </div>`);
-    form.querySelector('#claim-btn').onclick = () => {
-      const name = form.querySelector('#claim-input').value.trim();
-      if (name) sendMsg({ type: 'identify', username: name });
-    };
-    form.querySelector('#claim-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') form.querySelector('#claim-btn').click();
-    });
-    drawer.appendChild(form);
+    drawer.appendChild(renderAuthForm());
     return overlay;
   }
 
-  drawer.appendChild(el(`<div class="help-text">Signed in as <strong style="color:var(--ink);">${escapeHtml(prof.username)}</strong></div>`));
+  const signedRow = el(`<div class="row between" style="align-items:center;">
+    <div class="help-text">Signed in as <strong style="color:var(--ink);">${escapeHtml(prof.username)}</strong></div>
+    <button class="btn-ghost" style="padding:6px 12px;">Log out</button>
+  </div>`);
+  signedRow.querySelector('button').onclick = () => {
+    const p = loadProfile();
+    sendMsg({ type: 'logout', secret: p && p.secret });
+    clearProfile();
+    refreshFriendsPanel();
+  };
+  drawer.appendChild(signedRow);
 
   const addForm = el(`<div class="row">
     <input type="text" id="add-friend-input" class="grow" placeholder="Add friend by username" maxlength="16" autocomplete="off" />

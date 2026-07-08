@@ -7,6 +7,7 @@ infrequent (login, add friend, etc.) so a fresh connection per call is fine.
 """
 
 import hashlib
+import hmac
 import os
 import re
 import secrets
@@ -26,6 +27,8 @@ else:
     DUP_ERRORS = (sqlite3.IntegrityError,)
 
 USERNAME_RE = re.compile(r'^[A-Za-z0-9_]{3,16}$')
+MIN_PASSWORD = 6
+PBKDF2_ROUNDS = 200_000
 
 
 def _connect():
@@ -42,7 +45,14 @@ def _ph(sql):
 
 
 def _hash(s):
+    """Fast hash for HIGH-ENTROPY secrets only (session tokens, recovery codes)."""
     return hashlib.sha256(s.encode()).hexdigest()
+
+
+def _pw_hash(password, salt_hex):
+    """Slow salted KDF for user-chosen passwords (low entropy)."""
+    dk = hashlib.pbkdf2_hmac('sha256', password.encode(), bytes.fromhex(salt_hex), PBKDF2_ROUNDS)
+    return dk.hex()
 
 
 def init_db():
@@ -53,11 +63,34 @@ def init_db():
         cur.execute(f'''CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             username TEXT NOT NULL,
-            secret_hash TEXT NOT NULL,
+            pw_salt TEXT,
+            pw_hash TEXT,
+            recovery_hash TEXT,
             created_at {ts_type} NOT NULL
         )''')
+        # Migrate installs created before passwords existed.
+        if USE_PG:
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash'):
+                cur.execute(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} TEXT')
+            # The old passwordless schema had a NOT NULL secret_hash; new signups
+            # don't set it, so relax the constraint if that column is still around.
+            cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users'")
+            existing = {r['column_name'] for r in cur.fetchall()}
+            if 'secret_hash' in existing:
+                cur.execute('ALTER TABLE users ALTER COLUMN secret_hash DROP NOT NULL')
+        else:
+            have = {r[1] for r in cur.execute('PRAGMA table_info(users)').fetchall()}
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash'):
+                if col not in have:
+                    cur.execute(f'ALTER TABLE users ADD COLUMN {col} TEXT')
         # Case-insensitive uniqueness via an expression index (both backends).
         cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_uname ON users (lower(username))')
+        # "Stay logged in" tokens — one row per signed-in device.
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS sessions (
+            token_hash TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            created_at {ts_type} NOT NULL
+        )''')
         # One row per user pair; (low, high) sorted by id so a relationship in
         # either direction maps to the same row.
         cur.execute('''CREATE TABLE IF NOT EXISTS relations (
@@ -72,36 +105,124 @@ def init_db():
         conn.close()
 
 
-def create_user(username):
+def _validate_credentials(username, password):
     username = (username or '').strip()
     if not USERNAME_RE.match(username):
         raise ValueError('Usernames are 3-16 letters, numbers, or underscores.')
+    if len(password or '') < MIN_PASSWORD:
+        raise ValueError(f'Password must be at least {MIN_PASSWORD} characters.')
+    return username
+
+
+def create_user(username, password):
+    username = _validate_credentials(username, password)
     uid = secrets.token_hex(8)
-    secret = secrets.token_urlsafe(24)
+    salt = secrets.token_hex(16)
+    recovery = secrets.token_urlsafe(9)
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('INSERT INTO users (id, username, secret_hash, created_at) VALUES (?,?,?,?)'),
-                    (uid, username, _hash(secret), time.time()))
+        cur.execute(_ph('''INSERT INTO users (id, username, pw_salt, pw_hash, recovery_hash, created_at)
+                           VALUES (?,?,?,?,?,?)'''),
+                    (uid, username, salt, _pw_hash(password, salt), _hash(recovery), time.time()))
         conn.commit()
     except DUP_ERRORS:
         raise ValueError('That username is taken.')
     finally:
         conn.close()
-    return {'id': uid, 'username': username, 'secret': secret}
+    return {'id': uid, 'username': username, 'recovery_code': recovery}
 
 
-def verify_user(uid, secret):
+def _get_auth_row(username):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT id, username, secret_hash FROM users WHERE id=?'), (uid,))
+        cur.execute(_ph('SELECT id, username, pw_salt, pw_hash, recovery_hash FROM users WHERE lower(username)=lower(?)'),
+                    ((username or '').strip(),))
+        return cur.fetchone()
+    finally:
+        conn.close()
+
+
+def verify_password(username, password):
+    r = _get_auth_row(username)
+    if not r or not r['pw_hash']:
+        return None
+    if hmac.compare_digest(_pw_hash(password or '', r['pw_salt']), r['pw_hash']):
+        return {'id': r['id'], 'username': r['username']}
+    return None
+
+
+def verify_recovery(username, code):
+    r = _get_auth_row(username)
+    if not r or not r['recovery_hash']:
+        return None
+    if hmac.compare_digest(_hash(code or ''), r['recovery_hash']):
+        return {'id': r['id'], 'username': r['username']}
+    return None
+
+
+def set_password(user_id, password):
+    if len(password or '') < MIN_PASSWORD:
+        raise ValueError(f'Password must be at least {MIN_PASSWORD} characters.')
+    salt = secrets.token_hex(16)
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('UPDATE users SET pw_salt=?, pw_hash=? WHERE id=?'),
+                    (salt, _pw_hash(password, salt), user_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_by_id(uid):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT id, username FROM users WHERE id=?'), (uid,))
         r = cur.fetchone()
     finally:
         conn.close()
-    if r and r['secret_hash'] == _hash(secret or ''):
-        return {'id': r['id'], 'username': r['username']}
-    return None
+    return {'id': r['id'], 'username': r['username']} if r else None
+
+
+def create_session(user_id):
+    token = secrets.token_urlsafe(24)
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('INSERT INTO sessions (token_hash, user_id, created_at) VALUES (?,?,?)'),
+                    (_hash(token), user_id, time.time()))
+        conn.commit()
+    finally:
+        conn.close()
+    return token
+
+
+def verify_session(uid, token):
+    if not uid or not token:
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT user_id FROM sessions WHERE token_hash=? AND user_id=?'), (_hash(token), uid))
+        r = cur.fetchone()
+    finally:
+        conn.close()
+    return get_by_id(uid) if r else None
+
+
+def delete_session(token):
+    if not token:
+        return
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('DELETE FROM sessions WHERE token_hash=?'), (_hash(token),))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def get_by_username(username):

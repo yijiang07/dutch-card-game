@@ -165,10 +165,14 @@ async def notify_friends_of(user_id):
 
 
 async def set_online(ws, ctx, user):
-    ctx['user'] = user
+    ctx['user'] = {'id': user['id'], 'username': user['username']}
     ONLINE.setdefault(user['id'], set()).add(ws)
-    await send(ws, {'type': 'identity', 'userId': user['id'], 'username': user['username'],
-                    **({'secret': user['secret']} if 'secret' in user else {})})
+    payload = {'type': 'identity', 'userId': user['id'], 'username': user['username']}
+    if user.get('secret'):
+        payload['secret'] = user['secret']
+    if user.get('recovery_code'):
+        payload['recoveryCode'] = user['recovery_code']
+    await send(ws, payload)
     await push_friends(user['id'])
     await notify_friends_of(user['id'])
 
@@ -226,21 +230,52 @@ async def handle_message(ws, ctx, data):
     # ---- identity & friends (independent of any room) ----
 
     if mtype == 'identify':
-        # Either re-authenticate an existing identity, or claim a new username.
-        if data.get('userId') and data.get('secret'):
-            user = storage.verify_user(data['userId'], data['secret'])
-            if user:
-                await set_online(ws, ctx, user)
-            else:
-                await send(ws, {'type': 'identityFailed'})
-            return
-        if data.get('username'):
-            if ctx.get('user'):
-                raise GameError('You already have a username.')
-            user = storage.create_user(data['username'])
+        # Auto-reconnect with a stored session token.
+        user = storage.verify_session(data.get('userId'), data.get('secret'))
+        if user:
             await set_online(ws, ctx, user)
-            return
-        raise GameError('Nothing to identify with.')
+        else:
+            await send(ws, {'type': 'identityFailed'})
+        return
+
+    if mtype == 'signup':
+        if ctx.get('user'):
+            raise GameError('You are already signed in.')
+        created = storage.create_user(data.get('username'), data.get('password') or '')
+        secret = storage.create_session(created['id'])
+        await set_online(ws, ctx, {'id': created['id'], 'username': created['username'],
+                                   'secret': secret, 'recovery_code': created['recovery_code']})
+        return
+
+    if mtype == 'login':
+        if ctx.get('user'):
+            raise GameError('You are already signed in.')
+        user = storage.verify_password(data.get('username'), data.get('password') or '')
+        if not user:
+            raise GameError('Wrong username or password.')
+        secret = storage.create_session(user['id'])
+        await set_online(ws, ctx, {**user, 'secret': secret})
+        return
+
+    if mtype == 'recover':
+        if ctx.get('user'):
+            raise GameError('You are already signed in.')
+        user = storage.verify_recovery(data.get('username'), data.get('code') or '')
+        if not user:
+            raise GameError('Wrong username or recovery code.')
+        new_pw = data.get('newPassword')
+        if new_pw:
+            storage.set_password(user['id'], new_pw)
+        secret = storage.create_session(user['id'])
+        await set_online(ws, ctx, {**user, 'secret': secret})
+        return
+
+    if mtype == 'logout':
+        storage.delete_session(data.get('secret'))
+        await set_offline(ws, ctx)
+        ctx['user'] = None
+        await send(ws, {'type': 'loggedOut'})
+        return
 
     if mtype == 'friendRequest':
         user = ctx.get('user')
