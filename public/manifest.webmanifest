@@ -1,0 +1,13 @@
+{
+  "name": "Dutch — Card Game",
+  "short_name": "Dutch",
+  "description": "A real-time multiplayer card game. Lowest score wins — play from anywhere.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b4d31",
+  "theme_color": "#0b4d31",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}
