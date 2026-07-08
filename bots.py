@@ -39,11 +39,42 @@ def pick_bot_name(taken_names):
 
 
 def init_brains(room):
-    room.bot_brains = {pid: Brain() for pid, p in room.players.items() if p.get('is_bot')}
+    # Every player (human and bot) gets a knowledge model. Bots use it to play;
+    # for humans it's used to judge how "theoretically correct" their plays are.
+    room.brains = {pid: Brain() for pid in room.players}
 
 
 def _brains(room):
-    return getattr(room, 'bot_brains', {}) or {}
+    return getattr(room, 'brains', {}) or {}
+
+
+def record_private_peek(room, viewer_id, owner_id, cell, card):
+    """A player privately learned a specific card (initial peek or Queen peek)."""
+    b = _brains(room).get(viewer_id)
+    if b is not None and card is not None:
+        b.known[(owner_id, cell)] = card
+
+
+def judge_main_play(room, game, player_id, actual):
+    """Was this flip/swap the value-maximizing move given the player's knowledge?
+
+    `actual` is ('flip',) or ('swap', cell_index). The reference play (using only
+    what the player legitimately knows, unknowns estimated at the deck average):
+    swap your highest-value card for the discard when that lowers your expected
+    total, otherwise flip. Ties among equal-highest cells all count as correct.
+    """
+    brain = _brains(room).get(player_id) or Brain()
+    discard = game.discard[-1] if game.discard else None
+    if discard is None:
+        return actual[0] == 'flip'
+    D = discard['value']
+    n = len(game.grids[player_id])
+    vals = [_est_cell(brain, game, player_id, i, False) for i in range(n)]
+    best_v = max(vals)
+    if best_v > D:  # swapping the worst card is a positive-expected-value move
+        best_cells = {i for i, v in enumerate(vals) if v == best_v}
+        return actual[0] == 'swap' and actual[1] in best_cells
+    return actual[0] == 'flip'
 
 
 # ---- knowledge updates (called by the server for ANY player's action) ----

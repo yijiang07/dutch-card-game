@@ -64,7 +64,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-red { background: linear-gradient(180deg, #ef7871, var(--red)); color: white; box-shadow: 0 4px 14px rgba(226,86,79,0.35); }
 .btn-red:hover:not(:disabled) { filter: brightness(1.08); }
 
-input[type="text"] {
+input[type="text"], input[type="number"], input[type="password"], input[type="email"] {
   font-family: inherit;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
@@ -75,8 +75,11 @@ input[type="text"] {
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
-input[type="text"]::placeholder { color: var(--ink-dim); }
-input[type="text"]:focus { border-color: var(--gold); background: rgba(255,255,255,0.09); }
+input::placeholder { color: var(--ink-dim); }
+input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+  border-color: var(--gold);
+  background: rgba(255,255,255,0.09);
+}
 
 .row { display: flex; gap: 10px; align-items: center; }
 .row.wrap { flex-wrap: wrap; }

@@ -482,8 +482,10 @@ function renderLeaderboard() {
         <span><strong>${s.wins}</strong> wins</span>
         <span><strong>${s.games}</strong> games</span>
         <span>best round <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
+        <span>accuracy <strong>${s.accuracy == null ? '—' : s.accuracy + '%'}</strong></span>
         ${s.rank ? `<span>rank <strong>#${s.rank}</strong></span>` : ''}
       </div>
+      <div class="help-text" style="margin-top:8px;">Accuracy = share of your draw/swap decisions that were the best move given what you knew at the time.</div>
     </div>`));
   } else {
     drawer.appendChild(el(`<div class="help-text">Log in (👥) to have your games counted on the leaderboard.</div>`));
@@ -491,7 +493,7 @@ function renderLeaderboard() {
 
   drawer.appendChild(el(`<div class="section-label">Top players</div>`));
   const table = el(`<div class="lb-table"></div>`);
-  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">Player</span><span class="lb-num">Wins</span><span class="lb-num">Games</span><span class="lb-num">Best</span></div>`));
+  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">Player</span><span class="lb-num">Wins</span><span class="lb-num">Acc</span></div>`));
   if (!board.length) {
     table.appendChild(el(`<div class="help-text" style="padding:10px;">No games played yet — be the first!</div>`));
   }
@@ -501,8 +503,7 @@ function renderLeaderboard() {
       <span class="lb-rank">${i + 1}</span>
       <span class="grow">${escapeHtml(r.username)}</span>
       <span class="lb-num">${r.wins}</span>
-      <span class="lb-num">${r.games}</span>
-      <span class="lb-num">${r.best_score == null ? '—' : r.best_score}</span>
+      <span class="lb-num">${r.accuracy == null ? '—' : r.accuracy + '%'}</span>
     </div>`);
     table.appendChild(row);
   });

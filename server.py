@@ -65,7 +65,7 @@ class Room:
         # player_id -> {name, token, ws, connected, is_bot, difficulty}
         self.players = {}
         self.game = None
-        self.bot_brains = {}
+        self.brains = {}
         self.bot_task_running = False
         self.stats_recorded = False
 
@@ -134,6 +134,18 @@ def build_state(room, viewer_id):
     return state
 
 
+def _score_play(room, game, pid, actual):
+    """Tally whether a human's flip/swap matched the knowledge-optimal play."""
+    p = room.players.get(pid)
+    if not p or p.get('is_bot'):
+        return
+    if game.phase != 'playing' or game.turn_mode != 'awaitingAction' or game.current_player() != pid:
+        return  # not a real main-action decision; let the game method reject it
+    p['play_total'] = p.get('play_total', 0) + 1
+    if bots.judge_main_play(room, game, pid, actual):
+        p['play_correct'] = p.get('play_correct', 0) + 1
+
+
 async def record_game_if_needed(room):
     """Once a round reaches reveal, record stats for account-linked players."""
     game = room.game
@@ -146,9 +158,11 @@ async def record_game_if_needed(room):
     min_total = min(totals.values())
     results = []
     for pid, total in totals.items():
-        acct = room.players.get(pid, {}).get('account_id')
+        p = room.players.get(pid, {})
+        acct = p.get('account_id')
         if acct:
-            results.append({'user_id': acct, 'total': total, 'won': total == min_total})
+            results.append({'user_id': acct, 'total': total, 'won': total == min_total,
+                            'plays_correct': p.get('play_correct', 0), 'plays_total': p.get('play_total', 0)})
     if not results:
         return
     await asyncio.to_thread(storage.record_game, results)
@@ -533,6 +547,9 @@ async def handle_message(ws, ctx, data):
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
         room.stats_recorded = False
+        for p in room.players.values():
+            p['play_correct'] = 0
+            p['play_total'] = 0
         bots.init_brains(room)
         await broadcast_state(room)
         return
@@ -545,6 +562,9 @@ async def handle_message(ws, ctx, data):
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
         room.stats_recorded = False
+        for p in room.players.values():
+            p['play_correct'] = 0
+            p['play_total'] = 0
         bots.init_brains(room)
         await broadcast_state(room)
         return
@@ -559,8 +579,10 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'peekCard':
-        card = game.peek_card(pid, int(data.get('cellIndex', -1)))
-        await send(ws, {'type': 'privateReveal', 'context': 'peek', 'card': card, 'cellIndex': data.get('cellIndex')})
+        cell = int(data.get('cellIndex', -1))
+        card = game.peek_card(pid, cell)
+        bots.record_private_peek(room, pid, pid, cell, card)
+        await send(ws, {'type': 'privateReveal', 'context': 'peek', 'card': card, 'cellIndex': cell})
         await broadcast_state(room)
         return
 
@@ -570,12 +592,14 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'flip':
+        _score_play(room, game, pid, ('flip',))
         game.flip(pid)
         await broadcast_state(room)
         return
 
     if mtype == 'swapCell':
         cell = int(data.get('cellIndex', -1))
+        _score_play(room, game, pid, ('swap', cell))
         game.swap_cell(pid, cell)
         bots.record_placement(room, game, pid, cell)
         await broadcast_state(room)
@@ -602,6 +626,7 @@ async def handle_message(ws, ctx, data):
         target_player = data.get('targetPlayerId')
         target_cell = int(data.get('targetCellIndex', -1))
         card = game.queen_select(pid, target_player, target_cell)
+        bots.record_private_peek(room, pid, target_player, target_cell, card)
         await send(ws, {'type': 'privateReveal', 'context': 'queen', 'card': card,
                          'targetPlayerId': target_player, 'cellIndex': target_cell})
         await broadcast_state(room)

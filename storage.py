@@ -108,8 +108,19 @@ def init_db():
             games INTEGER NOT NULL DEFAULT 0,
             wins INTEGER NOT NULL DEFAULT 0,
             total_score INTEGER NOT NULL DEFAULT 0,
-            best_score INTEGER
+            best_score INTEGER,
+            plays_correct INTEGER NOT NULL DEFAULT 0,
+            plays_total INTEGER NOT NULL DEFAULT 0
         )''')
+        # Add play-accuracy columns to stats tables created before this feature.
+        if USE_PG:
+            for col in ('plays_correct', 'plays_total'):
+                cur.execute(f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 0')
+        else:
+            have = {r[1] for r in cur.execute('PRAGMA table_info(stats)').fetchall()}
+            for col in ('plays_correct', 'plays_total'):
+                if col not in have:
+                    cur.execute(f'ALTER TABLE stats ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0')
         cur.execute(f'''CREATE TABLE IF NOT EXISTS password_resets (
             token_hash TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -418,23 +429,33 @@ def consume_reset_token(token):
 
 # ---- stats & leaderboard ----
 
+def _accuracy(correct, total):
+    return round(100 * correct / total) if total else None
+
+
 def record_game(results):
-    """results: list of {user_id, total, won}. Updates each account's stats."""
+    """results: list of {user_id, total, won, plays_correct, plays_total}."""
     conn = _connect()
     try:
         cur = conn.cursor()
         for r in results:
-            cur.execute(_ph('SELECT games, wins, total_score, best_score FROM stats WHERE user_id=?'), (r['user_id'],))
+            pc = r.get('plays_correct', 0)
+            pt = r.get('plays_total', 0)
+            cur.execute(_ph('SELECT games, wins, total_score, best_score, plays_correct, plays_total FROM stats WHERE user_id=?'),
+                        (r['user_id'],))
             row = cur.fetchone()
             if row:
                 best = row['best_score']
                 best = r['total'] if best is None else min(best, r['total'])
-                cur.execute(_ph('UPDATE stats SET games=?, wins=?, total_score=?, best_score=? WHERE user_id=?'),
+                cur.execute(_ph('''UPDATE stats SET games=?, wins=?, total_score=?, best_score=?,
+                                   plays_correct=?, plays_total=? WHERE user_id=?'''),
                             (row['games'] + 1, row['wins'] + (1 if r['won'] else 0),
-                             row['total_score'] + r['total'], best, r['user_id']))
+                             row['total_score'] + r['total'], best,
+                             row['plays_correct'] + pc, row['plays_total'] + pt, r['user_id']))
             else:
-                cur.execute(_ph('INSERT INTO stats (user_id, games, wins, total_score, best_score) VALUES (?,?,?,?,?)'),
-                            (r['user_id'], 1, 1 if r['won'] else 0, r['total'], r['total']))
+                cur.execute(_ph('''INSERT INTO stats (user_id, games, wins, total_score, best_score, plays_correct, plays_total)
+                                   VALUES (?,?,?,?,?,?,?)'''),
+                            (r['user_id'], 1, 1 if r['won'] else 0, r['total'], r['total'], pc, pt))
         conn.commit()
     finally:
         conn.close()
@@ -444,14 +465,16 @@ def get_stats(user_id):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT games, wins, total_score, best_score FROM stats WHERE user_id=?'), (user_id,))
+        cur.execute(_ph('SELECT games, wins, total_score, best_score, plays_correct, plays_total FROM stats WHERE user_id=?'),
+                    (user_id,))
         r = cur.fetchone()
         if not r:
-            return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'rank': None}
+            return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'accuracy': None, 'rank': None}
         cur.execute(_ph('SELECT count(*) AS c FROM stats WHERE wins > ?'), (r['wins'],))
         rank = cur.fetchone()['c'] + 1
         return {'games': r['games'], 'wins': r['wins'], 'total_score': r['total_score'],
-                'best_score': r['best_score'], 'rank': rank}
+                'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total']),
+                'rank': rank}
     finally:
         conn.close()
 
@@ -460,10 +483,11 @@ def get_leaderboard(limit=10):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('''SELECT u.username, s.games, s.wins, s.best_score
+        cur.execute(_ph('''SELECT u.username, s.games, s.wins, s.best_score, s.plays_correct, s.plays_total
                            FROM stats s JOIN users u ON u.id = s.user_id
                            ORDER BY s.wins DESC, s.games DESC LIMIT ?'''), (limit,))
-        return [{'username': r['username'], 'games': r['games'], 'wins': r['wins'], 'best_score': r['best_score']}
+        return [{'username': r['username'], 'games': r['games'], 'wins': r['wins'],
+                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total'])}
                 for r in cur.fetchall()]
     finally:
         conn.close()
