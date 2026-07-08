@@ -469,7 +469,7 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .overlay-box h2 { margin: 0 0 6px; font-size: 1.15rem; }
 .overlay-box .big-card-wrap { display: flex; justify-content: center; margin: 20px 0; perspective: 600px; }
 .flip-in {
-  animation: flipIn 0.4s ease;
+  animation: flipIn 0.4s ease both;
 }
 @keyframes flipIn {
   from { transform: rotateY(90deg); opacity: 0; }
@@ -522,8 +522,23 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  animation: revealRowIn 0.4s ease both;
 }
-.reveal-row.winner { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+@keyframes revealRowIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.reveal-row.winner {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+  background: linear-gradient(100deg, var(--panel), rgba(232,185,63,0.14), var(--panel));
+  background-size: 200% 100%;
+  animation: revealRowIn 0.4s ease both, winnerShimmer 2.4s linear 0.6s infinite;
+}
+@keyframes winnerShimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
 .reveal-row .rname { font-weight: 700; min-width: 110px; display: flex; align-items: center; gap: 8px; }
 .reveal-row .rcards { display: flex; gap: 6px; flex-wrap: wrap; }
 .reveal-row .rtotal { margin-left: auto; font-weight: 800; font-size: 1.05rem; }
@@ -851,4 +866,91 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   .card.size-md { width: 50px; height: 70px; font-size: 0.95rem; }
   .brand h1 { letter-spacing: 3px; }
   .room-code-box .code { font-size: 2.2rem; letter-spacing: 8px; }
+}
+
+/* ---------- Fun animations ---------- */
+
+/* Confetti canvas + Dutch flash live in #fx-root, above everything, click-through */
+#fx-root { position: fixed; inset: 0; z-index: 120; pointer-events: none; }
+.confetti-canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+.dutch-flash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: radial-gradient(circle at center, rgba(226,86,79,0.28), rgba(226,86,79,0) 60%);
+  animation: dutchFlash 1.6s ease forwards;
+}
+.dutch-flash-text {
+  font-size: clamp(3rem, 16vw, 7rem);
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(226,86,79,0.9), 0 4px 12px rgba(0,0,0,0.5);
+  animation: dutchPop 1.6s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
+}
+.dutch-flash-sub { color: #ffd9d6; font-weight: 700; font-size: 1rem; opacity: 0; animation: fadeInOut 1.6s ease forwards; }
+@keyframes dutchFlash { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes dutchPop {
+  0% { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  25% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  40% { transform: scale(1) rotate(0deg); }
+  80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+@keyframes fadeInOut { 0%,20% { opacity: 0; } 35%,75% { opacity: 0.95; } 100% { opacity: 0; } }
+
+/* Active-turn glow — smooth during the buffer thanks to text-only countdown ticks */
+.turn-banner.your-turn { animation: yourTurnGlow 2.4s ease-in-out infinite; border-radius: var(--radius-md); }
+@keyframes yourTurnGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(232,185,63,0); }
+  50% { box-shadow: 0 0 22px rgba(232,185,63,0.32); }
+}
+.opp-card.active { animation: activeOppGlow 2.4s ease-in-out infinite; }
+@keyframes activeOppGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(232,185,63,0); }
+  50% { box-shadow: 0 0 16px rgba(232,185,63,0.4); }
+}
+
+/* Selectable cards gently pulse to invite a click */
+.card.selectable {
+  animation: cardHint 1.5s ease-in-out infinite;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+@keyframes cardHint {
+  0%, 100% { outline: 2px solid rgba(232,185,63,0); outline-offset: 2px; }
+  50% { outline: 2px solid rgba(232,185,63,0.65); outline-offset: 3px; }
+}
+.card.selectable:hover { animation: none; }
+
+/* Landing suit symbols drift */
+.brand .suits { display: inline-block; animation: suitsFloat 4s ease-in-out infinite; }
+@keyframes suitsFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Button press feedback (hover lift + squish on press) */
+button { transition: transform 0.1s ease, filter 0.12s ease, box-shadow 0.12s ease; }
+.btn-gold:hover:not(:disabled), .btn-blue:hover:not(:disabled),
+.btn-red:hover:not(:disabled), .btn-match:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+button:active:not(:disabled) { transform: scale(0.95); }
+
+/* Room-code pop in the lobby */
+.player-chip { animation: chipIn 0.3s ease both; }
+@keyframes chipIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card.selectable, .turn-banner.your-turn, .opp-card.active, .brand .suits,
+  .reveal-row, .reveal-row.winner { animation: none; }
 }

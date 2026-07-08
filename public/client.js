@@ -100,12 +100,20 @@ function handleServerMessage(data) {
     myId = data.playerId;
     saveSession({ code: data.code, token: data.token });
   } else if (data.type === 'state') {
+    const prev = latestState;
     latestState = data.state;
     myId = latestState.youId;
     swapArmed = false;
     detectSwapReveal(latestState);
     detectMatchReveal(latestState);
     updateTimers(latestState);
+    // One-shot celebrations (fired outside render so they aren't re-triggered)
+    if (latestState.finalRound && (!prev || !prev.finalRound) && latestState.dutchCallerId) {
+      flashDutch(nameOf(latestState, latestState.dutchCallerId));
+    }
+    if (latestState.phase === 'reveal' && (!prev || prev.phase !== 'reveal')) {
+      launchConfetti();
+    }
   } else if (data.type === 'privateReveal') {
     showRevealModal(data);
   } else if (data.type === 'identity') {
@@ -758,13 +766,26 @@ function updateTimers(state) {
 
   const active = () => bufferRemainingMs() > 0 || matchPauseRemainingMs() > 0;
   if (active() && !uiTicker) {
-    uiTicker = setInterval(() => {
-      if (!active()) { clearInterval(uiTicker); uiTicker = null; }
-      render();
-    }, 300);
+    uiTicker = setInterval(tickCountdowns, 300);
   } else if (!active() && uiTicker) {
     clearInterval(uiTicker); uiTicker = null;
   }
+}
+
+// Update only the countdown number while a timer runs, so continuous animations
+// stay smooth; do one full re-render when the timer elapses (to re-enable buttons).
+function tickCountdowns() {
+  const bufR = bufferRemainingMs();
+  const matchR = matchPauseRemainingMs();
+  if (bufR <= 0 && matchR <= 0) {
+    if (uiTicker) { clearInterval(uiTicker); uiTicker = null; }
+    render();
+    return;
+  }
+  const bc = document.getElementById('buffer-count');
+  if (bc) bc.textContent = Math.ceil(bufR / 1000);
+  const mc = document.getElementById('match-count');
+  if (mc) mc.textContent = Math.ceil(matchR / 1000);
 }
 
 function bufferRemainingMs() { return Math.max(0, bufferUntil - Date.now()); }
@@ -786,6 +807,58 @@ function leaveBtn(label) {
   const b = el(`<button class="btn-ghost leave-btn">${label || 'Leave'}</button>`);
   b.onclick = leaveRoom;
   return b;
+}
+
+/* ---------- Celebratory effects (one-shot, in #fx-root) ---------- */
+
+function flashDutch(name) {
+  const root = document.getElementById('fx-root');
+  if (!root) return;
+  const fx = el(`<div class="dutch-flash"><div class="dutch-flash-text">DUTCH!</div><div class="dutch-flash-sub">${escapeHtml(name)} called it</div></div>`);
+  root.appendChild(fx);
+  setTimeout(() => fx.remove(), 1600);
+}
+
+function launchConfetti() {
+  const root = document.getElementById('fx-root');
+  if (!root) return;
+  const canvas = el(`<canvas class="confetti-canvas"></canvas>`);
+  root.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = window.innerWidth;
+  const H = canvas.height = window.innerHeight;
+  const colors = ['#e8b93f', '#3ddc84', '#4f6bed', '#e2564f', '#a259e6', '#ffffff'];
+  const N = Math.min(160, Math.floor(W / 5));
+  const parts = [];
+  for (let i = 0; i < N; i++) {
+    parts.push({
+      x: Math.random() * W,
+      y: -20 - Math.random() * H * 0.5,
+      r: 4 + Math.random() * 6,
+      c: colors[i % colors.length],
+      vx: -1.5 + Math.random() * 3,
+      vy: 2 + Math.random() * 3.5,
+      rot: Math.random() * Math.PI,
+      vr: -0.2 + Math.random() * 0.4,
+    });
+  }
+  const start = performance.now();
+  function frame(now) {
+    const t = now - start;
+    ctx.clearRect(0, 0, W, H);
+    parts.forEach((p) => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = Math.max(0, 1 - t / 3200);
+      ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    if (t < 3200) requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
 }
 
 /* ---------- Root render ---------- */
@@ -1175,7 +1248,7 @@ function renderActionBar(state) {
   // I'm the one matching — pick a card (play is paused for everyone).
   if (state.matcherId === me) {
     const secs = Math.ceil(matchPauseRemainingMs() / 1000);
-    bar.appendChild(el(`<span class="help-text">Matching! Tap one of your cards of the same rank as the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong = penalty card.${secs ? ` (${secs}s)` : ''}</span>`));
+    bar.appendChild(el(`<span class="help-text">Matching! Tap one of your cards of the same rank as the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong = penalty card.${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}</span>`));
     const cancel = el(`<button class="btn-ghost">Cancel</button>`);
     cancel.onclick = () => sendMsg({ type: 'cancelMatch' });
     bar.appendChild(cancel);
@@ -1185,7 +1258,7 @@ function renderActionBar(state) {
   // Someone else is matching — everyone waits.
   if (state.matcherId) {
     const secs = Math.ceil(matchPauseRemainingMs() / 1000);
-    bar.appendChild(el(`<span class="help-text">⏸ ${escapeHtml(nameOf(state, state.matcherId))} is matching — play paused${secs ? ` (${secs}s)` : ''}…</span>`));
+    bar.appendChild(el(`<span class="help-text">⏸ ${escapeHtml(nameOf(state, state.matcherId))} is matching — play paused${secs ? ` (<span id="match-count">${secs}</span>s)` : ''}…</span>`));
     return bar;
   }
 
@@ -1222,7 +1295,7 @@ function renderActionBar(state) {
     bar.appendChild(flip); bar.appendChild(swap);
     if (canMatch) bar.appendChild(matchButton());
     if (remaining > 0) {
-      bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">You can act in ${Math.ceil(remaining / 1000)}s — anyone can match the discard now.</span>`));
+      bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">You can act in <span id="buffer-count">${Math.ceil(remaining / 1000)}</span>s — anyone can match the discard now.</span>`));
     }
     return bar;
   }
@@ -1279,17 +1352,25 @@ function renderReveal(state) {
   wrap.querySelector('#reveal-leave').appendChild(leaveBtn('Leave room'));
 
   const rows = wrap.querySelector('#reveal-rows');
-  reveal.forEach((r) => {
+  let flipIdx = 0;
+  reveal.forEach((r, ri) => {
     const isWinner = r.total === minTotal;
     const row = el(`<div class="reveal-row ${isWinner ? 'winner' : ''}"></div>`);
+    row.style.animationDelay = `${ri * 0.12}s`;
     const nameDiv = el(`<div class="rname"></div>`);
     nameDiv.appendChild(avatarEl(r.id, state, 'sm'));
     nameDiv.appendChild(document.createTextNode(r.name));
-    if (isWinner) nameDiv.appendChild(el(`<span class="badge-winner">WINNER</span>`));
+    if (isWinner) nameDiv.appendChild(el(`<span class="badge-winner">🏆 WINNER</span>`));
     if (r.id === state.dutchCallerId) nameDiv.appendChild(el(`<span class="badge-winner" style="background:#e2564f;color:white;">DUTCH</span>`));
     row.appendChild(nameDiv);
     const cardsDiv = el(`<div class="rcards"></div>`);
-    r.grid.forEach((c) => cardsDiv.appendChild(cardFront(c, 'size-sm')));
+    r.grid.forEach((c) => {
+      const card = cardFront(c, 'size-sm');
+      card.classList.add('flip-in');
+      card.style.animationDelay = `${0.25 + flipIdx * 0.06}s`;
+      flipIdx++;
+      cardsDiv.appendChild(card);
+    });
     row.appendChild(cardsDiv);
     row.appendChild(el(`<div class="rtotal">${r.total} pts</div>`));
     rows.appendChild(row);
