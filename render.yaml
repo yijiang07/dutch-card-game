@@ -5,3 +5,27 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python server.py
+    envVars:
+      # REQUIRED for persistent accounts/stats/leaderboard. Without it the app
+      # falls back to a local SQLite file on Render's ephemeral disk, which is
+      # wiped on every redeploy. Set this to your Postgres (e.g. Neon) URL.
+      # `sync: false` = set the value in the Render dashboard, not in this file.
+      - key: DATABASE_URL
+        sync: false
+      # Public base URL of the site, used to build password-reset email links.
+      # Set to your live URL once the domain is connected, e.g. https://playdutch.com
+      - key: APP_BASE_URL
+        sync: false
+      # Optional — SMTP for "email me a reset link". If unset, email reset is
+      # disabled and players rely on their recovery code instead.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+    # PORT is provided by Render automatically; the server reads it.
