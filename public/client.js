@@ -431,6 +431,10 @@ function renderLobby(state) {
       <div class="copy-hint">Tap the code to copy</div>
     </div>
     <div class="player-chip-list" id="player-chips"></div>
+    ${isHost ? `<div class="add-bot-box">
+      <div class="section-label" style="text-align:center;">Add a bot</div>
+      <div class="row center wrap" id="bot-buttons"></div>
+    </div>` : ''}
     <div class="col" style="align-items:center;">
       ${isHost
         ? `<button class="btn-gold" id="start-btn" style="font-size:1.05rem; padding:14px 30px;" ${state.players.length < 2 ? 'disabled' : ''}>Start Game</button>
@@ -449,13 +453,31 @@ function renderLobby(state) {
     chip.appendChild(avatarEl(p.id, state, 'sm'));
     const label = p.id === state.hostId ? `${p.name} (host)` : p.name;
     chip.appendChild(document.createTextNode(label + (p.isYou ? ' (you)' : '')));
+    if (p.isBot) chip.appendChild(el(`<span class="diff-badge ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
+    if (isHost && p.isBot) {
+      const rm = el(`<button class="btn-ghost" style="padding:2px 8px; margin-left:2px;" title="Remove bot">✕</button>`);
+      rm.onclick = () => sendMsg({ type: 'removeBot', botId: p.id });
+      chip.appendChild(rm);
+    }
     chipList.appendChild(chip);
   });
 
   if (isHost) {
+    const botRow = wrap.querySelector('#bot-buttons');
+    const full = state.players.length >= 8;
+    [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['impossible', 'Impossible']].forEach(([diff, label]) => {
+      const b = el(`<button class="btn-ghost diff-btn ${diff}">+ ${label}</button>`);
+      b.disabled = full;
+      b.onclick = () => sendMsg({ type: 'addBot', difficulty: diff });
+      botRow.appendChild(b);
+    });
     wrap.querySelector('#start-btn').onclick = () => sendMsg({ type: 'startGame' });
   }
   return wrap;
+}
+
+function difficultyLabel(diff) {
+  return { easy: 'Easy', medium: 'Med', hard: 'Hard', impossible: 'Impossible' }[diff] || diff;
 }
 
 /* ---------- Choose peek count ---------- */
@@ -511,12 +533,13 @@ function renderTable(state) {
     const card = el(`<div class="opp-card ${isActive ? 'active' : ''} ${isDutch ? 'dutch' : ''}"></div>`);
     const nameRow = el(`<div class="opp-name"></div>`);
     nameRow.appendChild(avatarEl(p.id, state, 'sm'));
-    nameRow.appendChild(document.createTextNode(p.name));
+    nameRow.appendChild(document.createTextNode((p.isBot ? '🤖 ' : '') + p.name));
     card.appendChild(nameRow);
     const tags = el(`<div class="opp-tags"></div>`);
+    if (p.isBot) tags.appendChild(el(`<span class="mini-tag bot ${p.difficulty}">${difficultyLabel(p.difficulty)}</span>`));
     if (isActive) tags.appendChild(el(`<span class="mini-tag turn">TURN</span>`));
     if (isDutch) tags.appendChild(el(`<span class="mini-tag dutch">DUTCH</span>`));
-    if (!p.connected) tags.appendChild(el(`<span class="mini-tag offline">OFFLINE</span>`));
+    if (!p.connected && !p.isBot) tags.appendChild(el(`<span class="mini-tag offline">OFFLINE</span>`));
     if (tags.children.length) card.appendChild(tags);
 
     const cardsRow = el(`<div class="row" style="gap:4px;"></div>`);

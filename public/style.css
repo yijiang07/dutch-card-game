@@ -589,6 +589,36 @@ input[type="text"]:focus { border-color: var(--gold); background: rgba(255,255,2
 }
 .toast.invite button { padding: 6px 12px; font-size: 0.8rem; }
 
+/* ---------- Bots ---------- */
+
+.add-bot-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  max-width: 420px;
+  width: 100%;
+}
+.diff-btn { font-size: 0.85rem; padding: 8px 14px; }
+.diff-btn.easy:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #3ddc84; }
+.diff-btn.medium:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #4f9bed; }
+.diff-btn.hard:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #e8963f; }
+.diff-btn.impossible:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #e2564f; }
+
+.diff-badge, .mini-tag.bot {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: #0c1410;
+  text-transform: uppercase;
+}
+.diff-badge.easy, .mini-tag.bot.easy { background: #3ddc84; }
+.diff-badge.medium, .mini-tag.bot.medium { background: #4f9bed; color: white; }
+.diff-badge.hard, .mini-tag.bot.hard { background: #e8963f; }
+.diff-badge.impossible, .mini-tag.bot.impossible { background: #e2564f; color: white; }
+
 @media (max-width: 480px) {
   .card.size-lg { width: 60px; height: 84px; font-size: 1.05rem; }
   .card.size-md { width: 50px; height: 70px; font-size: 0.95rem; }

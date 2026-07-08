@@ -62,6 +62,7 @@ class Game:
 
         self.turn_mode = 'awaitingAction'
         self.jack_first = None
+        self.turn_counter = 0
 
         self.log = []
 
@@ -95,6 +96,7 @@ class Game:
     def _advance_turn(self):
         self.turn_mode = 'awaitingAction'
         self.jack_first = None
+        self.turn_counter += 1
         self.current_index = (self.current_index + 1) % len(self.order)
 
     def _action_resolved(self):
@@ -231,15 +233,18 @@ class Game:
             raise GameError('Invalid card.')
         if self.jack_first is None:
             self.jack_first = {'playerId': target_player, 'cellIndex': target_cell}
-            return
+            return None
         a = self.jack_first
         if a['playerId'] == target_player and a['cellIndex'] == target_cell:
-            return
+            return None
         ga, gb = self.grids[a['playerId']], self.grids[target_player]
         ga[a['cellIndex']], gb[target_cell] = gb[target_cell], ga[a['cellIndex']]
         self._log(f"{self.names[sender]} used the Jack to blind-swap two cards.")
+        loc_a = (a['playerId'], a['cellIndex'])
+        loc_b = (target_player, target_cell)
         self.jack_first = None
         self._action_resolved()
+        return (loc_a, loc_b)
 
     def queen_select(self, sender, target_player, target_cell):
         if self.turn_mode != 'queenPeek' or sender != self.current_player():

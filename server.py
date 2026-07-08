@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import random
@@ -6,6 +7,7 @@ import string
 
 from aiohttp import web, WSMsgType
 
+import bots
 import storage
 from game import Game, GameError
 
@@ -13,6 +15,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 
 CODE_ALPHABET = ''.join(c for c in string.ascii_uppercase if c not in 'IO')
+
+# Seconds a bot "thinks" between steps, so humans can follow the action.
+BOT_DELAY = 0.9
 
 # user_id -> set of live websockets for that signed-in user (presence)
 ONLINE = {}
@@ -22,9 +27,11 @@ class Room:
     def __init__(self, code):
         self.code = code
         self.host_id = None
-        # player_id -> {name, token, ws, connected}
+        # player_id -> {name, token, ws, connected, is_bot, difficulty}
         self.players = {}
         self.game = None
+        self.bot_brains = {}
+        self.bot_task_running = False
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -68,7 +75,8 @@ def lobby_state(room, viewer_id):
         'hostId': room.host_id,
         'youId': viewer_id,
         'players': [
-            {'id': pid, 'name': p['name'], 'connected': p['connected'], 'isYou': pid == viewer_id}
+            {'id': pid, 'name': p['name'], 'connected': p['connected'], 'isYou': pid == viewer_id,
+             'isBot': p.get('is_bot', False), 'difficulty': p.get('difficulty')}
             for pid, p in room.players.items()
         ],
     }
@@ -81,9 +89,12 @@ def build_state(room, viewer_id):
     state['code'] = room.code
     state['hostId'] = room.host_id
     state['youId'] = viewer_id
-    connected = {pid: p['connected'] for pid, p in room.players.items()}
+    meta = room.players
     for p in state['players']:
-        p['connected'] = connected.get(p['id'], False)
+        info = meta.get(p['id'], {})
+        p['connected'] = info.get('connected', False)
+        p['isBot'] = info.get('is_bot', False)
+        p['difficulty'] = info.get('difficulty')
     return state
 
 
@@ -91,6 +102,44 @@ async def broadcast_state(room):
     for pid, p in room.players.items():
         if p['ws'] is not None:
             await send(p['ws'], {'type': 'state', 'state': build_state(room, pid)})
+
+
+# ---- bot driver ----
+
+def schedule_bots(room):
+    if room.game is None or room.game.phase == 'reveal' or room.bot_task_running:
+        return
+    actor = bots.required_actor(room.game)
+    if actor and room.players.get(actor, {}).get('is_bot'):
+        asyncio.create_task(drive_bots(room))
+
+
+async def drive_bots(room):
+    if room.bot_task_running:
+        return
+    room.bot_task_running = True
+    try:
+        while True:
+            game = room.game
+            if game is None or game.phase == 'reveal':
+                break
+            actor = bots.required_actor(game)
+            if not actor or not room.players.get(actor, {}).get('is_bot'):
+                break
+            await asyncio.sleep(BOT_DELAY)
+            # re-check: state may have changed while we slept
+            game = room.game
+            if game is None or game.phase == 'reveal':
+                break
+            if bots.required_actor(game) != actor:
+                continue
+            try:
+                bots.take_action(room, game, actor)
+            except GameError:
+                break
+            await broadcast_state(room)
+    finally:
+        room.bot_task_running = False
 
 
 # ---- friends / presence ----
@@ -157,6 +206,9 @@ async def ws_handler(request):
                 await handle_message(ws, ctx, data)
             except (GameError, ValueError) as e:
                 await send(ws, {'type': 'errorMsg', 'message': str(e)})
+            room = rooms.get(ctx['code'])
+            if room:
+                schedule_bots(room)
     finally:
         await set_offline(ws, ctx)
         room = rooms.get(ctx['code'])
@@ -297,6 +349,36 @@ async def handle_message(ws, ctx, data):
     if not room or pid not in room.players:
         raise GameError('You are not in a room.')
 
+    if mtype == 'addBot':
+        if pid != room.host_id:
+            raise GameError('Only the host can add bots.')
+        if room.game is not None:
+            raise GameError('Add bots before the game starts.')
+        if len(room.players) >= 8:
+            raise GameError('That room is full.')
+        difficulty = data.get('difficulty')
+        if difficulty not in bots.DIFFICULTIES:
+            raise GameError('Unknown bot difficulty.')
+        bot_id = new_id()
+        name = bots.pick_bot_name([p['name'] for p in room.players.values()])
+        room.players[bot_id] = {'name': name, 'token': None, 'ws': None,
+                                'connected': True, 'is_bot': True, 'difficulty': difficulty}
+        await broadcast_state(room)
+        return
+
+    if mtype == 'removeBot':
+        if pid != room.host_id:
+            raise GameError('Only the host can remove bots.')
+        if room.game is not None:
+            raise GameError('Cannot remove bots mid-game.')
+        bot_id = data.get('botId')
+        b = room.players.get(bot_id)
+        if not b or not b.get('is_bot'):
+            raise GameError('No such bot.')
+        del room.players[bot_id]
+        await broadcast_state(room)
+        return
+
     if mtype == 'startGame':
         if pid != room.host_id:
             raise GameError('Only the host can start the game.')
@@ -306,6 +388,7 @@ async def handle_message(ws, ctx, data):
             raise GameError('Need at least 2 players to start.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
+        bots.init_brains(room)
         await broadcast_state(room)
         return
 
@@ -316,6 +399,7 @@ async def handle_message(ws, ctx, data):
             raise GameError('Round is not over yet.')
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names)
+        bots.init_brains(room)
         await broadcast_state(room)
         return
 
@@ -345,7 +429,9 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'swapCell':
-        game.swap_cell(pid, int(data.get('cellIndex', -1)))
+        cell = int(data.get('cellIndex', -1))
+        game.swap_cell(pid, cell)
+        bots.record_placement(room, game, pid, cell)
         await broadcast_state(room)
         return
 
@@ -360,7 +446,9 @@ async def handle_message(ws, ctx, data):
         return
 
     if mtype == 'jackSelect':
-        game.jack_select(pid, data.get('targetPlayerId'), int(data.get('targetCellIndex', -1)))
+        res = game.jack_select(pid, data.get('targetPlayerId'), int(data.get('targetCellIndex', -1)))
+        if res:
+            bots.record_table_swap(room, res[0], res[1])
         await broadcast_state(room)
         return
 
