@@ -1505,3 +1505,23 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .rating-change.down .rating-delta { color: #ec7a75; }
 .rating-change .rating-new { color: var(--ink-dim); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .lb-rating { color: var(--champagne); font-weight: 700; }
+
+/* ---- Account call-to-action (landing) ---- */
+.account-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 14px;
+  padding: 12px 26px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(226,201,140,0.16), rgba(226,201,140,0.06));
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--inset-top);
+  color: var(--champagne);
+}
+.account-cta:hover:not(:disabled) { filter: brightness(1.08); border-color: var(--gold); }
+.account-cta .account-cta-main { font-family: var(--display); font-weight: 700; letter-spacing: 0.04em; font-size: 1.02rem; }
+.account-cta .account-cta-sub { font-family: var(--font); font-weight: 500; color: var(--ink-dim); font-size: 0.8rem; }
+.account-cta.signed { flex-direction: row; font-weight: 600; font-size: 0.92rem; color: var(--ink); }
+.account-cta.signed strong { color: var(--champagne); margin-left: 4px; }
