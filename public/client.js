@@ -12,12 +12,15 @@ let swapArmed = false;
 let reconnectDelay = 1000;
 let reconnectTimer = null;
 
+// sessionStorage (not localStorage) so each browser tab is its own player —
+// with localStorage a second tab would silently rejoin as the first tab's player.
+// Survives reloads; a fully closed tab means rejoining by room code.
 function loadSession() {
-  try { return JSON.parse(localStorage.getItem('dutchSession') || 'null'); }
+  try { return JSON.parse(sessionStorage.getItem('dutchSession') || 'null'); }
   catch (e) { return null; }
 }
-function saveSession(sess) { localStorage.setItem('dutchSession', JSON.stringify(sess)); }
-function clearSession() { localStorage.removeItem('dutchSession'); }
+function saveSession(sess) { sessionStorage.setItem('dutchSession', JSON.stringify(sess)); }
+function clearSession() { sessionStorage.removeItem('dutchSession'); }
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
