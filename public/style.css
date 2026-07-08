@@ -501,6 +501,94 @@ input[type="text"]:focus { border-color: var(--gold); background: rgba(255,255,2
   font-size: 0.95rem;
 }
 
+/* ---------- Friends ---------- */
+
+.friends-fab {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  z-index: 40;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.friends-fab:hover { background: rgba(0,0,0,0.5); }
+.friends-fab .fab-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--red);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+}
+
+.top-bar { padding-right: 68px; }
+
+.drawer-overlay {
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0;
+}
+.friends-drawer {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border-left: 1px solid var(--panel-border);
+  width: min(360px, 92vw);
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+  animation: drawerIn 0.18s ease;
+}
+@keyframes drawerIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--panel-border);
+  padding: 8px 11px;
+  border-radius: 9px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.online-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3ddc84;
+  box-shadow: 0 0 7px rgba(61,220,132,0.7);
+  flex-shrink: 0;
+}
+.online-dot.off { background: #5c6b62; box-shadow: none; }
+
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 1.4px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.toast.invite {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  pointer-events: auto;
+}
+.toast.invite button { padding: 6px 12px; font-size: 0.8rem; }
+
 @media (max-width: 480px) {
   .card.size-lg { width: 60px; height: 84px; font-size: 1.05rem; }
   .card.size-md { width: 50px; height: 70px; font-size: 0.95rem; }

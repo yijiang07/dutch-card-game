@@ -22,6 +22,19 @@ function loadSession() {
 function saveSession(sess) { sessionStorage.setItem('dutchSession', JSON.stringify(sess)); }
 function clearSession() { sessionStorage.removeItem('dutchSession'); }
 
+// Durable identity for the friend system — localStorage on purpose (unlike the
+// per-tab game session): all tabs in this browser are the same person.
+let friendsState = null; // {friends, incoming, outgoing} pushed by the server
+let friendsPanelOpen = false;
+let reclaimTried = false;
+
+function loadProfile() {
+  try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
+  catch (e) { return null; }
+}
+function saveProfile(p) { localStorage.setItem('dutchProfile', JSON.stringify(p)); }
+function clearProfile() { localStorage.removeItem('dutchProfile'); friendsState = null; }
+
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
@@ -29,6 +42,10 @@ function connect() {
   ws.onopen = () => {
     wsOpen = true;
     reconnectDelay = 1000;
+    const prof = loadProfile();
+    if (prof && prof.userId && prof.secret) {
+      sendMsg({ type: 'identify', userId: prof.userId, secret: prof.secret });
+    }
     const sess = loadSession();
     if (sess && sess.code && sess.token) {
       sendMsg({ type: 'rejoin', code: sess.code, token: sess.token });
@@ -67,6 +84,23 @@ function handleServerMessage(data) {
     swapArmed = false;
   } else if (data.type === 'privateReveal') {
     showRevealModal(data);
+  } else if (data.type === 'identity') {
+    const prof = loadProfile() || {};
+    saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username });
+  } else if (data.type === 'identityFailed') {
+    // Server no longer knows this account (e.g. data reset) — reclaim the name once.
+    const prof = loadProfile();
+    clearProfile();
+    if (prof && prof.username && !reclaimTried) {
+      reclaimTried = true;
+      sendMsg({ type: 'identify', username: prof.username });
+    }
+  } else if (data.type === 'friendsUpdate') {
+    friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
+  } else if (data.type === 'infoMsg') {
+    showToast(data.message, false);
+  } else if (data.type === 'gameInvite') {
+    showInviteToast(data.fromUsername, data.code);
   } else if (data.type === 'errorMsg') {
     if (/reconnect|no longer exists/i.test(data.message)) clearSession();
     showToast(data.message, true);
@@ -154,6 +188,142 @@ function showRevealModal(data) {
   root.appendChild(box);
 }
 
+/* ---------- Friends ---------- */
+
+function showInviteToast(fromUsername, code) {
+  if (latestState && latestState.code === code) return; // already in that room
+  const root = document.getElementById('toast-root');
+  const t = el(`<div class="toast invite">
+    <span>${escapeHtml(fromUsername)} invited you to game <strong>${escapeHtml(code)}</strong></span>
+    <button class="btn-gold" id="inv-join">Join</button>
+    <button class="btn-ghost" id="inv-close">✕</button>
+  </div>`);
+  t.querySelector('#inv-join').onclick = () => {
+    const prof = loadProfile();
+    clearSession();
+    sendMsg({ type: 'joinRoom', name: (prof && prof.username) || 'Player', code });
+    t.remove();
+  };
+  t.querySelector('#inv-close').onclick = () => t.remove();
+  root.appendChild(t);
+  setTimeout(() => t.remove(), 60000);
+}
+
+function friendsFab() {
+  const incoming = friendsState ? friendsState.incoming.length : 0;
+  const fab = el(`<button class="friends-fab" title="Friends">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
+  fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; refreshFriendsPanel(); };
+  return fab;
+}
+
+function refreshFriendsPanel() {
+  const root = document.getElementById('panel-root');
+  root.innerHTML = '';
+  if (!friendsPanelOpen) return;
+  root.appendChild(renderFriendsPanel());
+}
+
+function renderFriendsPanel() {
+  const prof = loadProfile();
+  const overlay = el(`<div class="overlay drawer-overlay"></div>`);
+  overlay.onclick = (e) => { if (e.target === overlay) { friendsPanelOpen = false; refreshFriendsPanel(); } };
+  const drawer = el(`<div class="friends-drawer"></div>`);
+  overlay.appendChild(drawer);
+
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">Friends</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  header.querySelector('button').onclick = () => { friendsPanelOpen = false; refreshFriendsPanel(); };
+  drawer.appendChild(header);
+
+  if (!prof || !prof.username) {
+    drawer.appendChild(el(`<p class="help-text">Claim a username so friends can find you. You'll stay signed in on this browser — no password needed.</p>`));
+    const form = el(`<div class="col">
+      <input type="text" id="claim-input" placeholder="username (3–16 letters/numbers)" maxlength="16" autocomplete="off" />
+      <button class="btn-gold" id="claim-btn">Claim Username</button>
+    </div>`);
+    form.querySelector('#claim-btn').onclick = () => {
+      const name = form.querySelector('#claim-input').value.trim();
+      if (name) sendMsg({ type: 'identify', username: name });
+    };
+    form.querySelector('#claim-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') form.querySelector('#claim-btn').click();
+    });
+    drawer.appendChild(form);
+    return overlay;
+  }
+
+  drawer.appendChild(el(`<div class="help-text">Signed in as <strong style="color:var(--ink);">${escapeHtml(prof.username)}</strong></div>`));
+
+  const addForm = el(`<div class="row">
+    <input type="text" id="add-friend-input" class="grow" placeholder="Add friend by username" maxlength="16" autocomplete="off" />
+    <button class="btn-blue" id="add-friend-btn">Add</button>
+  </div>`);
+  addForm.querySelector('#add-friend-btn').onclick = () => {
+    const name = addForm.querySelector('#add-friend-input').value.trim();
+    if (name) { sendMsg({ type: 'friendRequest', username: name }); addForm.querySelector('#add-friend-input').value = ''; }
+  };
+  addForm.querySelector('#add-friend-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addForm.querySelector('#add-friend-btn').click();
+  });
+  drawer.appendChild(addForm);
+
+  const fs = friendsState || { friends: [], incoming: [], outgoing: [] };
+
+  if (fs.incoming.length) {
+    drawer.appendChild(el(`<div class="section-label">Requests</div>`));
+    fs.incoming.forEach((u) => {
+      const row = el(`<div class="friend-row">
+        <span class="grow">${escapeHtml(u.username)}</span>
+        <button class="btn-gold" style="padding:6px 12px;">Accept</button>
+        <button class="btn-ghost" style="padding:6px 10px;">✕</button>
+      </div>`);
+      const [acceptBtn, declineBtn] = row.querySelectorAll('button');
+      acceptBtn.onclick = () => sendMsg({ type: 'friendRespond', userId: u.id, accept: true });
+      declineBtn.onclick = () => sendMsg({ type: 'friendRespond', userId: u.id, accept: false });
+      drawer.appendChild(row);
+    });
+  }
+
+  if (fs.outgoing.length) {
+    drawer.appendChild(el(`<div class="section-label">Sent — waiting</div>`));
+    fs.outgoing.forEach((u) => {
+      const row = el(`<div class="friend-row">
+        <span class="grow">${escapeHtml(u.username)}</span>
+        <button class="btn-ghost" style="padding:6px 10px;" title="Cancel request">✕</button>
+      </div>`);
+      row.querySelector('button').onclick = () => sendMsg({ type: 'friendRemove', userId: u.id });
+      drawer.appendChild(row);
+    });
+  }
+
+  drawer.appendChild(el(`<div class="section-label">Friends (${fs.friends.length})</div>`));
+  if (!fs.friends.length) {
+    drawer.appendChild(el(`<div class="help-text">No friends yet — add someone by their username.</div>`));
+  }
+  const canInvite = latestState && latestState.phase === 'lobby';
+  fs.friends.forEach((u) => {
+    const row = el(`<div class="friend-row">
+      <span class="online-dot ${u.online ? '' : 'off'}"></span>
+      <span class="grow">${escapeHtml(u.username)}</span>
+      ${canInvite && u.online ? '<button class="btn-blue" style="padding:6px 12px;">Invite</button>' : ''}
+      <button class="btn-ghost" style="padding:6px 10px;" title="Unfriend">✕</button>
+    </div>`);
+    const btns = row.querySelectorAll('button');
+    if (canInvite && u.online) {
+      btns[0].onclick = () => sendMsg({ type: 'inviteFriend', userId: u.id });
+      btns[1].onclick = () => sendMsg({ type: 'friendRemove', userId: u.id });
+    } else {
+      btns[0].onclick = () => sendMsg({ type: 'friendRemove', userId: u.id });
+    }
+    drawer.appendChild(row);
+  });
+
+  if (canInvite) {
+    drawer.appendChild(el(`<div class="help-text">Online friends can be invited straight into your lobby.</div>`));
+  }
+
+  return overlay;
+}
+
 /* ---------- Root render ---------- */
 
 function render() {
@@ -162,6 +332,7 @@ function render() {
 
   if (!wsOpen && !latestState) {
     app.appendChild(el(`<div class="connecting-wrap">Connecting…</div>`));
+    refreshFriendsPanel();
     return;
   }
   if (!wsOpen) {
@@ -170,21 +341,18 @@ function render() {
 
   if (!latestState) {
     app.appendChild(renderLanding());
-    return;
-  }
-  if (latestState.phase === 'lobby') {
+  } else if (latestState.phase === 'lobby') {
     app.appendChild(renderLobby(latestState));
-    return;
-  }
-  if (latestState.phase === 'choosePeekCount') {
+  } else if (latestState.phase === 'choosePeekCount') {
     app.appendChild(renderChoosePeekCount(latestState));
-    return;
-  }
-  if (latestState.phase === 'reveal') {
+  } else if (latestState.phase === 'reveal') {
     app.appendChild(renderReveal(latestState));
-    return;
+  } else {
+    app.appendChild(renderTable(latestState));
   }
-  app.appendChild(renderTable(latestState));
+
+  app.appendChild(friendsFab());
+  refreshFriendsPanel();
 }
 
 let toastedDisconnect = false;
@@ -222,6 +390,12 @@ function renderLanding() {
       </div>
     </div>
   </div>`);
+
+  const prof = loadProfile();
+  if (prof && prof.username) {
+    wrap.querySelector('#create-name').value = prof.username;
+    wrap.querySelector('#join-name').value = prof.username;
+  }
 
   wrap.querySelector('#create-btn').onclick = () => {
     const name = wrap.querySelector('#create-name').value.trim();
