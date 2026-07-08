@@ -78,6 +78,7 @@ const LANGS = [
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
 ];
 const TRANSLATIONS = {
   en: {
@@ -123,6 +124,17 @@ const TRANSLATIONS = {
     leaveRoom: 'Raum verlassen', friends: 'Freunde', chat: 'Chat', chatEmpty: 'Noch keine Nachrichten. Sag Hallo!',
     chatPlaceholder: 'Nachricht…', send: 'Senden', howToPlay: 'Spielanleitung', yourTurn: 'Du bist dran',
     chooseLanguage: 'Wähle deine Sprache', language: 'Sprache',
+  },
+  zh: {
+    tagline: '分数最低者获胜。随时随地畅玩。',
+    createTitle: '创建游戏', createSub: '开设新牌桌，用房间码邀请他人。',
+    joinTitle: '加入游戏', joinSub: '输入别人分享给你的房间码。',
+    yourName: '你的名字', createGame: '创建游戏', joinGame: '加入游戏', codePlaceholder: '房间码',
+    flip: '从牌堆抽牌', swap: '与弃牌交换', match: '配对', endTurn: '结束回合',
+    callDutch: '喊 Dutch', playAgain: '再玩一局', startGame: '开始游戏', leave: '离开',
+    leaveRoom: '离开房间', friends: '好友', chat: '聊天', chatEmpty: '还没有消息，打个招呼吧！',
+    chatPlaceholder: '输入消息…', send: '发送', howToPlay: '玩法说明', yourTurn: '轮到你了',
+    chooseLanguage: '选择你的语言', language: '语言',
   },
 };
 function loadLang() { try { return localStorage.getItem('dutchLang') || ''; } catch (e) { return ''; } }
