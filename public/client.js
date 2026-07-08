@@ -40,6 +40,15 @@ let recentSwap = null;
 let lastSwapSeq = 0;
 let swapInitialized = false;
 
+// Matching (drop a grid card equal to the discard top) + the turn-start buffer.
+let matchArmed = false;
+let recentWrong = null;    // {playerId, cellIndex, card} — flashes a failed match
+let lastMatchSeq = 0;
+let matchInitialized = false;
+let bufferUntil = 0;       // ms timestamp until which the current player can't flip/swap
+let bufferTicker = null;
+let discardPulse = false;  // brief pulse on the discard pile when a match lands
+
 function loadProfile() {
   try { return JSON.parse(localStorage.getItem('dutchProfile') || 'null'); }
   catch (e) { return null; }
@@ -95,6 +104,8 @@ function handleServerMessage(data) {
     myId = latestState.youId;
     swapArmed = false;
     detectSwapReveal(latestState);
+    detectMatchReveal(latestState);
+    updateBuffer(latestState);
   } else if (data.type === 'privateReveal') {
     showRevealModal(data);
   } else if (data.type === 'identity') {
@@ -179,6 +190,10 @@ function cardFront(card, sizeClass) {
 
 function cardBack(sizeClass) {
   return el(`<div class="card back ${sizeClass}"></div>`);
+}
+
+function cardLabel(card) {
+  return card ? `${card.rank}${SUIT_SYMBOL[card.suit]}` : '';
 }
 
 function cardEmpty(sizeClass) {
@@ -618,6 +633,19 @@ const TUTORIAL_PAGES = [
     },
   },
   {
+    title: 'Matching',
+    build: () => {
+      const box = el(`<div></div>`);
+      box.appendChild(tutorialIllus([
+        { card: { rank: '7', suit: 'H' }, tag: 'discard' },
+        { gap: true },
+        { card: { rank: '7', suit: 'S' }, tag: 'your card' },
+      ], 'size-md'));
+      box.appendChild(el(`<div class="tutorial-body">If you know one of your face-down cards has the <strong>same value</strong> as the discard-pile card, tap <strong>Match</strong> and pick it to drop it — now you have one fewer card. You can do this <strong>even when it isn't your turn</strong>! But guess wrong and you draw a <strong>penalty card</strong>. When a turn begins, the player waits a couple seconds first, so everyone gets a chance to match.</div>`));
+      return box;
+    },
+  },
+  {
     title: 'Calling “Dutch”',
     build: () => {
       const box = el(`<div></div>`);
@@ -695,6 +723,52 @@ function detectSwapReveal(state) {
 function swapReveal(playerId, cellIndex) {
   return (recentSwap && recentSwap.playerId === playerId && recentSwap.cellIndex === cellIndex)
     ? recentSwap.card : null;
+}
+
+function detectMatchReveal(state) {
+  const lm = state && state.lastMatch;
+  if (!lm) { lastMatchSeq = 0; matchInitialized = true; return; }
+  if (matchInitialized && lm.seq > lastMatchSeq) {
+    const seq = lm.seq;
+    if (lm.matched) {
+      discardPulse = true;
+      setTimeout(() => { discardPulse = false; render(); }, 700);
+    } else {
+      // A wrong match — briefly flash the mis-guessed card in red.
+      recentWrong = { playerId: lm.playerId, cellIndex: lm.cellIndex, card: lm.card, seq };
+      setTimeout(() => {
+        if (recentWrong && recentWrong.seq === seq) { recentWrong = null; render(); }
+      }, 2600);
+    }
+  }
+  lastMatchSeq = lm.seq;
+  matchInitialized = true;
+}
+
+function wrongReveal(playerId, cellIndex) {
+  return (recentWrong && recentWrong.playerId === playerId && recentWrong.cellIndex === cellIndex)
+    ? recentWrong.card : null;
+}
+
+function updateBuffer(state) {
+  const mine = state && state.phase === 'playing' && state.currentPlayerId === state.youId
+    && state.turnMode === 'awaitingAction' && state.actWaitMs > 0;
+  if (mine) {
+    bufferUntil = Date.now() + state.actWaitMs;
+    if (!bufferTicker) {
+      bufferTicker = setInterval(() => {
+        if (Date.now() >= bufferUntil) { clearInterval(bufferTicker); bufferTicker = null; }
+        render();
+      }, 300);
+    }
+  } else {
+    bufferUntil = 0;
+    if (bufferTicker) { clearInterval(bufferTicker); bufferTicker = null; }
+  }
+}
+
+function bufferRemainingMs() {
+  return Math.max(0, bufferUntil - Date.now());
 }
 
 function leaveRoom() {
@@ -955,9 +1029,12 @@ function renderTable(state) {
 
     const cardsRow = el(`<div class="row" style="gap:4px;"></div>`);
     for (let i = 0; i < p.gridSize; i++) {
+      const wr = wrongReveal(p.id, i);
       const rc = swapReveal(p.id, i);
-      const c = rc ? cardFront(rc, 'size-sm') : cardBack('size-sm');
-      if (rc) c.classList.add('just-swapped');
+      let c;
+      if (wr) { c = cardFront(wr, 'size-sm'); c.classList.add('just-wrong'); }
+      else if (rc) { c = cardFront(rc, 'size-sm'); c.classList.add('just-swapped'); }
+      else c = cardBack('size-sm');
       const handler = cellClickHandler(state, p.id, i);
       if (handler) { c.classList.add('selectable'); c.onclick = handler; }
       if (isJackChosen(state, p.id, i)) c.classList.add('chosen');
@@ -980,7 +1057,9 @@ function renderTable(state) {
     </div>
   </div>`);
   table.querySelector('#draw-slot').appendChild(state.drawCount > 0 ? cardBack('size-md') : cardEmpty('size-md'));
-  table.querySelector('#discard-slot').appendChild(state.discardTop ? cardFront(state.discardTop, 'size-md') : cardEmpty('size-md'));
+  const discardCard = state.discardTop ? cardFront(state.discardTop, 'size-md') : cardEmpty('size-md');
+  if (discardPulse) discardCard.classList.add('just-matched');
+  table.querySelector('#discard-slot').appendChild(discardCard);
   wrap.appendChild(table);
 
   // Your hand
@@ -992,12 +1071,16 @@ function renderTable(state) {
   const handRow = el(`<div class="your-hand"></div>`);
   const myGridSize = myPlayer ? myPlayer.gridSize : 0;
   for (let i = 0; i < myGridSize; i++) {
+    const wr = wrongReveal(me, i);
     const rc = swapReveal(me, i);
-    const c = rc ? cardFront(rc, 'size-lg') : cardBack('size-lg');
-    if (rc) c.classList.add('just-swapped');
+    let c;
+    if (wr) { c = cardFront(wr, 'size-lg'); c.classList.add('just-wrong'); }
+    else if (rc) { c = cardFront(rc, 'size-lg'); c.classList.add('just-swapped'); }
+    else c = cardBack('size-lg');
     const handler = cellClickHandler(state, me, i);
     if (handler) { c.classList.add('selectable'); c.onclick = handler; }
     if (isJackChosen(state, me, i)) c.classList.add('chosen');
+    if (matchArmed) c.classList.add('selectable');
     if (state.phase === 'peeking' && state.peekingPlayerId === me && state.peekedCells.includes(i)) c.classList.add('dimmed');
     handRow.appendChild(c);
   }
@@ -1042,6 +1125,10 @@ function isJackChosen(state, playerId, cellIndex) {
 
 function cellClickHandler(state, playerId, cellIndex) {
   const me = state.youId;
+  // Matching your own card is allowed any time during play, even off-turn.
+  if (matchArmed && state.phase === 'playing' && playerId === me) {
+    return () => { matchArmed = false; sendMsg({ type: 'matchCard', cellIndex }); };
+  }
   if (state.phase === 'peeking') {
     if (playerId === me && state.peekingPlayerId === me) {
       return () => sendMsg({ type: 'peekCard', cellIndex });
@@ -1081,8 +1168,26 @@ function renderActionBar(state) {
     return bar;
   }
 
+  const canMatch = state.phase === 'playing' && state.discardTop
+    && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
+
+  function matchButton() {
+    const b = el(`<button class="btn-match">Match</button>`);
+    b.onclick = () => { matchArmed = true; swapArmed = false; render(); };
+    return b;
+  }
+
+  if (matchArmed) {
+    bar.appendChild(el(`<span class="help-text">Tap one of your cards equal to the discard (${escapeHtml(cardLabel(state.discardTop))}). Wrong guess = penalty card.</span>`));
+    const cancel = el(`<button class="btn-ghost">Cancel</button>`);
+    cancel.onclick = () => { matchArmed = false; render(); };
+    bar.appendChild(cancel);
+    return bar;
+  }
+
   if (state.currentPlayerId !== me) {
     bar.appendChild(el(`<span class="help-text">Waiting for ${escapeHtml(nameOf(state, state.currentPlayerId))}…</span>`));
+    if (canMatch) bar.appendChild(matchButton());
     return bar;
   }
 
@@ -1094,13 +1199,18 @@ function renderActionBar(state) {
       bar.appendChild(cancel);
       return bar;
     }
+    const remaining = bufferRemainingMs();
     const flip = el(`<button class="btn-blue">Flip from Deck</button>`);
-    flip.disabled = state.drawCount === 0 && !state.discardTop;
+    flip.disabled = remaining > 0 || (state.drawCount === 0 && !state.discardTop);
     flip.onclick = () => sendMsg({ type: 'flip' });
     const swap = el(`<button class="btn-blue">Swap with Discard</button>`);
-    swap.disabled = !state.discardTop;
+    swap.disabled = remaining > 0 || !state.discardTop;
     swap.onclick = () => { swapArmed = true; render(); };
     bar.appendChild(flip); bar.appendChild(swap);
+    if (canMatch) bar.appendChild(matchButton());
+    if (remaining > 0) {
+      bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">You can act in ${Math.ceil(remaining / 1000)}s — anyone can match the discard now.</span>`));
+    }
     return bar;
   }
 
@@ -1110,6 +1220,7 @@ function renderActionBar(state) {
     const dutch = el(`<button class="btn-red">Call Dutch</button>`);
     dutch.onclick = () => sendMsg({ type: 'callDutch' });
     bar.appendChild(endBtn); bar.appendChild(dutch);
+    if (canMatch) bar.appendChild(matchButton());
     return bar;
   }
 

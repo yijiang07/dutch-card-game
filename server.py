@@ -223,9 +223,11 @@ async def drive_bots(room):
             if bots.required_actor(game) != actor:
                 continue
             try:
-                bots.take_action(room, game, actor)
+                status = bots.take_action(room, game, actor)
             except GameError:
                 break
+            if status == 'wait':
+                continue  # match buffer still active; loop sleeps and retries
             await broadcast_state(room)
     finally:
         room.bot_task_running = False
@@ -642,6 +644,17 @@ async def handle_message(ws, ctx, data):
         _score_play(room, game, pid, ('swap', cell))
         game.swap_cell(pid, cell)
         bots.record_placement(room, game, pid, cell)
+        await broadcast_state(room)
+        return
+
+    if mtype == 'matchCard':
+        cell = int(data.get('cellIndex', -1))
+        brain = room.brains.get(pid)
+        knew = bool(brain and (pid, cell) in brain.known)
+        res = game.match_card(pid, cell)
+        if res.get('matched'):
+            bots.record_removal(room, pid, res['cellIndex'])
+        _count_play(room, pid, bool(res.get('matched') and knew))
         await broadcast_state(room)
         return
 

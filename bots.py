@@ -147,6 +147,20 @@ def record_table_swap(room, la, lb):
             b.known.pop(la, None)
 
 
+def record_removal(room, owner, removed_index):
+    """A card left `owner`'s grid (matched away); shift knowledge of higher indices down."""
+    for b in _brains(room).values():
+        shifted = {}
+        for (o, i), card in b.known.items():
+            if o != owner or i < removed_index:
+                shifted[(o, i)] = card
+            elif i == removed_index:
+                continue
+            else:
+                shifted[(o, i - 1)] = card
+        b.known = shifted
+
+
 # ---- estimation helpers ----
 
 def _est_cell(brain, game, owner, cell, omni):
@@ -193,6 +207,11 @@ def take_action(room, game, bot_id):
 
     tm = game.turn_mode
     if tm == 'awaitingAction':
+        # First drop any card we know matches the discard top (fewer cards = better).
+        if diff != 'easy' and _try_match(room, game, bot_id, brain, omni):
+            return 'acted'
+        if not game.can_act_now():
+            return 'wait'  # respect the match buffer; the driver will retry
         _act(room, game, bot_id, brain, diff, omni)
     elif tm == 'jackSwap':
         _resolve_jack(room, game, bot_id, brain, diff, omni)
@@ -202,6 +221,22 @@ def take_action(room, game, bot_id):
         _resolve_ace(game, bot_id, brain, diff, omni)
     elif tm == 'endOfTurn':
         _end_or_dutch(game, bot_id, brain, diff, omni)
+    return 'acted'
+
+
+def _try_match(room, game, bot_id, brain, omni):
+    """If the bot knows a grid card equal to the discard top, drop it. Returns True if it did."""
+    if not game.discard:
+        return False
+    top = game.discard[-1]['value']
+    for i in range(len(game.grids[bot_id])):
+        known = omni or ((bot_id, i) in brain.known)
+        if known and _est_cell(brain, game, bot_id, i, omni) == top:
+            res = game.match_card(bot_id, i)
+            if res.get('matched'):
+                record_removal(room, bot_id, i)
+            return True
+    return False
 
 
 def _choose_peek(game, bot_id, diff):

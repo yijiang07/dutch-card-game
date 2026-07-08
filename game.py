@@ -2,11 +2,16 @@
 owns connections and calls into this module, which just mutates a Game object."""
 
 import random
+import time
 
 RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 SUITS = ['S', 'H', 'D', 'C']
 RED_SUITS = {'H', 'D'}
 SUIT_SYMBOL = {'S': '♠', 'H': '♥', 'D': '♦', 'C': '♣'}
+
+# On turn start, the active player must wait this long before flipping/swapping,
+# giving everyone a window to "match" the current discard card.
+BUFFER_SECONDS = 2.5
 
 
 class GameError(Exception):
@@ -64,9 +69,11 @@ class Game:
         self.jack_first = None
         self.turn_counter = 0
 
-        # Most recent discard-swap, so clients can show which card went where.
+        # Most recent discard-swap / match, so clients can flash what happened.
         self.last_swap = None
+        self.last_match = None
         self.action_seq = 0
+        self.turn_started_at = 0.0
 
         self.log = []
 
@@ -102,6 +109,16 @@ class Game:
         self.jack_first = None
         self.turn_counter += 1
         self.current_index = (self.current_index + 1) % len(self.order)
+        self.turn_started_at = time.time()
+
+    def can_act_now(self):
+        """False during the post-turn-start buffer, when only matching is allowed."""
+        return time.time() - self.turn_started_at >= BUFFER_SECONDS
+
+    def _act_wait_ms(self):
+        if self.phase != 'playing' or self.turn_mode != 'awaitingAction':
+            return 0
+        return max(0, int((BUFFER_SECONDS - (time.time() - self.turn_started_at)) * 1000))
 
     def _action_resolved(self):
         """Called once the turn's action (and any power) has fully resolved.
@@ -141,6 +158,7 @@ class Game:
         self.peek_count = count
         if count == 0:
             self.phase = 'playing'
+            self.turn_started_at = time.time()
         else:
             self.phase = 'peeking'
             self.peeking_index = 0
@@ -172,6 +190,7 @@ class Game:
         self.peeking_index += 1
         if self.peeking_index >= len(self.order):
             self.phase = 'playing'
+            self.turn_started_at = time.time()
 
     # ---- main turn actions ----
 
@@ -182,12 +201,44 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'awaitingAction':
             raise GameError('Resolve the current power first.')
+        if not self.can_act_now():
+            raise GameError('Hold on — players can still match the discard for a moment.')
         card = self.draw_one()
         if card is None:
             raise GameError('No cards left to draw.')
         self.discard.append(card)
         self._log(f"{self.names[sender]} flipped {card_label(card)}.")
         self._trigger_power_or_complete(card)
+
+    def match_card(self, sender, cell_index):
+        """Any player may drop a grid card that equals the discard top (fewer cards
+        is better). A wrong guess costs a penalty card. Not gated by whose turn it is."""
+        if self.phase != 'playing':
+            raise GameError('Game is not in progress.')
+        if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
+            raise GameError('You can only match between actions.')
+        if not self.discard:
+            raise GameError('Nothing to match.')
+        grid = self.grids.get(sender)
+        if grid is None or not (0 <= cell_index < len(grid)):
+            raise GameError('Invalid card.')
+        top = self.discard[-1]
+        card = grid[cell_index]
+        self.action_seq += 1
+        if card['value'] == top['value']:
+            del grid[cell_index]
+            self.discard.append(card)  # placed face-up; does NOT trigger its power
+            self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
+                               'card': card, 'matched': True}
+            self._log(f"{self.names[sender]} matched {card_label(card)} and dropped a card!")
+            return {'matched': True, 'cellIndex': cell_index, 'card': card}
+        penalty = self.draw_one()
+        if penalty is not None:
+            grid.append(penalty)
+        self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
+                           'card': card, 'matched': False}
+        self._log(f"{self.names[sender]} tried to match {card_label(card)} — wrong! Drew a penalty card.")
+        return {'matched': False, 'cellIndex': cell_index, 'card': card}
 
     def swap_cell(self, sender, cell_index):
         if self.phase != 'playing':
@@ -196,6 +247,8 @@ class Game:
             raise GameError("It's not your turn.")
         if self.turn_mode != 'awaitingAction':
             raise GameError('Resolve the current power first.')
+        if not self.can_act_now():
+            raise GameError('Hold on — players can still match the discard for a moment.')
         grid = self.grids[sender]
         if not (0 <= cell_index < len(grid)):
             raise GameError('Invalid card.')
@@ -303,6 +356,8 @@ class Game:
             'dutchCallerId': self.dutch_caller,
             'finalRoundRemaining': self.final_round_remaining,
             'lastSwap': self.last_swap,
+            'lastMatch': self.last_match,
+            'actWaitMs': self._act_wait_ms(),
             'log': self.log[-8:],
         }
         if self.phase == 'reveal':
