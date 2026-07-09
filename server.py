@@ -159,6 +159,13 @@ def build_state(room, viewer_id):
     return state
 
 
+def _bump(room, pid, key):
+    """Increment a per-round counter on a (human) player. Bots/guests are harmless to track."""
+    p = room.players.get(pid)
+    if p is not None:
+        p[key] = p.get(key, 0) + 1
+
+
 def _count_play(room, pid, correct):
     """Tally one judged decision for a human player (bots/guests-without-account ignored)."""
     p = room.players.get(pid)
@@ -194,8 +201,13 @@ async def record_game_if_needed(room):
         p = room.players.get(pid, {})
         acct = p.get('account_id')
         if acct:
+            pc, pt = p.get('play_correct', 0), p.get('play_total', 0)
+            # Placement: 1 + number of players who scored strictly lower (ties share a rank).
+            placement = 1 + sum(1 for t in totals.values() if t < total)
             results.append({'user_id': acct, 'total': total, 'won': total == min_total,
-                            'plays_correct': p.get('play_correct', 0), 'plays_total': p.get('play_total', 0)})
+                            'plays_correct': pc, 'plays_total': pt,
+                            'placement': placement, 'accuracy': (round(100 * pc / pt) if pt else None),
+                            'shed': p.get('shed', 0), 'powers': p.get('powers', 0)})
     if not results:
         return
     await asyncio.to_thread(storage.record_game, results)
@@ -218,7 +230,9 @@ async def record_game_if_needed(room):
     now = time.time()
     history = [{'user_id': r['user_id'], 'played_at': now, 'total': r['total'], 'won': r['won'],
                 'players': len(totals), 'ranked': bool(room.ranked),
-                'rating_delta': (ranked_out.get(r['user_id'], {}).get('delta') if ranked_out else None)}
+                'rating_delta': (ranked_out.get(r['user_id'], {}).get('delta') if ranked_out else None),
+                'placement': r['placement'], 'accuracy': r['accuracy'],
+                'shed': r['shed'], 'powers': r['powers']}
                for r in results]
     await asyncio.to_thread(storage.record_history, history)
 
@@ -827,6 +841,8 @@ async def handle_message(ws, ctx, data):
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
+            p['shed'] = 0
+            p['powers'] = 0
         bots.init_brains(room)
         room.deal_seq += 1
         start_monitor(room)
@@ -845,6 +861,8 @@ async def handle_message(ws, ctx, data):
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
+            p['shed'] = 0
+            p['powers'] = 0
         bots.init_brains(room)
         room.deal_seq += 1
         start_monitor(room)
@@ -906,6 +924,7 @@ async def handle_message(ws, ctx, data):
         res = game.match_card(pid, cell)
         if res.get('matched'):
             bots.record_removal(room, pid, res['cellIndex'])
+            _bump(room, pid, 'shed')
         _count_play(room, pid, bool(res.get('matched') and knew))
         await broadcast_state(room)
         return
@@ -937,6 +956,7 @@ async def handle_message(ws, ctx, data):
         res = game.jack_select(pid, tp, tc)
         if res:
             bots.record_table_swap(room, res[0], res[1])
+            _bump(room, pid, 'powers')
             if judge_correct is not None:
                 _count_play(room, pid, judge_correct)
         await broadcast_state(room)
@@ -948,6 +968,7 @@ async def handle_message(ws, ctx, data):
         if game.turn_mode == 'queenPeek' and game.current_player() == pid:
             _count_play(room, pid, bots.judge_queen(room, game, pid, target_player, target_cell))
         card = game.queen_select(pid, target_player, target_cell)
+        _bump(room, pid, 'powers')
         bots.record_private_peek(room, pid, target_player, target_cell, card)
         await send(ws, {'type': 'privateReveal', 'context': 'queen', 'card': card,
                          'targetPlayerId': target_player, 'cellIndex': target_cell})
@@ -958,6 +979,7 @@ async def handle_message(ws, ctx, data):
         if game.turn_mode == 'aceGive' and game.current_player() == pid:
             _count_play(room, pid, bots.judge_ace(room, game, pid, data.get('targetPlayerId')))
         game.ace_give(pid, data.get('targetPlayerId'))
+        _bump(room, pid, 'powers')
         await broadcast_state(room)
         return
 

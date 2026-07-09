@@ -150,9 +150,25 @@ def init_db():
             won INTEGER NOT NULL DEFAULT 0,
             players INTEGER NOT NULL DEFAULT 0,
             ranked INTEGER NOT NULL DEFAULT 0,
-            rating_delta INTEGER
+            rating_delta INTEGER,
+            placement INTEGER,
+            accuracy INTEGER,
+            shed INTEGER NOT NULL DEFAULT 0,
+            powers INTEGER NOT NULL DEFAULT 0
         )''')
         cur.execute('CREATE INDEX IF NOT EXISTS idx_history_user ON game_history (user_id, played_at)')
+        # Add per-round detail columns to history tables created before this feature.
+        if USE_PG:
+            cur.execute('ALTER TABLE game_history ADD COLUMN IF NOT EXISTS placement INTEGER')
+            cur.execute('ALTER TABLE game_history ADD COLUMN IF NOT EXISTS accuracy INTEGER')
+            cur.execute('ALTER TABLE game_history ADD COLUMN IF NOT EXISTS shed INTEGER NOT NULL DEFAULT 0')
+            cur.execute('ALTER TABLE game_history ADD COLUMN IF NOT EXISTS powers INTEGER NOT NULL DEFAULT 0')
+        else:
+            have = {r[1] for r in cur.execute('PRAGMA table_info(game_history)').fetchall()}
+            for col, decl in (('placement', 'INTEGER'), ('accuracy', 'INTEGER'),
+                              ('shed', 'INTEGER NOT NULL DEFAULT 0'), ('powers', 'INTEGER NOT NULL DEFAULT 0')):
+                if col not in have:
+                    cur.execute(f'ALTER TABLE game_history ADD COLUMN {col} {decl}')
         conn.commit()
     finally:
         conn.close()
@@ -543,11 +559,14 @@ def record_history(entries):
         cur = conn.cursor()
         for e in entries:
             cur.execute(_ph('''INSERT INTO game_history
-                               (id, user_id, played_at, total, won, players, ranked, rating_delta)
-                               VALUES (?,?,?,?,?,?,?,?)'''),
+                               (id, user_id, played_at, total, won, players, ranked, rating_delta,
+                                placement, accuracy, shed, powers)
+                               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'''),
                         (secrets.token_hex(8), e['user_id'], e['played_at'], e['total'],
                          1 if e.get('won') else 0, e.get('players', 0),
-                         1 if e.get('ranked') else 0, e.get('rating_delta')))
+                         1 if e.get('ranked') else 0, e.get('rating_delta'),
+                         e.get('placement'), e.get('accuracy'),
+                         e.get('shed', 0), e.get('powers', 0)))
         for uid in {e['user_id'] for e in entries}:
             cur.execute(_ph('''DELETE FROM game_history WHERE user_id=? AND id NOT IN
                                (SELECT id FROM game_history WHERE user_id=?
@@ -561,11 +580,14 @@ def get_history(user_id, limit=15):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('''SELECT played_at, total, won, players, ranked, rating_delta
+        cur.execute(_ph('''SELECT played_at, total, won, players, ranked, rating_delta,
+                                  placement, accuracy, shed, powers
                            FROM game_history WHERE user_id=? ORDER BY played_at DESC LIMIT ?'''),
                     (user_id, limit))
         return [{'playedAt': r['played_at'], 'total': r['total'], 'won': bool(r['won']),
-                 'players': r['players'], 'ranked': bool(r['ranked']), 'ratingDelta': r['rating_delta']}
+                 'players': r['players'], 'ranked': bool(r['ranked']), 'ratingDelta': r['rating_delta'],
+                 'placement': r['placement'], 'accuracy': r['accuracy'],
+                 'shed': r['shed'], 'powers': r['powers']}
                 for r in cur.fetchall()]
     finally:
         conn.close()

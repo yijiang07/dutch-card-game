@@ -176,6 +176,7 @@ const TRANSLATIONS = {
     recentGames: 'Recent games', noHistory: 'No games yet — play a round!',
     liveGames: 'Live games — tap to join',
     finalMatch: 'Last chance to match!', finalMatchSub: 'Revealing scores…',
+    histShed: 'Cards shed (matches)', histPowers: 'Powers used',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -275,6 +276,7 @@ const TRANSLATIONS = {
     recentGames: 'Partidas recientes', noHistory: 'Aún no hay partidas — ¡juega una ronda!',
     liveGames: 'Partidas en vivo — toca para unirte',
     finalMatch: '¡Última oportunidad para emparejar!', finalMatchSub: 'Revelando puntuaciones…',
+    histShed: 'Cartas soltadas (emparejes)', histPowers: 'Poderes usados',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -373,6 +375,7 @@ const TRANSLATIONS = {
     recentGames: 'Parties récentes', noHistory: 'Aucune partie — jouez une manche !',
     liveGames: 'Parties en direct — touchez pour rejoindre',
     finalMatch: "Dernière chance d'associer !", finalMatchSub: 'Révélation des scores…',
+    histShed: 'Cartes posées (associations)', histPowers: 'Pouvoirs utilisés',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -471,6 +474,7 @@ const TRANSLATIONS = {
     recentGames: 'Letzte Spiele', noHistory: 'Noch keine Spiele — spiel eine Runde!',
     liveGames: 'Live-Spiele — zum Beitreten tippen',
     finalMatch: 'Letzte Chance zum Ablegen!', finalMatchSub: 'Punkte werden aufgedeckt…',
+    histShed: 'Abgelegte Karten', histPowers: 'Machtkarten genutzt',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -569,6 +573,7 @@ const TRANSLATIONS = {
     recentGames: '最近对局', noHistory: '还没有对局 —— 来玩一局吧！',
     liveGames: '进行中的对局 —— 点击加入',
     finalMatch: '最后的配对机会！', finalMatchSub: '正在亮出分数…',
+    histShed: '打出的牌（配对）', histPowers: '使用的能力牌',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -1332,10 +1337,18 @@ function renderLeaderboard() {
         } else {
           right = `<span class="hist-players">${g.players}p</span>`;
         }
-        list.appendChild(el(`<div class="hist-row ${g.won ? 'won' : ''}">
-          <span class="hist-when">${escapeHtml(relTime(g.playedAt))}</span>
-          <span class="hist-score">${g.won ? '🏆 ' : ''}${g.total} ${escapeHtml(t('ptsUnit'))}</span>
-          <span class="hist-right">${right}</span>
+        const place = g.won ? '🏆' : (g.placement ? '#' + g.placement : '');
+        const chips = [];
+        if (g.accuracy != null) chips.push(`<span title="${escapeHtml(t('statAccuracy'))}">🎯 ${g.accuracy}%</span>`);
+        chips.push(`<span title="${escapeHtml(t('histShed'))}">🃏 ${g.shed || 0}</span>`);
+        chips.push(`<span title="${escapeHtml(t('histPowers'))}">⚡ ${g.powers || 0}</span>`);
+        list.appendChild(el(`<div class="hist-item ${g.won ? 'won' : ''}">
+          <div class="hist-row">
+            <span class="hist-when">${escapeHtml(relTime(g.playedAt))}</span>
+            <span class="hist-score">${place} ${g.total} ${escapeHtml(t('ptsUnit'))}</span>
+            <span class="hist-right">${right}</span>
+          </div>
+          <div class="hist-sub">${chips.join('')}</div>
         </div>`));
       });
       drawer.appendChild(list);

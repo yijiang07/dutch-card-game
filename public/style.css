@@ -1527,14 +1527,13 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .public-games .pg-join { padding: 7px 16px; font-size: 0.85rem; }
 
 /* ---- Match history ---- */
-.hist-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-.hist-row {
-  display: flex; align-items: center; gap: 10px;
+.hist-list { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.hist-item {
   padding: 7px 12px; border-radius: 9px;
   background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border);
-  font-size: 0.85rem;
 }
-.hist-row.won { border-color: rgba(231,194,90,0.4); background: rgba(231,194,90,0.08); }
+.hist-item.won { border-color: rgba(231,194,90,0.4); background: rgba(231,194,90,0.08); }
+.hist-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
 .hist-when { color: var(--ink-dim); font-size: 0.78rem; min-width: 74px; }
 .hist-score { flex: 1; font-weight: 600; }
 .hist-right { text-align: right; }
@@ -1542,6 +1541,7 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .hist-delta { font-weight: 800; }
 .hist-delta.up { color: #46d6a6; }
 .hist-delta.down { color: #ec7a75; }
+.hist-sub { display: flex; gap: 12px; margin-top: 4px; font-size: 0.74rem; color: var(--ink-dim); }
 
 /* ---- Account call-to-action (landing) ---- */
 .account-cta {
