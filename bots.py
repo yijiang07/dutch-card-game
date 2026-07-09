@@ -187,6 +187,9 @@ def required_actor(game):
     if game.phase == 'peeking':
         return game.peeking_player()
     if game.phase == 'playing':
+        # End-of-round match grace: nobody is required to act (matching is optional).
+        if getattr(game, 'ending', False) or game.turn_mode == 'awaitingMatch':
+            return None
         # A pending power is resolved by its actor — usually the current player,
         # but a matcher (possibly off-turn) resolves a power they matched.
         if game.turn_mode in ('jackSwap', 'queenPeek', 'aceGive') and game.power_actor:

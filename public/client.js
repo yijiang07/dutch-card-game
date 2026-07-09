@@ -175,6 +175,7 @@ const TRANSLATIONS = {
     powerYours: 'Matched power — your move!', powerOther: '{name} is using a matched power…',
     recentGames: 'Recent games', noHistory: 'No games yet — play a round!',
     liveGames: 'Live games — tap to join',
+    finalMatch: 'Last chance to match!', finalMatchSub: 'Revealing scores…',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -273,6 +274,7 @@ const TRANSLATIONS = {
     powerYours: 'Poder emparejado — ¡te toca!', powerOther: '{name} está usando un poder emparejado…',
     recentGames: 'Partidas recientes', noHistory: 'Aún no hay partidas — ¡juega una ronda!',
     liveGames: 'Partidas en vivo — toca para unirte',
+    finalMatch: '¡Última oportunidad para emparejar!', finalMatchSub: 'Revelando puntuaciones…',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -370,6 +372,7 @@ const TRANSLATIONS = {
     powerYours: 'Pouvoir associé — à vous !', powerOther: '{name} utilise un pouvoir associé…',
     recentGames: 'Parties récentes', noHistory: 'Aucune partie — jouez une manche !',
     liveGames: 'Parties en direct — touchez pour rejoindre',
+    finalMatch: "Dernière chance d'associer !", finalMatchSub: 'Révélation des scores…',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -467,6 +470,7 @@ const TRANSLATIONS = {
     powerYours: 'Abgelegte Machtkarte — du bist dran!', powerOther: '{name} nutzt eine abgelegte Machtkarte…',
     recentGames: 'Letzte Spiele', noHistory: 'Noch keine Spiele — spiel eine Runde!',
     liveGames: 'Live-Spiele — zum Beitreten tippen',
+    finalMatch: 'Letzte Chance zum Ablegen!', finalMatchSub: 'Punkte werden aufgedeckt…',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -564,6 +568,7 @@ const TRANSLATIONS = {
     powerYours: '配对能力牌 — 该你了！', powerOther: '{name} 正在使用配对的能力牌…',
     recentGames: '最近对局', noHistory: '还没有对局 —— 来玩一局吧！',
     liveGames: '进行中的对局 —— 点击加入',
+    finalMatch: '最后的配对机会！', finalMatchSub: '正在亮出分数…',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -2309,6 +2314,9 @@ function turnBannerInfo(state) {
     }
     return { headline: t('xPeeking', { name: nameOf(state, p) }), sub: t('everyoneHang'), mine: false };
   }
+  if (state.ending || state.turnMode === 'awaitingMatch') {
+    return { headline: t('finalMatch'), sub: t('finalMatchSub'), mine: true };
+  }
   const cur = state.currentPlayerId;
   // A power matched off-turn is resolved by the matcher, not the current player.
   const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
@@ -2403,12 +2411,19 @@ function renderActionBar(state) {
   }
 
   const canMatch = state.matchingEnabled && state.phase === 'playing' && state.discardTop
-    && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn');
+    && (state.turnMode === 'awaitingAction' || state.turnMode === 'endOfTurn' || state.turnMode === 'awaitingMatch');
 
   function matchButton() {
     const b = el(`<button class="btn-match">${t('match')}</button>`);
     b.onclick = () => { swapArmed = false; sendMsg({ type: 'claimMatch' }); };
     return b;
+  }
+
+  // End-of-round grace: everyone gets a last window to match before the reveal.
+  if (state.ending || state.turnMode === 'awaitingMatch') {
+    bar.appendChild(el(`<span class="help-text" style="width:100%; text-align:center;">${escapeHtml(t('finalMatchSub'))}</span>`));
+    if (canMatch) bar.appendChild(matchButton());
+    return bar;
   }
 
   // A matched power is resolved by its (possibly off-turn) actor; otherwise the current player acts.

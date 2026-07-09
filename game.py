@@ -16,6 +16,10 @@ BUFFER_SECONDS = 2.5
 # Once a player declares a match, play pauses this long for them to pick a card.
 MATCH_CLAIM_SECONDS = 6
 
+# After the final turn of a round (someone called Dutch), hold this long so
+# players can still match the last discard before cards are revealed.
+FINAL_MATCH_GRACE = 2.5
+
 
 class GameError(Exception):
     pass
@@ -82,6 +86,10 @@ class Game:
         self.power_actor = None
         # When a matched power interrupts a turn, the turn_mode to restore afterward.
         self.power_return_mode = None
+        # End-of-round match grace: after the last final-round turn, play stays open
+        # for matching until end_at, then the server reveals.
+        self.ending = False
+        self.end_at = 0.0
 
         # Most recent discard-swap / match / flip / power, so clients can animate them.
         self.last_swap = None
@@ -156,11 +164,24 @@ class Game:
         if self.final_round:
             self.final_round_remaining -= 1
             if self.final_round_remaining <= 0:
-                self.phase = 'reveal'
+                # Everyone has taken their last turn. Give a short window for a
+                # final match before revealing (skipped if matching is off).
+                if self.matching_enabled:
+                    self.ending = True
+                    self.turn_mode = 'awaitingMatch'
+                    self.end_at = time.time() + FINAL_MATCH_GRACE
+                else:
+                    self.phase = 'reveal'
                 return
             self._advance_turn()
         else:
             self.turn_mode = 'endOfTurn'
+
+    def finish_round(self):
+        """Called by the server once the end-of-round match grace elapses."""
+        self.ending = False
+        self.turn_mode = 'awaitingAction'
+        self.phase = 'reveal'
 
     _POWER_MODE = {'J': 'jackSwap', 'Q': 'queenPeek', 'A': 'aceGive'}
 
@@ -256,7 +277,7 @@ class Game:
             raise GameError('Matching is turned off in this game.')
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
-        if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
+        if self.turn_mode not in ('awaitingAction', 'endOfTurn', 'awaitingMatch'):
             raise GameError('You can only match between actions.')
         if not self.discard:
             raise GameError('Nothing to match.')
@@ -298,7 +319,7 @@ class Game:
             raise GameError('Matching is turned off in this game.')
         if self.phase != 'playing':
             raise GameError('Game is not in progress.')
-        if self.turn_mode not in ('awaitingAction', 'endOfTurn'):
+        if self.turn_mode not in ('awaitingAction', 'endOfTurn', 'awaitingMatch'):
             raise GameError('You can only match between actions.')
         if self.matcher is not None and self.matcher != sender:
             raise GameError('Another player is matching right now.')
@@ -317,7 +338,12 @@ class Game:
             self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
                                'card': card, 'matched': True}
             self._log('matched', name=self.names[sender], card=card_label(card))
-            self._trigger_match_power(sender, card)
+            if self.ending:
+                # Final match grace: shed the card, extend the window a touch, but
+                # don't fire its power (the round is over — no more turns).
+                self.end_at = time.time() + FINAL_MATCH_GRACE
+            else:
+                self._trigger_match_power(sender, card)
             return {'matched': True, 'cellIndex': cell_index, 'card': card}
         penalty = self.draw_one()
         if penalty is not None:
@@ -325,6 +351,8 @@ class Game:
         self.last_match = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': cell_index,
                            'card': card, 'matched': False}
         self._log('wrongMatch', name=self.names[sender], card=card_label(card))
+        if self.ending:
+            self.end_at = time.time() + FINAL_MATCH_GRACE
         return {'matched': False, 'cellIndex': cell_index, 'card': card}
 
     def swap_cell(self, sender, cell_index):
@@ -448,6 +476,8 @@ class Game:
             'currentPlayerId': self.current_player(),
             'turnMode': self.turn_mode,
             'powerActorId': self.power_actor,
+            'ending': self.ending,
+            'endMatchMs': max(0, int((self.end_at - time.time()) * 1000)) if self.ending else 0,
             'jackFirst': self.jack_first,
             'peekChooserId': self.peek_chooser,
             'peekCount': self.peek_count,

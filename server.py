@@ -75,6 +75,7 @@ class Room:
         self.monitor_running = False
         self.deal_seq = 0         # bumps each new round so clients can deal-in cards
         self.ranked = False       # ranked 1v1: standard rules, no bots, Glicko-rated
+        self.reveal_scheduled = False  # guards the end-of-round match-grace reveal task
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -236,9 +237,34 @@ async def record_game_if_needed(room):
 
 async def broadcast_state(room):
     await record_game_if_needed(room)
+    game = room.game
+    if game and getattr(game, 'ending', False) and game.phase == 'playing' and not room.reveal_scheduled:
+        room.reveal_scheduled = True
+        asyncio.create_task(final_reveal(room))
     for pid, p in room.players.items():
         if p['ws'] is not None:
             await send(p['ws'], {'type': 'state', 'state': build_state(room, pid)})
+
+
+async def final_reveal(room):
+    """Hold the round open for last-second matching, then reveal. The window is
+    extended each time someone matches (game.end_at) and waits out active matchers."""
+    try:
+        while True:
+            game = room.game
+            if game is None or game.phase == 'reveal' or not game.ending:
+                return
+            now = time.time()
+            if game.matcher is not None:
+                await asyncio.sleep(0.3)  # let the in-progress match resolve/expire
+                continue
+            if now >= game.end_at:
+                game.finish_round()
+                await broadcast_state(room)
+                return
+            await asyncio.sleep(min(0.35, max(0.05, game.end_at - now)))
+    finally:
+        room.reveal_scheduled = False
 
 
 # ---- bot driver ----
@@ -797,6 +823,7 @@ async def handle_message(ws, ctx, data):
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False
+        room.reveal_scheduled = False
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
@@ -814,6 +841,7 @@ async def handle_message(ws, ctx, data):
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False
+        room.reveal_scheduled = False
         for p in room.players.values():
             p['play_correct'] = 0
             p['play_total'] = 0
