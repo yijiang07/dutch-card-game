@@ -4,3 +4,6 @@ __pycache__/
 cloudflared
 
 dutch.db
+
+# Pending until the GitHub token has `workflow` scope, then remove this line and commit it.
+.github/workflows/ci.yml
