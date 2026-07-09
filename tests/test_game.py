@@ -5,13 +5,19 @@ import pytest
 from game import Game, GameError, card_value, make_card
 
 
-def start_game(n=2, matching=True):
+def start_game(n=2, matching=True, powers='basic'):
     ids = [chr(ord('A') + i) for i in range(n)]
     g = Game(ids, {i: i for i in ids},
-             {'cardsPer': 4, 'bufferSeconds': 0, 'matching': matching, 'turnLimit': 30})
+             {'cardsPer': 4, 'bufferSeconds': 0, 'matching': matching, 'turnLimit': 30, 'powers': powers})
     g.choose_peek_count(g.peek_chooser, 0)   # 0 peeks -> straight to playing
     assert g.phase == 'playing'
     return g
+
+
+def _flip(g, rank, suit='C'):
+    g.deck.append(make_card(rank, suit))
+    g.turn_started_at = 0
+    g.flip(g.current_player())
 
 
 def test_card_values():
@@ -88,6 +94,33 @@ def test_dutch_end_grace_then_reveal():
     assert g.phase == 'playing' and g.turn_mode == 'awaitingMatch' and g.ending
     g.finish_round()
     assert g.phase == 'reveal' and not g.ending
+
+
+def test_full_powers_7_peeks_own_and_9_peeks_opponent():
+    g = start_game(powers='full')
+    cur = g.current_player()
+    _flip(g, '7')
+    assert g.turn_mode == 'peekSelf' and g.power_actor == cur
+    with pytest.raises(GameError):
+        g.peek_other_select(cur, cur, 0)          # 7 is a self-peek, not other
+    card = g.peek_self_select(cur, 0)
+    assert card is not None and g.turn_mode == 'endOfTurn'
+
+    g2 = start_game(powers='full')
+    cur2 = g2.current_player()
+    other = 'B' if cur2 == 'A' else 'A'
+    _flip(g2, '9')
+    assert g2.turn_mode == 'peekOther'
+    with pytest.raises(GameError):
+        g2.peek_other_select(cur2, cur2, 0)       # must target an opponent
+    card2 = g2.peek_other_select(cur2, other, 0)
+    assert card2 is not None and g2.turn_mode == 'endOfTurn'
+
+
+def test_basic_powers_ignore_7_through_10():
+    g = start_game(powers='basic')
+    _flip(g, '9')
+    assert g.turn_mode == 'endOfTurn'             # no peek power in basic mode
 
 
 def test_matching_off_reveals_immediately_at_end():

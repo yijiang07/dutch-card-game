@@ -61,6 +61,8 @@ class Game:
         self.buffer_seconds = max(0, float(s.get('bufferSeconds', BUFFER_SECONDS)))
         self.matching_enabled = bool(s.get('matching', True))
         self.turn_limit = max(0, int(s.get('turnLimit', 30)))
+        # 'full' powers add 7/8 = peek your own card, 9/10 = peek an opponent's.
+        self.full_powers = s.get('powers') == 'full'
 
         deck = make_deck()
         self.grids = {pid: [deck.pop() for _ in range(self.cards_per)] for pid in self.order}
@@ -185,10 +187,23 @@ class Game:
 
     _POWER_MODE = {'J': 'jackSwap', 'Q': 'queenPeek', 'A': 'aceGive'}
 
+    def _mode_for(self, rank):
+        """The power mode a face-up card triggers, or None. With 'full' powers,
+        7/8 let you peek your own card and 9/10 let you peek an opponent's."""
+        mode = self._POWER_MODE.get(rank)
+        if mode:
+            return mode
+        if self.full_powers:
+            if rank in ('7', '8'):
+                return 'peekSelf'
+            if rank in ('9', '10'):
+                return 'peekOther'
+        return None
+
     def _trigger_power_or_complete(self, card):
         """Flip / swap-discard: the current player resolves any power, then the
         turn completes normally."""
-        mode = self._POWER_MODE.get(card['rank'])
+        mode = self._mode_for(card['rank'])
         if mode:
             self.power_actor = self.current_player()
             self.power_return_mode = None
@@ -200,7 +215,7 @@ class Game:
     def _trigger_match_power(self, matcher, card):
         """A matched power card fires its power for the matcher (who may be
         off-turn). The interrupted turn's mode is restored once it resolves."""
-        mode = self._POWER_MODE.get(card['rank'])
+        mode = self._mode_for(card['rank'])
         if not mode:
             return
         self.power_actor = matcher
@@ -439,6 +454,35 @@ class Game:
         self.last_queen = {'seq': self.action_seq, 'playerId': target_player,
                            'cellIndex': target_cell, 'by': sender}
         self._log('queen', name=self.names[sender], target=self.names[target_player])
+        self._power_complete()
+        return card
+
+    def peek_self_select(self, sender, target_cell):
+        """Full-powers 7/8: peek at one of your own cards."""
+        if self.turn_mode != 'peekSelf' or sender != self.power_actor:
+            raise GameError('Not peeking right now.')
+        grid = self.grids.get(sender)
+        if grid is None or not (0 <= target_cell < len(grid)):
+            raise GameError('Invalid card.')
+        card = grid[target_cell]
+        self.action_seq += 1
+        self.last_queen = {'seq': self.action_seq, 'playerId': sender, 'cellIndex': target_cell, 'by': sender}
+        self._log('peekSelf', name=self.names[sender])
+        self._power_complete()
+        return card
+
+    def peek_other_select(self, sender, target_player, target_cell):
+        """Full-powers 9/10: peek at one of an opponent's cards."""
+        if self.turn_mode != 'peekOther' or sender != self.power_actor:
+            raise GameError('Not peeking right now.')
+        if target_player == sender:
+            raise GameError("Pick an opponent's card.")
+        if target_player not in self.grids or not (0 <= target_cell < len(self.grids[target_player])):
+            raise GameError('Invalid card.')
+        card = self.grids[target_player][target_cell]
+        self.action_seq += 1
+        self.last_queen = {'seq': self.action_seq, 'playerId': target_player, 'cellIndex': target_cell, 'by': sender}
+        self._log('peekOther', name=self.names[sender], target=self.names[target_player])
         self._power_complete()
         return card
 

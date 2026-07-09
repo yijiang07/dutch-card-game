@@ -192,7 +192,7 @@ def required_actor(game):
             return None
         # A pending power is resolved by its actor — usually the current player,
         # but a matcher (possibly off-turn) resolves a power they matched.
-        if game.turn_mode in ('jackSwap', 'queenPeek', 'aceGive') and game.power_actor:
+        if game.turn_mode in ('jackSwap', 'queenPeek', 'aceGive', 'peekSelf', 'peekOther') and game.power_actor:
             return game.power_actor
         return game.current_player()
     return None
@@ -224,6 +224,10 @@ def take_action(room, game, bot_id):
         _resolve_jack(room, game, bot_id, brain, diff, omni)
     elif tm == 'queenPeek':
         _resolve_queen(game, bot_id, brain, diff, omni)
+    elif tm == 'peekSelf':
+        _resolve_peek_self(room, game, bot_id, brain)
+    elif tm == 'peekOther':
+        _resolve_peek_other(room, game, bot_id, brain)
     elif tm == 'aceGive':
         _resolve_ace(game, bot_id, brain, diff, omni)
     elif tm == 'endOfTurn':
@@ -389,6 +393,37 @@ def _resolve_queen(game, bot_id, brain, diff, omni):
     card = game.queen_select(bot_id, target[0], target[1])
     if not omni and card is not None:
         brain.known[target] = card
+
+
+def _resolve_peek_self(room, game, bot_id, brain):
+    grid = game.grids[bot_id]
+    cell = 0
+    for i in range(len(grid)):
+        if (bot_id, i) not in brain.known:
+            cell = i
+            break
+    card = game.peek_self_select(bot_id, cell)
+    if card is not None:
+        record_private_peek(room, bot_id, bot_id, cell, card)
+
+
+def _resolve_peek_other(room, game, bot_id, brain):
+    opps = _opponents(game, bot_id)
+    target = None
+    for p in sorted(opps, key=lambda p: _est_total(brain, game, p, False)):
+        for i in range(len(game.grids[p])):
+            if (p, i) not in brain.known:
+                target = (p, i)
+                break
+        if target:
+            break
+    if target is None and opps:
+        target = (opps[0], 0)
+    if target is None:
+        return
+    card = game.peek_other_select(bot_id, target[0], target[1])
+    if card is not None:
+        record_private_peek(room, bot_id, target[0], target[1], card)
 
 
 def _resolve_ace(game, bot_id, brain, diff, omni):

@@ -89,7 +89,7 @@ class Room:
         self.stats_recorded = False
         self.series = {}          # player_id -> cumulative score across rounds
         self.rounds_played = 0
-        self.settings = {'cardsPer': 4, 'bufferSeconds': 2.5, 'matching': True, 'turnLimit': 30}
+        self.settings = {'cardsPer': 4, 'bufferSeconds': 2.5, 'matching': True, 'turnLimit': 30, 'powers': 'basic'}
         self.monitor_running = False
         self.deal_seq = 0         # bumps each new round so clients can deal-in cards
         self.ranked = False       # ranked 1v1: standard rules, no bots, Glicko-rated
@@ -816,6 +816,8 @@ async def handle_message(ws, ctx, data):
             room.settings['matching'] = bool(s['matching'])
         if 'turnLimit' in s:
             room.settings['turnLimit'] = max(0, min(120, int(s['turnLimit'])))
+        if 'powers' in s:
+            room.settings['powers'] = 'full' if s['powers'] == 'full' else 'basic'
         await broadcast_state(room)
         return
 
@@ -1008,6 +1010,26 @@ async def handle_message(ws, ctx, data):
         _bump(room, pid, 'powers')
         bots.record_private_peek(room, pid, target_player, target_cell, card)
         await send(ws, {'type': 'privateReveal', 'context': 'queen', 'card': card,
+                         'targetPlayerId': target_player, 'cellIndex': target_cell})
+        await broadcast_state(room)
+        return
+
+    if mtype == 'peekSelfSelect':
+        cell = int(data.get('cellIndex', -1))
+        card = game.peek_self_select(pid, cell)
+        _bump(room, pid, 'powers')
+        bots.record_private_peek(room, pid, pid, cell, card)
+        await send(ws, {'type': 'privateReveal', 'context': 'peek', 'card': card, 'cellIndex': cell})
+        await broadcast_state(room)
+        return
+
+    if mtype == 'peekOtherSelect':
+        target_player = data.get('targetPlayerId')
+        target_cell = int(data.get('targetCellIndex', -1))
+        card = game.peek_other_select(pid, target_player, target_cell)
+        _bump(room, pid, 'powers')
+        bots.record_private_peek(room, pid, target_player, target_cell, card)
+        await send(ws, {'type': 'privateReveal', 'context': 'peekOther', 'card': card,
                          'targetPlayerId': target_player, 'cellIndex': target_cell})
         await broadcast_state(room)
         return

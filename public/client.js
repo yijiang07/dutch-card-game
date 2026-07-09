@@ -178,6 +178,9 @@ const TRANSLATIONS = {
     finalMatch: 'Last chance to match!', finalMatchSub: 'Revealing scores…',
     histShed: 'Cards shed (matches)', histPowers: 'Powers used',
     tierBronze: 'Bronze', tierSilver: 'Silver', tierGold: 'Gold', tierPlatinum: 'Platinum', tierDiamond: 'Diamond', tierMaster: 'Master',
+    powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
+    peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
+    peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -279,6 +282,9 @@ const TRANSLATIONS = {
     finalMatch: '¡Última oportunidad para emparejar!', finalMatchSub: 'Revelando puntuaciones…',
     histShed: 'Cartas soltadas (emparejes)', histPowers: 'Poderes usados',
     tierBronze: 'Bronce', tierSilver: 'Plata', tierGold: 'Oro', tierPlatinum: 'Platino', tierDiamond: 'Diamante', tierMaster: 'Maestro',
+    powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
+    peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
+    peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -379,6 +385,9 @@ const TRANSLATIONS = {
     finalMatch: "Dernière chance d'associer !", finalMatchSub: 'Révélation des scores…',
     histShed: 'Cartes posées (associations)', histPowers: 'Pouvoirs utilisés',
     tierBronze: 'Bronze', tierSilver: 'Argent', tierGold: 'Or', tierPlatinum: 'Platine', tierDiamond: 'Diamant', tierMaster: 'Maître',
+    powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
+    peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
+    peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -479,6 +488,9 @@ const TRANSLATIONS = {
     finalMatch: 'Letzte Chance zum Ablegen!', finalMatchSub: 'Punkte werden aufgedeckt…',
     histShed: 'Abgelegte Karten', histPowers: 'Machtkarten genutzt',
     tierBronze: 'Bronze', tierSilver: 'Silber', tierGold: 'Gold', tierPlatinum: 'Platin', tierDiamond: 'Diamant', tierMaster: 'Meister',
+    powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
+    peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
+    peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -579,6 +591,9 @@ const TRANSLATIONS = {
     finalMatch: '最后的配对机会！', finalMatchSub: '正在亮出分数…',
     histShed: '打出的牌（配对）', histPowers: '使用的能力牌',
     tierBronze: '青铜', tierSilver: '白银', tierGold: '黄金', tierPlatinum: '铂金', tierDiamond: '钻石', tierMaster: '大师',
+    powerCards: '能力牌', powBasic: '基础', powFull: '完整',
+    peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
+    peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -610,6 +625,7 @@ const LOGT = {
     swap: '{name} swapped in {card}, discarded {old}.', dutch: '{name} called Dutch!',
     jack: '{name} used the Jack to blind-swap two cards.',
     queen: "{name} used the Queen to peek at {target}'s card.",
+    peekSelf: '{name} peeked at their own card.', peekOther: "{name} peeked at {target}'s card.",
     noGive: 'No cards left to give.', ace: '{name} used the Ace to give {target} a card.',
     matchExpired: 'Match window expired — play resumes.', autoplay: '{name} was {reason} — auto-playing their turn.',
   },
@@ -621,6 +637,7 @@ const LOGT = {
     swap: '{name} cambió por {card} y descartó {old}.', dutch: '¡{name} cantó Dutch!',
     jack: '{name} usó la Jota para cambiar dos cartas a ciegas.',
     queen: '{name} usó la Reina para mirar la carta de {target}.',
+    peekSelf: '{name} miró una de sus cartas.', peekOther: '{name} miró una carta de {target}.',
     noGive: 'No quedan cartas para dar.', ace: '{name} usó el As para dar una carta a {target}.',
     matchExpired: 'La ventana de emparejado terminó — se reanuda el juego.', autoplay: '{name} estaba {reason} — se juega su turno automáticamente.',
   },
@@ -632,6 +649,7 @@ const LOGT = {
     swap: '{name} a échangé pour {card} et défaussé {old}.', dutch: '{name} a annoncé Dutch !',
     jack: "{name} a utilisé le Valet pour échanger deux cartes à l'aveugle.",
     queen: '{name} a utilisé la Dame pour regarder la carte de {target}.',
+    peekSelf: '{name} a regardé une de ses cartes.', peekOther: '{name} a regardé une carte de {target}.',
     noGive: 'Plus de cartes à donner.', ace: "{name} a utilisé l'As pour donner une carte à {target}.",
     matchExpired: "La fenêtre d'association est terminée — le jeu reprend.", autoplay: '{name} était {reason} — son tour est joué automatiquement.',
   },
@@ -643,6 +661,7 @@ const LOGT = {
     swap: '{name} tauschte {card} ein und legte {old} ab.', dutch: '{name} hat Dutch angesagt!',
     jack: '{name} nutzte den Buben für einen Blindtausch zweier Karten.',
     queen: '{name} nutzte die Dame, um die Karte von {target} anzusehen.',
+    peekSelf: '{name} sah eine eigene Karte an.', peekOther: '{name} sah eine Karte von {target} an.',
     noGive: 'Keine Karten mehr zum Geben.', ace: '{name} nutzte das Ass, um {target} eine Karte zu geben.',
     matchExpired: 'Das Ablege-Fenster ist abgelaufen — das Spiel geht weiter.', autoplay: '{name} war {reason} — der Zug wird automatisch gespielt.',
   },
@@ -654,6 +673,7 @@ const LOGT = {
     swap: '{name} 换入 {card}，弃掉 {old}。', dutch: '{name} 喊了 Dutch！',
     jack: '{name} 使用 J 盲换了两张牌。',
     queen: '{name} 使用 Q 偷看了 {target} 的一张牌。',
+    peekSelf: '{name} 查看了自己的一张牌。', peekOther: '{name} 查看了 {target} 的一张牌。',
     noGive: '没有牌可以给了。', ace: '{name} 使用 A 给了 {target} 一张牌。',
     matchExpired: '配对窗口已结束 —— 游戏继续。', autoplay: '{name} {reason} —— 自动完成其回合。',
   },
@@ -970,7 +990,9 @@ function showToast(message, isError) {
 function showRevealModal(data) {
   const root = document.getElementById('modal-root');
   root.innerHTML = '';
-  const title = data.context === 'peek' ? t('yourPeek') : t('queensPeek');
+  const title = data.context === 'peek' ? t('yourPeek')
+    : data.context === 'peekOther' ? t('opponentPeek')
+    : t('queensPeek');
   const box = el(`<div class="overlay">
     <div class="overlay-box">
       <h2>${escapeHtml(title)}</h2>
@@ -2095,8 +2117,9 @@ function renderSettings(state, isHost) {
   if (!isHost) {
     const lim = s.turnLimit ? t('turnLimitVal', { n: s.turnLimit }) : t('noTurnLimit');
     const summary = t('rulesSummary', { cards: s.cardsPer, win: s.bufferSeconds, matching: s.matching ? t('optOn') : t('optOff'), limit: lim });
+    const powers = `${t('powerCards')}: ${s.powers === 'full' ? t('powFull') : t('powBasic')}`;
     return el(`<div class="settings-box"><div class="section-label" style="text-align:center;">${t('houseRules')}</div>
-      <div class="help-text" style="text-align:center;">${escapeHtml(summary)}</div></div>`);
+      <div class="help-text" style="text-align:center;">${escapeHtml(summary)} · ${escapeHtml(powers)}</div></div>`);
   }
   const box = el(`<div class="settings-box"><div class="section-label" style="text-align:center;">${t('houseRules')}</div></div>`);
   const set = (patch) => sendMsg({ type: 'setSettings', settings: patch });
@@ -2117,6 +2140,7 @@ function renderSettings(state, isHost) {
   box.appendChild(group(t('matchWindowLbl'), [[0, OFF], [1.5, '1.5s'], [2.5, '2.5s'], [4, '4s']], s.bufferSeconds, 'bufferSeconds'));
   box.appendChild(group(t('matchingLbl'), [[true, ON], [false, OFF]], s.matching, 'matching'));
   box.appendChild(group(t('turnLimitLbl'), [[0, OFF], [15, '15s'], [30, '30s'], [45, '45s']], s.turnLimit, 'turnLimit'));
+  box.appendChild(group(t('powerCards'), [['basic', t('powBasic')], ['full', t('powFull')]], s.powers || 'basic', 'powers'));
   return box;
 }
 
@@ -2355,12 +2379,14 @@ function turnBannerInfo(state) {
   }
   const cur = state.currentPlayerId;
   // A power matched off-turn is resolved by the matcher, not the current player.
-  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive', 'peekSelf', 'peekOther'].includes(state.turnMode);
   if (powerMode && state.powerActorId && state.powerActorId !== cur) {
     const pa = state.powerActorId;
     const paMine = pa === me;
     const promptKey = state.turnMode === 'jackSwap' ? (state.jackFirst ? 'jackSecondMsg' : 'jackFirstMsg')
-      : state.turnMode === 'queenPeek' ? 'queenPickMsg' : 'aceChooseMsg';
+      : state.turnMode === 'queenPeek' ? 'queenPickMsg'
+      : state.turnMode === 'peekSelf' ? 'peekSelfMsg'
+      : state.turnMode === 'peekOther' ? 'peekOtherMsg' : 'aceChooseMsg';
     return {
       headline: paMine ? t('powerYours') : t('powerOther', { name: nameOf(state, pa) }),
       sub: paMine ? t(promptKey) : '', mine: paMine,
@@ -2372,6 +2398,8 @@ function turnBannerInfo(state) {
   if (state.finalRound) subParts.push(t('finalRound', { name: nameOf(state, state.dutchCallerId), n: state.finalRoundRemaining }));
   if (state.turnMode === 'jackSwap') subParts.push(mine ? (state.jackFirst ? t('jackSecondMsg') : t('jackFirstMsg')) : t('jackResolving'));
   else if (state.turnMode === 'queenPeek') subParts.push(mine ? t('queenPickMsg') : t('queenResolving'));
+  else if (state.turnMode === 'peekSelf') subParts.push(mine ? t('peekSelfMsg') : t('peekResolving'));
+  else if (state.turnMode === 'peekOther') subParts.push(mine ? t('peekOtherMsg') : t('peekResolving'));
   else if (state.turnMode === 'aceGive') subParts.push(mine ? t('aceChooseMsg') : t('aceResolving'));
   else if (state.turnMode === 'endOfTurn') subParts.push(mine ? t('endOrDutch') : t('xFinishing', { name: nameOf(state, cur) }));
   return { headline, sub: subParts.join(' · '), mine };
@@ -2395,7 +2423,7 @@ function cellClickHandler(state, playerId, cellIndex) {
   }
   if (state.phase !== 'playing') return null;
   // For a pending power, the actor is the matcher (maybe off-turn); otherwise the current player.
-  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive', 'peekSelf', 'peekOther'].includes(state.turnMode);
   const actingPlayer = powerMode && state.powerActorId ? state.powerActorId : state.currentPlayerId;
   if (actingPlayer !== me) return null;
   if (state.turnMode === 'awaitingAction') {
@@ -2409,6 +2437,14 @@ function cellClickHandler(state, playerId, cellIndex) {
   }
   if (state.turnMode === 'queenPeek') {
     return () => sendMsg({ type: 'queenSelect', targetPlayerId: playerId, targetCellIndex: cellIndex });
+  }
+  if (state.turnMode === 'peekSelf') {          // 7/8 — only your own cards
+    if (playerId !== me) return null;
+    return () => sendMsg({ type: 'peekSelfSelect', cellIndex });
+  }
+  if (state.turnMode === 'peekOther') {         // 9/10 — only opponents' cards
+    if (playerId === me) return null;
+    return () => sendMsg({ type: 'peekOtherSelect', targetPlayerId: playerId, targetCellIndex: cellIndex });
   }
   return null;
 }
@@ -2463,7 +2499,7 @@ function renderActionBar(state) {
   }
 
   // A matched power is resolved by its (possibly off-turn) actor; otherwise the current player acts.
-  const powerMode = ['jackSwap', 'queenPeek', 'aceGive'].includes(state.turnMode);
+  const powerMode = ['jackSwap', 'queenPeek', 'aceGive', 'peekSelf', 'peekOther'].includes(state.turnMode);
   const actingPlayer = powerMode && state.powerActorId ? state.powerActorId : state.currentPlayerId;
   if (actingPlayer !== me) {
     bar.appendChild(el(`<span class="help-text">${escapeHtml(t('waitingForX', { name: nameOf(state, actingPlayer) }))}</span>`));
@@ -2511,6 +2547,14 @@ function renderActionBar(state) {
   }
   if (state.turnMode === 'queenPeek') {
     bar.appendChild(el(`<span class="help-text">${escapeHtml(t('queenClickAny'))}</span>`));
+    return bar;
+  }
+  if (state.turnMode === 'peekSelf') {
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('peekSelfMsg'))}</span>`));
+    return bar;
+  }
+  if (state.turnMode === 'peekOther') {
+    bar.appendChild(el(`<span class="help-text">${escapeHtml(t('peekOtherMsg'))}</span>`));
     return bar;
   }
   if (state.turnMode === 'aceGive') {
