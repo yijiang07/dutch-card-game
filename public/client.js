@@ -177,6 +177,7 @@ const TRANSLATIONS = {
     liveGames: 'Live games — tap to join',
     finalMatch: 'Last chance to match!', finalMatchSub: 'Revealing scores…',
     histShed: 'Cards shed (matches)', histPowers: 'Powers used',
+    tierBronze: 'Bronze', tierSilver: 'Silver', tierGold: 'Gold', tierPlatinum: 'Platinum', tierDiamond: 'Diamond', tierMaster: 'Master',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -277,6 +278,7 @@ const TRANSLATIONS = {
     liveGames: 'Partidas en vivo — toca para unirte',
     finalMatch: '¡Última oportunidad para emparejar!', finalMatchSub: 'Revelando puntuaciones…',
     histShed: 'Cartas soltadas (emparejes)', histPowers: 'Poderes usados',
+    tierBronze: 'Bronce', tierSilver: 'Plata', tierGold: 'Oro', tierPlatinum: 'Platino', tierDiamond: 'Diamante', tierMaster: 'Maestro',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -376,6 +378,7 @@ const TRANSLATIONS = {
     liveGames: 'Parties en direct — touchez pour rejoindre',
     finalMatch: "Dernière chance d'associer !", finalMatchSub: 'Révélation des scores…',
     histShed: 'Cartes posées (associations)', histPowers: 'Pouvoirs utilisés',
+    tierBronze: 'Bronze', tierSilver: 'Argent', tierGold: 'Or', tierPlatinum: 'Platine', tierDiamond: 'Diamant', tierMaster: 'Maître',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -475,6 +478,7 @@ const TRANSLATIONS = {
     liveGames: 'Live-Spiele — zum Beitreten tippen',
     finalMatch: 'Letzte Chance zum Ablegen!', finalMatchSub: 'Punkte werden aufgedeckt…',
     histShed: 'Abgelegte Karten', histPowers: 'Machtkarten genutzt',
+    tierBronze: 'Bronze', tierSilver: 'Silber', tierGold: 'Gold', tierPlatinum: 'Platin', tierDiamond: 'Diamant', tierMaster: 'Meister',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -574,6 +578,7 @@ const TRANSLATIONS = {
     liveGames: '进行中的对局 —— 点击加入',
     finalMatch: '最后的配对机会！', finalMatchSub: '正在亮出分数…',
     histShed: '打出的牌（配对）', histPowers: '使用的能力牌',
+    tierBronze: '青铜', tierSilver: '白银', tierGold: '黄金', tierPlatinum: '铂金', tierDiamond: '钻石', tierMaster: '大师',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -890,6 +895,21 @@ function escapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str == null ? '' : String(str);
   return d.innerHTML;
+}
+
+// Glicko rating -> visible rank tier (only for players who've played ranked).
+const RANK_TIERS = [
+  { min: 2000, key: 'tierMaster', cls: 'master', icon: '👑' },
+  { min: 1850, key: 'tierDiamond', cls: 'diamond', icon: '💎' },
+  { min: 1700, key: 'tierPlatinum', cls: 'platinum', icon: '🛡️' },
+  { min: 1550, key: 'tierGold', cls: 'gold', icon: '🥇' },
+  { min: 1400, key: 'tierSilver', cls: 'silver', icon: '🥈' },
+  { min: -Infinity, key: 'tierBronze', cls: 'bronze', icon: '🥉' },
+];
+function tierBadge(rating) {
+  if (rating == null) return '';
+  const tier = RANK_TIERS.find((x) => rating >= x.min);
+  return `<span class="tier-badge ${tier.cls}">${tier.icon} ${escapeHtml(t(tier.key))}</span>`;
 }
 
 // Localized "3h ago" / "hace 3 h" / "3小时前" from an epoch-seconds timestamp.
@@ -1308,7 +1328,7 @@ function renderLeaderboard() {
     drawer.appendChild(el(`<div class="my-stats">
       <div class="section-label">${escapeHtml(t('yourStats'))}</div>
       <div class="row wrap" style="gap:14px; margin-top:6px;">
-        <span>${escapeHtml(t('statRating'))} <strong>${s.rating == null ? escapeHtml(t('unranked')) : s.rating}</strong></span>
+        <span>${escapeHtml(t('statRating'))} <strong>${s.rating == null ? escapeHtml(t('unranked')) : s.rating}</strong> ${tierBadge(s.rating)}</span>
         ${s.ranked_games ? `<span>${escapeHtml(t('statRanked'))} <strong>${s.ranked_wins}–${s.ranked_games - s.ranked_wins}</strong></span>` : ''}
         ${s.rank ? `<span>${escapeHtml(t('statRank'))} <strong>#${s.rank}</strong></span>` : ''}
         <span><strong>${s.wins}</strong> ${escapeHtml(t('statWins'))}</span>
@@ -1364,10 +1384,12 @@ function renderLeaderboard() {
   board.forEach((r, i) => {
     const mine = leaderboardData.myUsername && r.username === leaderboardData.myUsername;
     const record = r.ranked_games ? `${r.ranked_wins}–${r.ranked_games - r.ranked_wins}` : '—';
+    const tier = r.rating == null ? null : RANK_TIERS.find((x) => r.rating >= x.min);
+    const ratingCell = tier ? `${tier.icon} ${r.rating}` : '—';
     const row = el(`<div class="lb-row ${mine ? 'me' : ''}">
       <span class="lb-rank">${i + 1}</span>
       <span class="grow">${escapeHtml(r.username)}</span>
-      <span class="lb-num lb-rating">${r.rating == null ? '—' : r.rating}</span>
+      <span class="lb-num lb-rating" title="${tier ? escapeHtml(t(tier.key)) : ''}">${ratingCell}</span>
       <span class="lb-num">${record}</span>
     </div>`);
     table.appendChild(row);
@@ -1997,6 +2019,7 @@ function renderLanding() {
         </div>
       </div>
     </div>
+    <div class="landing-footer"><a href="/rules.html">${escapeHtml(t('howToPlay'))}</a></div>
   </div>`);
 
   const prof = loadProfile();

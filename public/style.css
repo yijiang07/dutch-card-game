@@ -1506,6 +1506,26 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .rating-change .rating-new { color: var(--ink-dim); font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .lb-rating { color: var(--champagne); font-weight: 700; }
 
+/* ---- Landing footer ---- */
+.landing-footer { text-align: center; margin-top: 18px; }
+.landing-footer a { color: var(--ink-dim); font-size: 0.82rem; text-decoration: none; letter-spacing: 0.02em; }
+.landing-footer a:hover { color: var(--gold); }
+
+/* ---- Rank tiers ---- */
+.tier-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.03em;
+  border: 1px solid var(--panel-border); background: rgba(255,255,255,0.06);
+  vertical-align: middle;
+}
+.tier-badge.bronze { color: #d8a06a; border-color: rgba(216,160,106,0.4); }
+.tier-badge.silver { color: #cfd6dd; border-color: rgba(207,214,221,0.4); }
+.tier-badge.gold { color: #e7c25a; border-color: rgba(231,194,90,0.45); }
+.tier-badge.platinum { color: #8fe3d0; border-color: rgba(143,227,208,0.4); }
+.tier-badge.diamond { color: #8fd0ff; border-color: rgba(143,208,255,0.45); }
+.tier-badge.master { color: #f6b3ff; border-color: rgba(246,179,255,0.45); }
+
 /* ---- Public games list (landing) ---- */
 .public-games {
   width: 100%; max-width: 420px; margin: 0 0 20px;
