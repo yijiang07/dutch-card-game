@@ -90,7 +90,7 @@ const TRANSLATIONS = {
     joinTitle: 'Join a Game', joinSub: 'Enter the code someone shared with you.',
     yourName: 'Your name', createGame: 'Create Game', joinGame: 'Join Game', codePlaceholder: 'CODE',
     flip: 'Flip from Deck', swap: 'Swap with Discard', match: 'Match', endTurn: 'End Turn',
-    callDutch: 'Call Dutch', playAgain: 'Play Again', startGame: 'Start Game', leave: 'Leave',
+    callDutch: 'Call Dutch', playAgain: 'Play Again', newMatch: 'New match', startGame: 'Start Game', leave: 'Leave',
     leaveRoom: 'Leave room', friends: 'Friends', chat: 'Chat', chatEmpty: 'No messages yet. Say hi!',
     chatPlaceholder: 'Message…', send: 'Send', howToPlay: 'How to play', yourTurn: 'Your turn',
     chooseLanguage: 'Choose your language', language: 'Language',
@@ -205,7 +205,7 @@ const TRANSLATIONS = {
     joinTitle: 'Unirse a una partida', joinSub: 'Introduce el código que te compartieron.',
     yourName: 'Tu nombre', createGame: 'Crear partida', joinGame: 'Unirse', codePlaceholder: 'CÓDIGO',
     flip: 'Robar del mazo', swap: 'Cambiar con el descarte', match: 'Emparejar', endTurn: 'Terminar turno',
-    callDutch: 'Cantar Dutch', playAgain: 'Jugar de nuevo', startGame: 'Empezar', leave: 'Salir',
+    callDutch: 'Cantar Dutch', playAgain: 'Jugar de nuevo', newMatch: 'Nueva partida', startGame: 'Empezar', leave: 'Salir',
     leaveRoom: 'Salir de la sala', friends: 'Amigos', chat: 'Chat', chatEmpty: 'Aún no hay mensajes. ¡Saluda!',
     chatPlaceholder: 'Mensaje…', send: 'Enviar', howToPlay: 'Cómo jugar', yourTurn: 'Tu turno',
     chooseLanguage: 'Elige tu idioma', language: 'Idioma',
@@ -305,7 +305,7 @@ const TRANSLATIONS = {
     joinTitle: 'Rejoindre une partie', joinSub: "Entrez le code qu'on vous a partagé.",
     yourName: 'Votre nom', createGame: 'Créer', joinGame: 'Rejoindre', codePlaceholder: 'CODE',
     flip: 'Piocher', swap: 'Échanger avec la défausse', match: 'Associer', endTurn: 'Finir le tour',
-    callDutch: 'Annoncer Dutch', playAgain: 'Rejouer', startGame: 'Commencer', leave: 'Quitter',
+    callDutch: 'Annoncer Dutch', playAgain: 'Rejouer', newMatch: 'Nouveau match', startGame: 'Commencer', leave: 'Quitter',
     leaveRoom: 'Quitter la salle', friends: 'Amis', chat: 'Chat', chatEmpty: 'Aucun message. Dites bonjour !',
     chatPlaceholder: 'Message…', send: 'Envoyer', howToPlay: 'Comment jouer', yourTurn: 'Votre tour',
     chooseLanguage: 'Choisissez votre langue', language: 'Langue',
@@ -405,7 +405,7 @@ const TRANSLATIONS = {
     joinTitle: 'Spiel beitreten', joinSub: 'Gib den geteilten Code ein.',
     yourName: 'Dein Name', createGame: 'Erstellen', joinGame: 'Beitreten', codePlaceholder: 'CODE',
     flip: 'Vom Stapel ziehen', swap: 'Mit Ablage tauschen', match: 'Ablegen', endTurn: 'Zug beenden',
-    callDutch: 'Dutch ansagen', playAgain: 'Nochmal spielen', startGame: 'Starten', leave: 'Verlassen',
+    callDutch: 'Dutch ansagen', playAgain: 'Nochmal spielen', newMatch: 'Neues Match', startGame: 'Starten', leave: 'Verlassen',
     leaveRoom: 'Raum verlassen', friends: 'Freunde', chat: 'Chat', chatEmpty: 'Noch keine Nachrichten. Sag Hallo!',
     chatPlaceholder: 'Nachricht…', send: 'Senden', howToPlay: 'Spielanleitung', yourTurn: 'Du bist dran',
     chooseLanguage: 'Wähle deine Sprache', language: 'Sprache',
@@ -505,7 +505,7 @@ const TRANSLATIONS = {
     joinTitle: '加入游戏', joinSub: '输入别人分享给你的房间码。',
     yourName: '你的名字', createGame: '创建游戏', joinGame: '加入游戏', codePlaceholder: '房间码',
     flip: '从牌堆抽牌', swap: '与弃牌交换', match: '配对', endTurn: '结束回合',
-    callDutch: '喊 Dutch', playAgain: '再玩一局', startGame: '开始游戏', leave: '离开',
+    callDutch: '喊 Dutch', playAgain: '再玩一局', newMatch: '新的一局', startGame: '开始游戏', leave: '离开',
     leaveRoom: '离开房间', friends: '好友', chat: '聊天', chatEmpty: '还没有消息，打个招呼吧！',
     chatPlaceholder: '输入消息…', send: '发送', howToPlay: '玩法说明', yourTurn: '轮到你了',
     chooseLanguage: '选择你的语言', language: '语言',
@@ -2546,7 +2546,8 @@ function renderReveal(state) {
     <div id="series-standings"></div>
     <div class="row center" style="margin-top:20px;">
       ${isHost
-        ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">${t('playAgain')}</button>`
+        ? `<button class="btn-gold" id="play-again-btn" style="font-size:1.05rem; padding:14px 30px;">${t('playAgain')}</button>
+           ${(state.roundsPlayed > 1 && !state.ranked) ? `<button class="btn-ghost" id="new-match-btn" style="padding:14px 22px;">${escapeHtml(t('newMatch'))}</button>` : ''}`
         : `<span class="help-text">${escapeHtml(t('waitingNewRound'))}</span>`}
     </div>
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
@@ -2596,6 +2597,8 @@ function renderReveal(state) {
 
   if (isHost) {
     wrap.querySelector('#play-again-btn').onclick = () => sendMsg({ type: 'playAgain' });
+    const nm = wrap.querySelector('#new-match-btn');
+    if (nm) nm.onclick = () => sendMsg({ type: 'playAgain', reset: true });
   }
   return wrap;
 }

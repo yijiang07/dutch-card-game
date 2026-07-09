@@ -6,6 +6,7 @@ import secrets
 import smtplib
 import string
 import time
+import traceback
 from email.message import EmailMessage
 
 from aiohttp import web, WSMsgType
@@ -498,6 +499,11 @@ async def ws_handler(request):
                 await handle_message(ws, ctx, data)
             except (GameError, ValueError) as e:
                 await send(ws, {'type': 'errorMsg', 'message': str(e)})
+            except Exception:
+                # Log unexpected errors (visible in Render logs) and keep the
+                # connection alive instead of silently dropping it.
+                print('[error] handling %r:\n%s' % (data.get('type'), traceback.format_exc()), flush=True)
+                await send(ws, {'type': 'errorMsg', 'message': 'Something went wrong. Please try again.'})
             room = rooms.get(ctx['code'])
             if room:
                 schedule_bots(room)
@@ -882,6 +888,9 @@ async def handle_message(ws, ctx, data):
             raise GameError('Only the host can start a new round.')
         if room.game is None or room.game.phase != 'reveal':
             raise GameError('Round is not over yet.')
+        if data.get('reset'):                 # "New match" — clear the running standings
+            room.series = {}
+            room.rounds_played = 0
         names = {p_id: p['name'] for p_id, p in room.players.items()}
         room.game = Game(list(room.players.keys()), names, room.settings)
         room.stats_recorded = False
