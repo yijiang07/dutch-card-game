@@ -559,6 +559,17 @@ async def handle_message(ws, ctx, data):
                         'myUsername': me['username'] if me else None, 'history': history})
         return
 
+    if mtype == 'getPublicRooms':
+        # Every casual lobby that hasn't started and has room is publicly joinable.
+        out = []
+        for c, r in rooms.items():
+            if r.game is None and not r.ranked and 0 < len(r.players) < 8:
+                host = (r.players.get(r.host_id) or {}).get('name') or 'Host'
+                out.append({'code': c, 'host': host, 'players': len(r.players), 'max': 8})
+        out.sort(key=lambda x: x['players'], reverse=True)
+        await send(ws, {'type': 'publicRooms', 'rooms': out})
+        return
+
     if mtype == 'friendRequest':
         user = ctx.get('user')
         if not user:

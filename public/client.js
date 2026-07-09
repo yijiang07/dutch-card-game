@@ -39,6 +39,8 @@ let chatOpen = false;
 let chatLog = [];
 let chatUnread = 0;
 let lastRankedUpdate = null;  // {rating, delta, won} for the most recent ranked round, shown on reveal
+let publicRooms = [];         // joinable casual lobbies, shown on the landing
+let publicRoomsTimer = null;
 
 // Briefly reveal which card a player just swapped in from the discard pile.
 let recentSwap = null;
@@ -172,6 +174,7 @@ const TRANSLATIONS = {
     authCta: 'Log in / Sign up', authCtaSub: 'Save your stats, add friends & play ranked.',
     powerYours: 'Matched power — your move!', powerOther: '{name} is using a matched power…',
     recentGames: 'Recent games', noHistory: 'No games yet — play a round!',
+    liveGames: 'Live games — tap to join',
     // tutorial
     tutStep: 'Step {n} of {total}', tutBack: 'Back', tutNext: 'Next', tutPlay: "Let's play", tutClose: 'Close',
     tutTitle1: 'Welcome to Dutch',
@@ -269,6 +272,7 @@ const TRANSLATIONS = {
     authCta: 'Entrar / Registrarse', authCtaSub: 'Guarda tus estadísticas, añade amigos y juega clasificatorias.',
     powerYours: 'Poder emparejado — ¡te toca!', powerOther: '{name} está usando un poder emparejado…',
     recentGames: 'Partidas recientes', noHistory: 'Aún no hay partidas — ¡juega una ronda!',
+    liveGames: 'Partidas en vivo — toca para unirte',
     tutStep: 'Paso {n} de {total}', tutBack: 'Atrás', tutNext: 'Siguiente', tutPlay: '¡A jugar!', tutClose: 'Cerrar',
     tutTitle1: 'Bienvenido a Dutch',
     tutBody1: 'Cada jugador recibe una fila de cartas boca abajo. El objetivo es simple: tener la <strong>puntuación total más baja</strong> cuando alguien cante “Dutch”. Cartas bajas bien, cartas altas mal — y la memoria importa.',
@@ -365,6 +369,7 @@ const TRANSLATIONS = {
     authCta: 'Connexion / Inscription', authCtaSub: 'Enregistrez vos stats, ajoutez des amis et jouez en classé.',
     powerYours: 'Pouvoir associé — à vous !', powerOther: '{name} utilise un pouvoir associé…',
     recentGames: 'Parties récentes', noHistory: 'Aucune partie — jouez une manche !',
+    liveGames: 'Parties en direct — touchez pour rejoindre',
     tutStep: 'Étape {n} sur {total}', tutBack: 'Retour', tutNext: 'Suivant', tutPlay: 'Jouons', tutClose: 'Fermer',
     tutTitle1: 'Bienvenue dans Dutch',
     tutBody1: "Chacun reçoit une rangée de cartes face cachée. Le but est simple : avoir le <strong>score total le plus bas</strong> quand quelqu'un annonce « Dutch ». Cartes basses = bien, cartes hautes = mal — et la mémoire compte.",
@@ -461,6 +466,7 @@ const TRANSLATIONS = {
     authCta: 'Anmelden / Registrieren', authCtaSub: 'Statistiken speichern, Freunde hinzufügen, ranked spielen.',
     powerYours: 'Abgelegte Machtkarte — du bist dran!', powerOther: '{name} nutzt eine abgelegte Machtkarte…',
     recentGames: 'Letzte Spiele', noHistory: 'Noch keine Spiele — spiel eine Runde!',
+    liveGames: 'Live-Spiele — zum Beitreten tippen',
     tutStep: 'Schritt {n} von {total}', tutBack: 'Zurück', tutNext: 'Weiter', tutPlay: 'Los geht’s', tutClose: 'Schließen',
     tutTitle1: 'Willkommen bei Dutch',
     tutBody1: 'Jeder erhält eine Reihe verdeckter Karten. Das Ziel ist einfach: die <strong>niedrigste Gesamtpunktzahl</strong> haben, wenn jemand „Dutch“ ansagt. Niedrige Karten gut, hohe Karten schlecht — und Gedächtnis zählt.',
@@ -557,6 +563,7 @@ const TRANSLATIONS = {
     authCta: '登录 / 注册', authCtaSub: '保存战绩、添加好友、畅玩排位。',
     powerYours: '配对能力牌 — 该你了！', powerOther: '{name} 正在使用配对的能力牌…',
     recentGames: '最近对局', noHistory: '还没有对局 —— 来玩一局吧！',
+    liveGames: '进行中的对局 —— 点击加入',
     tutStep: '第 {n} / {total} 步', tutBack: '上一步', tutNext: '下一步', tutPlay: '开始游戏', tutClose: '关闭',
     tutTitle1: '欢迎来到 Dutch',
     tutBody1: '每位玩家都会得到一排背面朝上的牌。目标很简单：当有人喊出“Dutch”时，拥有<strong>最低的总分</strong>。小牌好、大牌差 —— 而记忆力很关键。',
@@ -825,6 +832,10 @@ function handleServerMessage(data) {
     lastRankedUpdate = { rating: data.rating, delta: data.delta, won: data.won };
     const sign = data.delta > 0 ? '+' : '';
     showToast(t('ratingToast', { rating: data.rating, delta: sign + data.delta }));
+  } else if (data.type === 'publicRooms') {
+    publicRooms = data.rooms || [];
+    if (!latestState) render();  // only the landing shows this list
+    return;
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
     if (leaderboardOpen) renderLeaderboardRoot();
@@ -1345,6 +1356,17 @@ function renderLeaderboard() {
   });
   drawer.appendChild(table);
   return overlay;
+}
+
+function startPublicRoomsPoll() {
+  if (publicRoomsTimer) return;              // already polling
+  if (wsOpen) sendMsg({ type: 'getPublicRooms' });
+  publicRoomsTimer = setInterval(() => {
+    if (!latestState && wsOpen) sendMsg({ type: 'getPublicRooms' });
+  }, 5000);
+}
+function stopPublicRoomsPoll() {
+  if (publicRoomsTimer) { clearInterval(publicRoomsTimer); publicRoomsTimer = null; }
 }
 
 function openTutorial() {
@@ -1893,6 +1915,7 @@ function render() {
   if (onLanding || inLobby) { app.appendChild(helpFab()); app.appendChild(langFab()); }
   if (latestState && latestState.code) { app.appendChild(emoteFab()); app.appendChild(chatFab()); }
   else { document.getElementById('emote-picker')?.remove(); }  // clear a stale picker after leaving a game
+  if (onLanding) startPublicRoomsPoll(); else stopPublicRoomsPoll();
   refreshFriendsPanel();
 
   // First-time players: auto-open the tutorial once on the landing screen.
@@ -1929,6 +1952,14 @@ function renderLanding() {
       ? `<button class="account-cta signed" id="account-cta">👤 ${escapeHtml(t('signedInAs'))} <strong>${escapeHtml(a.username)}</strong></button>`
       : `<button class="account-cta" id="account-cta"><span class="account-cta-main">👤 ${escapeHtml(t('authCta'))}</span><span class="account-cta-sub">${escapeHtml(t('authCtaSub'))}</span></button>`; })()}
     <div class="ranked-cta"><button class="btn-blue" id="ranked-btn">⚔️ ${escapeHtml(t('ranked1v1'))}</button></div>
+    ${publicRooms.length ? `<div class="public-games">
+      <div class="pg-head">🎲 ${escapeHtml(t('liveGames'))}</div>
+      <div class="pg-list">${publicRooms.map((r) => `
+        <div class="pg-row">
+          <span class="pg-info">${escapeHtml(r.host)} · ${r.players}/${r.max}</span>
+          <button class="btn-blue pg-join" data-code="${escapeHtml(r.code)}">${escapeHtml(t('joinBtn'))}</button>
+        </div>`).join('')}</div>
+    </div>` : ''}
     <div class="landing-cards">
       <div class="card-panel">
         <h2>${escapeHtml(t('createTitle'))}</h2>
@@ -1995,6 +2026,16 @@ function renderLanding() {
     saveLastName(name);
     sendMsg({ type: 'joinRoom', name, code });
   };
+  wrap.querySelectorAll('.pg-join').forEach((b) => {
+    b.onclick = () => {
+      const nameField = wrap.querySelector('#create-name');
+      const p = loadProfile();
+      const name = (nameField.value || '').trim() || (p && p.username) || loadLastName();
+      if (!name) { showToast(t('enterName'), true); nameField.focus(); return; }
+      saveLastName(name);
+      sendMsg({ type: 'joinRoom', name, code: b.dataset.code });
+    };
+  });
   wrap.querySelectorAll('input').forEach((inp) => {
     inp.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
