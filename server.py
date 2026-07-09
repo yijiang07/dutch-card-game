@@ -34,6 +34,23 @@ EMAIL_ENABLED = bool(SMTP_HOST and SMTP_FROM and APP_BASE_URL)
 # user_id -> set of live websockets for that signed-in user (presence)
 ONLINE = {}
 
+# ---- abuse guards ----
+CHAT_WINDOW, CHAT_MAX = 6.0, 6      # max chat messages per window, per connection
+AUTH_WINDOW, AUTH_MAX = 300.0, 12   # max auth attempts per window, per IP (brute-force / spam guard)
+_auth_hits = {}                     # ip -> [timestamps]
+
+
+def _check_auth_rate(ip):
+    now = time.time()
+    q = _auth_hits.setdefault(ip or '?', [])
+    q[:] = [t for t in q if now - t < AUTH_WINDOW]
+    if len(q) >= AUTH_MAX:
+        raise GameError('Too many attempts — please wait a minute and try again.')
+    q.append(now)
+    if len(_auth_hits) > 5000:       # crude cap so the dict can't grow unbounded
+        for k in [k for k, v in _auth_hits.items() if not v or now - v[-1] > AUTH_WINDOW]:
+            _auth_hits.pop(k, None)
+
 
 def _send_email_sync(to_addr, subject, body):
     msg = EmailMessage()
@@ -350,7 +367,7 @@ def _idle_limit(room, game, actor):
     if p.get('is_bot'):
         return bot_backstop
     if not p.get('connected'):
-        return max(5, BOT_DELAY + 2)          # disconnected human — short grace
+        return max(25, BOT_DELAY + 2)         # disconnected human — grace to reconnect & rejoin
     if game.turn_limit:
         return max(game.turn_limit, BOT_DELAY + 2)  # never faster than a bot moves
     return bot_backstop                        # limit "off": still backstop a truly stuck seat
@@ -465,7 +482,9 @@ async def handle_index(request):
 async def ws_handler(request):
     ws = web.WebSocketResponse(heartbeat=25)
     await ws.prepare(request)
-    ctx = {'code': None, 'player_id': None, 'user': None}
+    xff = request.headers.get('X-Forwarded-For')
+    ip = xff.split(',')[0].strip() if xff else request.remote
+    ctx = {'code': None, 'player_id': None, 'user': None, 'ip': ip, 'chat_times': []}
 
     try:
         async for msg in ws:
@@ -510,6 +529,7 @@ async def handle_message(ws, ctx, data):
     if mtype == 'signup':
         if ctx.get('user'):
             raise GameError('You are already signed in.')
+        _check_auth_rate(ctx.get('ip'))
         created = storage.create_user(data.get('username'), data.get('password') or '',
                                       data.get('email'), data.get('lang'))
         secret = storage.create_session(created['id'])
@@ -527,6 +547,7 @@ async def handle_message(ws, ctx, data):
     if mtype == 'login':
         if ctx.get('user'):
             raise GameError('You are already signed in.')
+        _check_auth_rate(ctx.get('ip'))
         user = storage.verify_password(data.get('username'), data.get('password') or '')
         if not user:
             raise GameError('Wrong username or password.')
@@ -537,6 +558,7 @@ async def handle_message(ws, ctx, data):
     if mtype == 'recover':
         if ctx.get('user'):
             raise GameError('You are already signed in.')
+        _check_auth_rate(ctx.get('ip'))
         user = storage.verify_recovery(data.get('username'), data.get('code') or '')
         if not user:
             raise GameError('Wrong username or recovery code.')
@@ -803,6 +825,12 @@ async def handle_message(ws, ctx, data):
     if mtype == 'chat':
         text = (data.get('text') or '').strip()[:200]
         if text:
+            now = time.time()
+            ct = ctx['chat_times']
+            ct[:] = [t for t in ct if now - t < CHAT_WINDOW]
+            if len(ct) >= CHAT_MAX:
+                raise GameError('You are sending messages too fast — slow down a moment.')
+            ct.append(now)
             payload = {'type': 'chat', 'playerId': pid, 'name': room.players[pid]['name'], 'text': text}
             for other in room.players.values():
                 if other.get('ws') is not None:
