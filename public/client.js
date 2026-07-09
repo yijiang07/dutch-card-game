@@ -688,6 +688,7 @@ const REASONS = {
 function loadLang() { try { return localStorage.getItem('dutchLang') || ''; } catch (e) { return ''; } }
 function saveLang(l) { try { localStorage.setItem('dutchLang', l); } catch (e) {} }
 let lang = loadLang() || 'en';
+try { document.documentElement.lang = lang; } catch (e) {}
 function t(key, params) {
   let s = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
   if (params) for (const k in params) s = s.split('{' + k + '}').join(params[k]);
@@ -709,6 +710,7 @@ function formatLog(entry) {
 function setLanguage(code) {
   lang = code;
   saveLang(code);
+  try { document.documentElement.lang = code; } catch (e) {}  // a11y: correct pronunciation
   const prof = loadProfile();
   if (prof && prof.userId) sendMsg({ type: 'setLang', lang: code });
   render();
@@ -769,6 +771,29 @@ const sound = {
   },
 };
 document.addEventListener('pointerdown', () => sound.unlock(), { passive: true });
+
+// a11y: make a clickable non-button element keyboard-operable (Enter/Space).
+function makeKeyActivatable(node, handler) {
+  node.setAttribute('role', 'button');
+  node.setAttribute('tabindex', '0');
+  node.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+  });
+}
+
+// a11y: Escape closes the top-most open overlay.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (typeof tutorialOpen !== 'undefined' && tutorialOpen) { closeTutorial(); return; }
+  const modal = document.getElementById('modal-root');
+  if (modal && modal.innerHTML) { modal.innerHTML = ''; return; }
+  if (chatOpen || friendsPanelOpen || leaderboardOpen) {
+    chatOpen = false; friendsPanelOpen = false; leaderboardOpen = false;
+    refreshFriendsPanel();
+    return;
+  }
+  document.getElementById('emote-picker')?.remove();
+});
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -1031,13 +1056,13 @@ function showInviteToast(fromUsername, code) {
 
 function friendsFab() {
   const incoming = friendsState ? friendsState.incoming.length : 0;
-  const fab = el(`<button class="friends-fab" title="${t('friends')}">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
+  const fab = el(`<button class="friends-fab" aria-label="${t('friends')}" title="${t('friends')}">👥${incoming ? `<span class="fab-badge">${incoming}</span>` : ''}</button>`);
   fab.onclick = () => { friendsPanelOpen = !friendsPanelOpen; leaderboardOpen = false; chatOpen = false; refreshFriendsPanel(); };
   return fab;
 }
 
 function chatFab() {
-  const fab = el(`<button class="chat-fab" title="${escapeHtml(t('chat'))}">💬${chatUnread ? `<span class="fab-badge">${chatUnread}</span>` : ''}</button>`);
+  const fab = el(`<button class="chat-fab" aria-label="${escapeHtml(t('chat'))}" title="${escapeHtml(t('chat'))}">💬${chatUnread ? `<span class="fab-badge">${chatUnread}</span>` : ''}</button>`);
   fab.onclick = () => {
     chatOpen = !chatOpen;
     if (chatOpen) { chatUnread = 0; friendsPanelOpen = false; leaderboardOpen = false; }
@@ -1298,19 +1323,19 @@ function renderFriendsPanel() {
 /* ---------- Tutorial ---------- */
 
 function helpFab() {
-  const fab = el(`<button class="help-fab" title="${t('howToPlay')}">?</button>`);
+  const fab = el(`<button class="help-fab" aria-label="${t('howToPlay')}" title="${t('howToPlay')}">?</button>`);
   fab.onclick = () => openTutorial();
   return fab;
 }
 
 function langFab() {
-  const fab = el(`<button class="lang-fab" title="${t('language')}">🌐</button>`);
+  const fab = el(`<button class="lang-fab" aria-label="${t('language')}" title="${t('language')}">🌐</button>`);
   fab.onclick = () => showLanguageModal(false);
   return fab;
 }
 
 function soundFab() {
-  const fab = el(`<button class="sound-fab" title="${escapeHtml(t('soundTip'))}">${sound.enabled ? '🔊' : '🔇'}</button>`);
+  const fab = el(`<button class="sound-fab" aria-label="${escapeHtml(t('soundTip'))}" title="${escapeHtml(t('soundTip'))}">${sound.enabled ? '🔊' : '🔇'}</button>`);
   fab.onclick = () => {
     sound.setEnabled(!sound.enabled);
     if (sound.enabled) { sound.unlock(); sound.play('turn'); }
@@ -1322,7 +1347,7 @@ function soundFab() {
 /* ---------- Leaderboard ---------- */
 
 function leaderboardFab() {
-  const fab = el(`<button class="lb-fab" title="${escapeHtml(t('leaderboardTip'))}">🏆</button>`);
+  const fab = el(`<button class="lb-fab" aria-label="${escapeHtml(t('leaderboardTip'))}" title="${escapeHtml(t('leaderboardTip'))}">🏆</button>`);
   fab.onclick = () => { leaderboardOpen = true; friendsPanelOpen = false; chatOpen = false; leaderboardData = null; sendMsg({ type: 'getLeaderboard' }); refreshFriendsPanel(); };
   return fab;
 }
@@ -1765,7 +1790,7 @@ function flyFlip(card) {
 /* ---------- Emotes ---------- */
 
 function emoteFab() {
-  const fab = el(`<button class="emote-fab" title="React">😀</button>`);
+  const fab = el(`<button class="emote-fab" aria-label="React" title="React">😀</button>`);
   fab.onclick = (e) => { e.stopPropagation(); sound.unlock(); toggleEmotePicker(); };
   return fab;
 }
@@ -2296,7 +2321,7 @@ function renderTable(state) {
       else if (rc) { c = cardFront(rc, 'size-sm'); c.classList.add('just-swapped'); }
       else c = cardBack('size-sm');
       const handler = cellClickHandler(state, p.id, i);
-      if (handler) { c.classList.add('selectable'); c.onclick = handler; }
+      if (handler) { c.classList.add('selectable'); c.onclick = handler; makeKeyActivatable(c, handler); }
       if (isJackChosen(state, p.id, i)) c.classList.add('chosen');
       applyCellFx(c, p.id, i);
       cardsRow.appendChild(c);
@@ -2339,7 +2364,7 @@ function renderTable(state) {
     else if (rc) { c = cardFront(rc, 'size-lg'); c.classList.add('just-swapped'); }
     else c = cardBack('size-lg');
     const handler = cellClickHandler(state, me, i);
-    if (handler) { c.classList.add('selectable'); c.onclick = handler; }
+    if (handler) { c.classList.add('selectable'); c.onclick = handler; makeKeyActivatable(c, handler); }
     if (isJackChosen(state, me, i)) c.classList.add('chosen');
     if (state.matcherId === me) c.classList.add('selectable');
     if (state.phase === 'peeking' && state.peekingPlayerId === me && state.peekedCells.includes(i)) c.classList.add('dimmed');
