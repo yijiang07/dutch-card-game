@@ -51,3 +51,10 @@ def test_history_records_detail_and_prunes():
                                  'won': False, 'players': 2, 'ranked': False, 'rating_delta': None,
                                  'placement': 2, 'accuracy': None, 'shed': 0, 'powers': 0}])
     assert len(storage.get_history(u['id'], 999)) == 50   # capped at 50 per user
+
+
+def test_achievements_award_once():
+    u = _mk('frank')
+    assert set(storage.award_achievements(u['id'], ['first_win', 'veteran'])) == {'first_win', 'veteran'}
+    assert storage.award_achievements(u['id'], ['first_win', 'red_king']) == ['red_king']  # only the new one
+    assert set(storage.get_achievements(u['id'])) == {'first_win', 'veteran', 'red_king'}

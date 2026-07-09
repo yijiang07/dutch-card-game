@@ -169,6 +169,13 @@ def init_db():
                               ('shed', 'INTEGER NOT NULL DEFAULT 0'), ('powers', 'INTEGER NOT NULL DEFAULT 0')):
                 if col not in have:
                     cur.execute(f'ALTER TABLE game_history ADD COLUMN {col} {decl}')
+        # Earned achievements (one row per user per achievement code).
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS achievements (
+            user_id TEXT NOT NULL,
+            code TEXT NOT NULL,
+            earned_at {ts_type} NOT NULL,
+            PRIMARY KEY (user_id, code)
+        )''')
         conn.commit()
     finally:
         conn.close()
@@ -589,6 +596,36 @@ def get_history(user_id, limit=15):
                  'placement': r['placement'], 'accuracy': r['accuracy'],
                  'shed': r['shed'], 'powers': r['powers']}
                 for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def award_achievements(user_id, codes):
+    """Insert any not-yet-earned achievement codes. Returns the newly earned ones."""
+    if not codes:
+        return []
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT code FROM achievements WHERE user_id=?'), (user_id,))
+        have = {r['code'] for r in cur.fetchall()}
+        fresh = [c for c in codes if c not in have]
+        now = time.time()
+        for c in fresh:
+            cur.execute(_ph('INSERT INTO achievements (user_id, code, earned_at) VALUES (?,?,?)'),
+                        (user_id, c, now))
+        conn.commit()
+        return fresh
+    finally:
+        conn.close()
+
+
+def get_achievements(user_id):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT code FROM achievements WHERE user_id=?'), (user_id,))
+        return [r['code'] for r in cur.fetchall()]
     finally:
         conn.close()
 

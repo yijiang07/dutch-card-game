@@ -178,6 +178,8 @@ const TRANSLATIONS = {
     finalMatch: 'Last chance to match!', finalMatchSub: 'Revealing scores…',
     histShed: 'Cards shed (matches)', histPowers: 'Powers used',
     tierBronze: 'Bronze', tierSilver: 'Silver', tierGold: 'Gold', tierPlatinum: 'Platinum', tierDiamond: 'Diamond', tierMaster: 'Master',
+    achievementsLabel: 'Achievements', achUnlocked: 'Achievement unlocked',
+    ach_first_win: 'First Win', ach_red_king: 'Red King', ach_perfect_round: 'Flawless Round', ach_shed3: 'Card Shark', ach_power3: 'Power Player', ach_low_score: 'Featherweight', ach_dutch_win: 'Called It', ach_ranked_win: 'Ranked Victory', ach_veteran: 'Veteran',
     powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
     peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
     peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
@@ -282,6 +284,8 @@ const TRANSLATIONS = {
     finalMatch: '¡Última oportunidad para emparejar!', finalMatchSub: 'Revelando puntuaciones…',
     histShed: 'Cartas soltadas (emparejes)', histPowers: 'Poderes usados',
     tierBronze: 'Bronce', tierSilver: 'Plata', tierGold: 'Oro', tierPlatinum: 'Platino', tierDiamond: 'Diamante', tierMaster: 'Maestro',
+    achievementsLabel: 'Logros', achUnlocked: '¡Logro desbloqueado!',
+    ach_first_win: 'Primera victoria', ach_red_king: 'Rey rojo', ach_perfect_round: 'Ronda perfecta', ach_shed3: 'Tiburón', ach_power3: 'Jugador de poder', ach_low_score: 'Peso pluma', ach_dutch_win: '¡Cantado!', ach_ranked_win: 'Victoria clasificatoria', ach_veteran: 'Veterano',
     powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
     peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
     peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
@@ -385,6 +389,8 @@ const TRANSLATIONS = {
     finalMatch: "Dernière chance d'associer !", finalMatchSub: 'Révélation des scores…',
     histShed: 'Cartes posées (associations)', histPowers: 'Pouvoirs utilisés',
     tierBronze: 'Bronze', tierSilver: 'Argent', tierGold: 'Or', tierPlatinum: 'Platine', tierDiamond: 'Diamant', tierMaster: 'Maître',
+    achievementsLabel: 'Succès', achUnlocked: 'Succès débloqué',
+    ach_first_win: 'Première victoire', ach_red_king: 'Roi rouge', ach_perfect_round: 'Manche parfaite', ach_shed3: 'Requin', ach_power3: 'Joueur de pouvoir', ach_low_score: 'Poids plume', ach_dutch_win: 'Bien annoncé', ach_ranked_win: 'Victoire classée', ach_veteran: 'Vétéran',
     powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
     peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
     peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
@@ -488,6 +494,8 @@ const TRANSLATIONS = {
     finalMatch: 'Letzte Chance zum Ablegen!', finalMatchSub: 'Punkte werden aufgedeckt…',
     histShed: 'Abgelegte Karten', histPowers: 'Machtkarten genutzt',
     tierBronze: 'Bronze', tierSilver: 'Silber', tierGold: 'Gold', tierPlatinum: 'Platin', tierDiamond: 'Diamant', tierMaster: 'Meister',
+    achievementsLabel: 'Erfolge', achUnlocked: 'Erfolg freigeschaltet',
+    ach_first_win: 'Erster Sieg', ach_red_king: 'Roter König', ach_perfect_round: 'Perfekte Runde', ach_shed3: 'Kartenhai', ach_power3: 'Machtspieler', ach_low_score: 'Federgewicht', ach_dutch_win: 'Angesagt', ach_ranked_win: 'Ranglisten-Sieg', ach_veteran: 'Veteran',
     powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
     peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
     peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
@@ -591,6 +599,8 @@ const TRANSLATIONS = {
     finalMatch: '最后的配对机会！', finalMatchSub: '正在亮出分数…',
     histShed: '打出的牌（配对）', histPowers: '使用的能力牌',
     tierBronze: '青铜', tierSilver: '白银', tierGold: '黄金', tierPlatinum: '铂金', tierDiamond: '钻石', tierMaster: '大师',
+    achievementsLabel: '成就', achUnlocked: '成就解锁',
+    ach_first_win: '首胜', ach_red_king: '红K', ach_perfect_round: '完美一轮', ach_shed3: '出牌高手', ach_power3: '能力大师', ach_low_score: '轻量级', ach_dutch_win: '喊中了', ach_ranked_win: '排位胜利', ach_veteran: '老兵',
     powerCards: '能力牌', powBasic: '基础', powFull: '完整',
     peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
     peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
@@ -901,6 +911,11 @@ function handleServerMessage(data) {
     if (leaderboardOpen) renderLeaderboardRoot();
   } else if (data.type === 'friendsUpdate') {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
+  } else if (data.type === 'achievements') {
+    (data.earned || []).forEach((code) => {
+      showToast(`${ACHIEVEMENTS[code] || '🏅'} ${t('achUnlocked')}: ${achName(code)}`);
+    });
+    return;
   } else if (data.type === 'infoMsg') {
     showToast(data.message, false);
   } else if (data.type === 'gameInvite') {
@@ -956,6 +971,13 @@ function tierBadge(rating) {
   const tier = RANK_TIERS.find((x) => rating >= x.min);
   return `<span class="tier-badge ${tier.cls}">${tier.icon} ${escapeHtml(t(tier.key))}</span>`;
 }
+
+// Achievement code -> icon; the name comes from t('ach_' + code).
+const ACHIEVEMENTS = {
+  first_win: '🏆', red_king: '👑', perfect_round: '🎯', shed3: '🃏', power3: '⚡',
+  low_score: '🪶', dutch_win: '📣', ranked_win: '⚔️', veteran: '🎖️',
+};
+function achName(code) { return t('ach_' + code); }
 
 // Localized "3h ago" / "hace 3 h" / "3小时前" from an epoch-seconds timestamp.
 function relTime(sec) {
@@ -1387,6 +1409,16 @@ function renderLeaderboard() {
     </div>`));
   } else {
     drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('loginForLb'))}</div>`));
+  }
+
+  // Achievements (signed-in players only)
+  if (leaderboardData.achievements && leaderboardData.achievements.length) {
+    drawer.appendChild(el(`<div class="section-label" style="margin-top:12px;">${escapeHtml(t('achievementsLabel'))}</div>`));
+    const wrap = el(`<div class="ach-list"></div>`);
+    leaderboardData.achievements.forEach((code) => {
+      wrap.appendChild(el(`<span class="ach-badge" title="${escapeHtml(achName(code))}">${ACHIEVEMENTS[code] || '🏅'} ${escapeHtml(achName(code))}</span>`));
+    });
+    drawer.appendChild(wrap);
   }
 
   // Recent games (signed-in players only)

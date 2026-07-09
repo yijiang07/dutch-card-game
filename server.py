@@ -200,6 +200,31 @@ def _score_play(room, game, pid, actual):
         _count_play(room, pid, bots.judge_main_play(room, game, pid, actual))
 
 
+def _earned_codes(game, r, stats, ranked):
+    """Which achievement codes a player qualifies for from a finished round."""
+    pid = r['pid']
+    codes = []
+    if r['won']:
+        codes.append('first_win')
+    if any(c['value'] == 0 for c in game.grids.get(pid, [])):   # only a red King scores 0
+        codes.append('red_king')
+    if r['plays_total'] >= 3 and r['plays_correct'] == r['plays_total']:
+        codes.append('perfect_round')
+    if r['shed'] >= 3:
+        codes.append('shed3')
+    if r['powers'] >= 3:
+        codes.append('power3')
+    if r['won'] and r['total'] <= 3:
+        codes.append('low_score')
+    if r['won'] and game.dutch_caller == pid:
+        codes.append('dutch_win')
+    if ranked and r['won']:
+        codes.append('ranked_win')
+    if (stats or {}).get('games', 0) >= 25:
+        codes.append('veteran')
+    return codes
+
+
 async def record_game_if_needed(room):
     """Once a round reaches reveal, record stats for account-linked players."""
     game = room.game
@@ -222,7 +247,7 @@ async def record_game_if_needed(room):
             pc, pt = p.get('play_correct', 0), p.get('play_total', 0)
             # Placement: 1 + number of players who scored strictly lower (ties share a rank).
             placement = 1 + sum(1 for t in totals.values() if t < total)
-            results.append({'user_id': acct, 'total': total, 'won': total == min_total,
+            results.append({'user_id': acct, 'pid': pid, 'total': total, 'won': total == min_total,
                             'plays_correct': pc, 'plays_total': pt,
                             'placement': placement, 'accuracy': (round(100 * pc / pt) if pt else None),
                             'shed': p.get('shed', 0), 'powers': p.get('powers', 0)})
@@ -256,8 +281,12 @@ async def record_game_if_needed(room):
 
     for r in results:
         stats = await asyncio.to_thread(storage.get_stats, r['user_id'])
+        earned = await asyncio.to_thread(
+            storage.award_achievements, r['user_id'], _earned_codes(game, r, stats, bool(room.ranked)))
         for w in list(ONLINE.get(r['user_id'], ())):
             await send(w, {'type': 'statsUpdate', 'stats': stats, 'won': r['won']})
+            if earned:
+                await send(w, {'type': 'achievements', 'earned': earned})
     if ranked_out:
         for pid, p in room.players.items():
             acct = p.get('_ranked_acct')
@@ -623,8 +652,10 @@ async def handle_message(ws, ctx, data):
         me = ctx.get('user')
         my_stats = await asyncio.to_thread(storage.get_stats, me['id']) if me else None
         history = await asyncio.to_thread(storage.get_history, me['id'], 15) if me else None
+        achievements = await asyncio.to_thread(storage.get_achievements, me['id']) if me else None
         await send(ws, {'type': 'leaderboard', 'board': board, 'myStats': my_stats,
-                        'myUsername': me['username'] if me else None, 'history': history})
+                        'myUsername': me['username'] if me else None, 'history': history,
+                        'achievements': achievements})
         return
 
     if mtype == 'getPublicRooms':
