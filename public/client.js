@@ -106,6 +106,8 @@ const TRANSLATIONS = {
     // lobby
     roomShare: 'Room code — share this', tapCopy: 'Tap the code to copy', copyInvite: 'Copy invite link',
     addBotTitle: 'Add a bot', houseRules: 'House rules', cardsEach: 'Cards each', matchWindowLbl: 'Match window',
+    mode_classic: 'Classic', mode_blitz: 'Blitz', mode_powers: 'Full Powers', mode_marathon: 'Marathon',
+    modeTipClassic: 'Standard rules — 4 cards, basic powers', modeTipBlitz: 'Fast: 15s turns, quick match window', modeTipPowers: 'All card powers active', modeTipMarathon: '6 cards, full powers, relaxed pace',
     matchingLbl: 'Matching', turnLimitLbl: 'Turn limit', optOff: 'off', optOn: 'on',
     needTwo: 'Need at least 2 players to start.', readyPlayers: 'Ready — {n} players',
     waitingHost: 'Waiting for the host to start the game…', hostTag: 'host', youTag: 'you', removeBot: 'Remove bot',
@@ -250,6 +252,8 @@ const TRANSLATIONS = {
     youWon: '🏆 ¡Ganaste! ({n} victorias)', gameRecorded: 'Partida registrada ({n} jugadas)',
     roomShare: 'Código de sala — compártelo', tapCopy: 'Toca el código para copiar', copyInvite: 'Copiar enlace de invitación',
     addBotTitle: 'Añadir un bot', houseRules: 'Reglas de la casa', cardsEach: 'Cartas cada uno', matchWindowLbl: 'Ventana de emparejado',
+    mode_classic: 'Clásico', mode_blitz: 'Blitz', mode_powers: 'Poderes', mode_marathon: 'Maratón',
+    modeTipClassic: 'Reglas estándar — 4 cartas, poderes básicos', modeTipBlitz: 'Rápido: turnos de 15s, ventana corta', modeTipPowers: 'Todos los poderes activos', modeTipMarathon: '6 cartas, poderes completos, ritmo relajado',
     matchingLbl: 'Emparejado', turnLimitLbl: 'Límite de turno', optOff: 'no', optOn: 'sí',
     needTwo: 'Se necesitan al menos 2 jugadores.', readyPlayers: 'Listos — {n} jugadores',
     waitingHost: 'Esperando a que el anfitrión empiece…', hostTag: 'anfitrión', youTag: 'tú', removeBot: 'Quitar bot',
@@ -381,6 +385,8 @@ const TRANSLATIONS = {
     youWon: '🏆 Gagné ! ({n} victoires)', gameRecorded: 'Partie enregistrée ({n} jouées)',
     roomShare: 'Code de salle — partagez-le', tapCopy: 'Touchez le code pour copier', copyInvite: "Copier le lien d'invitation",
     addBotTitle: 'Ajouter un bot', houseRules: 'Règles', cardsEach: 'Cartes chacun', matchWindowLbl: "Fenêtre d'association",
+    mode_classic: 'Classique', mode_blitz: 'Blitz', mode_powers: 'Pouvoirs', mode_marathon: 'Marathon',
+    modeTipClassic: 'Règles standard — 4 cartes, pouvoirs de base', modeTipBlitz: 'Rapide : tours de 15s, fenêtre courte', modeTipPowers: 'Tous les pouvoirs actifs', modeTipMarathon: '6 cartes, pouvoirs complets, rythme détendu',
     matchingLbl: 'Association', turnLimitLbl: 'Limite de tour', optOff: 'non', optOn: 'oui',
     needTwo: 'Il faut au moins 2 joueurs.', readyPlayers: 'Prêt — {n} joueurs',
     waitingHost: "En attente du lancement par l'hôte…", hostTag: 'hôte', youTag: 'vous', removeBot: 'Retirer le bot',
@@ -512,6 +518,8 @@ const TRANSLATIONS = {
     youWon: '🏆 Gewonnen! ({n} Siege)', gameRecorded: 'Spiel gespeichert ({n} gespielt)',
     roomShare: 'Raumcode — teile ihn', tapCopy: 'Tippe den Code zum Kopieren', copyInvite: 'Einladungslink kopieren',
     addBotTitle: 'Bot hinzufügen', houseRules: 'Hausregeln', cardsEach: 'Karten je Spieler', matchWindowLbl: 'Ablege-Fenster',
+    mode_classic: 'Klassisch', mode_blitz: 'Blitz', mode_powers: 'Kräfte', mode_marathon: 'Marathon',
+    modeTipClassic: 'Standardregeln — 4 Karten, einfache Kräfte', modeTipBlitz: 'Schnell: 15s-Züge, kurzes Fenster', modeTipPowers: 'Alle Kartenkräfte aktiv', modeTipMarathon: '6 Karten, volle Kräfte, entspanntes Tempo',
     matchingLbl: 'Ablegen', turnLimitLbl: 'Zug-Limit', optOff: 'aus', optOn: 'an',
     needTwo: 'Mindestens 2 Spieler nötig.', readyPlayers: 'Bereit — {n} Spieler',
     waitingHost: 'Warte auf den Host…', hostTag: 'Host', youTag: 'du', removeBot: 'Bot entfernen',
@@ -643,6 +651,8 @@ const TRANSLATIONS = {
     youWon: '🏆 你赢了！（{n} 胜）', gameRecorded: '对局已记录（已玩 {n} 局）',
     roomShare: '房间码 — 分享给好友', tapCopy: '点击房间码复制', copyInvite: '复制邀请链接',
     addBotTitle: '添加机器人', houseRules: '房间规则', cardsEach: '每人手牌', matchWindowLbl: '配对窗口',
+    mode_classic: '经典', mode_blitz: '闪电', mode_powers: '全能力', mode_marathon: '马拉松',
+    modeTipClassic: '标准规则 —— 4 张牌，基础能力', modeTipBlitz: '快速：15 秒回合，短配对窗口', modeTipPowers: '开启所有卡牌能力', modeTipMarathon: '6 张牌，全能力，节奏轻松',
     matchingLbl: '配对', turnLimitLbl: '回合时限', optOff: '关', optOn: '开',
     needTwo: '至少需要 2 名玩家才能开始。', readyPlayers: '准备就绪 — {n} 名玩家',
     waitingHost: '等待房主开始游戏…', hostTag: '房主', youTag: '你', removeBot: '移除机器人',
@@ -2704,6 +2714,15 @@ function renderLanding() {
 
 /* ---------- Game settings (lobby) ---------- */
 
+// Lobby quick-mode presets: each bundles the full house-rules set, so tapping
+// one is highlighted as active only when every field matches.
+const MODE_PRESETS = [
+  { id: 'classic', name: 'mode_classic', tip: 'modeTipClassic', cfg: { cardsPer: 4, bufferSeconds: 2.5, matching: true, turnLimit: 30, powers: 'basic' } },
+  { id: 'blitz',   name: 'mode_blitz',   tip: 'modeTipBlitz',   cfg: { cardsPer: 4, bufferSeconds: 1.5, matching: true, turnLimit: 15, powers: 'basic' } },
+  { id: 'powers',  name: 'mode_powers',  tip: 'modeTipPowers',  cfg: { cardsPer: 4, bufferSeconds: 2.5, matching: true, turnLimit: 30, powers: 'full' } },
+  { id: 'marathon',name: 'mode_marathon',tip: 'modeTipMarathon',cfg: { cardsPer: 6, bufferSeconds: 2.5, matching: true, turnLimit: 45, powers: 'full' } },
+];
+
 function renderSettings(state, isHost) {
   const s = state.settings || { cardsPer: 4, bufferSeconds: 2.5, matching: true, turnLimit: 30 };
   if (!isHost) {
@@ -2726,6 +2745,16 @@ function renderSettings(state, isHost) {
     });
     return row;
   };
+
+  // One-tap mode presets — bundles of the rules below, for quick variety.
+  const presetRow = el(`<div class="preset-row"></div>`);
+  MODE_PRESETS.forEach((m) => {
+    const active = Object.keys(m.cfg).every((k) => s[k] === m.cfg[k]);
+    const b = el(`<button class="preset-btn ${active ? 'on' : ''}" title="${escapeHtml(t(m.tip))}">${escapeHtml(t(m.name))}</button>`);
+    b.onclick = () => set(m.cfg);
+    presetRow.appendChild(b);
+  });
+  box.appendChild(presetRow);
 
   const OFF = t('optOff'), ON = t('optOn');
   box.appendChild(group(t('cardsEach'), [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], s.cardsPer, 'cardsPer'));

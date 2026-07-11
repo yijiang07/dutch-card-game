@@ -1315,6 +1315,19 @@ button:active:not(:disabled) { transform: scale(0.95); }
 }
 .seg-btn.on { background: var(--gold); color: var(--gold-ink); }
 
+.preset-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 6px; }
+.preset-btn {
+  padding: 6px 13px; font-size: 0.82rem; font-weight: 700; font-family: var(--font);
+  border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,0.05); color: var(--ink);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.preset-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); }
+.preset-btn.on {
+  background: linear-gradient(180deg, rgba(232,185,63,0.28), rgba(198,154,52,0.2));
+  border-color: var(--gold); color: var(--champagne);
+}
+
 .emote-fab {
   position: fixed;
   right: 16px;
