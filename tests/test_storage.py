@@ -70,6 +70,23 @@ def test_referrals():
     assert storage.record_referral('nobody', _mk('refd')['id']) is None
 
 
+def test_daily_streak_advances_and_lapses():
+    # Two games on the same day = streak 1; consecutive days climb; a gap resets.
+    assert storage._next_streak(None, 0) == (1, True)
+    assert storage._next_streak(storage._utc_day(0), 5) == (5, False)   # already played today
+    assert storage._next_streak(storage._utc_day(1), 5) == (6, True)    # played yesterday -> +1
+    assert storage._next_streak(storage._utc_day(3), 5) == (1, True)    # 3-day gap -> reset
+
+    u = _mk('heidi')
+    storage.record_game([{'user_id': u['id'], 'total': 5, 'won': True, 'plays_correct': 1, 'plays_total': 1}])
+    s = storage.get_stats(u['id'])
+    assert s['streak'] == 1 and s['best_streak'] == 1
+    # A second game the same day keeps the streak at 1 (not double-counted).
+    storage.record_game([{'user_id': u['id'], 'total': 8, 'won': False, 'plays_correct': 1, 'plays_total': 1}])
+    assert storage.get_stats(u['id'])['streak'] == 1
+    assert storage.get_streak(u['id']) == 1
+
+
 def test_cosmetics_default_and_persist():
     u = _mk('grace')
     row = storage.get_by_id(u['id'])

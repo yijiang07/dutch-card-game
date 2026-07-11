@@ -171,6 +171,7 @@ def build_state(room, viewer_id):
         p['difficulty'] = info.get('difficulty')
         p['cardBack'] = info.get('card_back', 'classic')
         p['emblem'] = info.get('emblem', 'default')
+        p['account'] = bool(info.get('account_id'))
         p['left'] = info.get('left', False)
     state['roundsPlayed'] = room.rounds_played
     state['dealSeq'] = room.deal_seq
@@ -290,6 +291,13 @@ def _earned_codes(game, r, stats, ranked):
         codes.append('ranked_win')
     if (stats or {}).get('games', 0) >= 25:
         codes.append('veteran')
+    streak = (stats or {}).get('streak', 0)
+    if streak >= 3:
+        codes.append('streak_3')
+    if streak >= 7:
+        codes.append('streak_7')
+    if streak >= 30:
+        codes.append('streak_30')
     return codes
 
 
@@ -557,7 +565,8 @@ async def set_online(ws, ctx, user):
                'email': user.get('email'), 'lang': user.get('lang'),
                'cardBack': user.get('card_back') or 'classic',
                'tableFelt': user.get('table_felt') or 'classic',
-               'emblem': user.get('emblem') or 'default'}
+               'emblem': user.get('emblem') or 'default',
+               'streak': storage.get_streak(user['id'])}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -776,6 +785,17 @@ async def handle_message(ws, ctx, data):
                 out.append({'code': c, 'host': host, 'players': len(r.players), 'max': 8})
         out.sort(key=lambda x: x['players'], reverse=True)
         await send(ws, {'type': 'publicRooms', 'rooms': out})
+        return
+
+    if mtype == 'getProfile':
+        target = await asyncio.to_thread(storage.get_by_username, data.get('username'))
+        if not target:
+            raise GameError('No player with that name.')
+        stats = await asyncio.to_thread(storage.get_stats, target['id'])
+        achievements = await asyncio.to_thread(storage.get_achievements, target['id'])
+        full = await asyncio.to_thread(storage.get_by_id, target['id'])
+        await send(ws, {'type': 'profile', 'username': target['username'], 'stats': stats,
+                        'achievements': achievements, 'emblem': (full or {}).get('emblem', 'default')})
         return
 
     if mtype == 'friendRequest':

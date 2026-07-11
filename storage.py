@@ -117,16 +117,20 @@ def init_db():
             rd REAL NOT NULL DEFAULT 350,
             vol REAL NOT NULL DEFAULT 0.06,
             ranked_games INTEGER NOT NULL DEFAULT 0,
-            ranked_wins INTEGER NOT NULL DEFAULT 0
+            ranked_wins INTEGER NOT NULL DEFAULT 0,
+            streak INTEGER NOT NULL DEFAULT 0,
+            best_streak INTEGER NOT NULL DEFAULT 0,
+            last_day TEXT
         )''')
         # Add newer columns to stats tables created before those features.
-        int_cols = ('plays_correct', 'plays_total', 'ranked_games', 'ranked_wins')
+        int_cols = ('plays_correct', 'plays_total', 'ranked_games', 'ranked_wins', 'streak', 'best_streak')
         real_cols = (('rating', 1500), ('rd', 350), ('vol', 0.06))
         if USE_PG:
             for col in int_cols:
                 cur.execute(f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS {col} INTEGER NOT NULL DEFAULT 0')
             for col, dflt in real_cols:
                 cur.execute(f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS {col} REAL NOT NULL DEFAULT {dflt}')
+            cur.execute('ALTER TABLE stats ADD COLUMN IF NOT EXISTS last_day TEXT')
         else:
             have = {r[1] for r in cur.execute('PRAGMA table_info(stats)').fetchall()}
             for col in int_cols:
@@ -135,6 +139,8 @@ def init_db():
             for col, dflt in real_cols:
                 if col not in have:
                     cur.execute(f'ALTER TABLE stats ADD COLUMN {col} REAL NOT NULL DEFAULT {dflt}')
+            if 'last_day' not in have:
+                cur.execute('ALTER TABLE stats ADD COLUMN last_day TEXT')
         cur.execute(f'''CREATE TABLE IF NOT EXISTS password_resets (
             token_hash TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -523,6 +529,21 @@ def _accuracy(correct, total):
     return round(100 * correct / total) if total else None
 
 
+def _utc_day(offset_days=0):
+    return time.strftime('%Y-%m-%d', time.gmtime(time.time() - offset_days * 86400))
+
+
+def _next_streak(last_day, streak):
+    """Daily play streak: +1 on a new consecutive day, reset to 1 after a gap,
+    unchanged when a game was already played today."""
+    today, yesterday = _utc_day(0), _utc_day(1)
+    if last_day == today:
+        return max(streak, 1), False
+    if last_day == yesterday:
+        return streak + 1, True
+    return 1, True
+
+
 def record_game(results):
     """results: list of {user_id, total, won, plays_correct, plays_total}."""
     conn = _connect()
@@ -531,21 +552,27 @@ def record_game(results):
         for r in results:
             pc = r.get('plays_correct', 0)
             pt = r.get('plays_total', 0)
-            cur.execute(_ph('SELECT games, wins, total_score, best_score, plays_correct, plays_total FROM stats WHERE user_id=?'),
+            cur.execute(_ph('''SELECT games, wins, total_score, best_score, plays_correct, plays_total,
+                                      streak, best_streak, last_day FROM stats WHERE user_id=?'''),
                         (r['user_id'],))
             row = cur.fetchone()
             if row:
                 best = row['best_score']
                 best = r['total'] if best is None else min(best, r['total'])
+                streak, _ = _next_streak(row['last_day'], row['streak'])
+                best_streak = max(row['best_streak'], streak)
                 cur.execute(_ph('''UPDATE stats SET games=?, wins=?, total_score=?, best_score=?,
-                                   plays_correct=?, plays_total=? WHERE user_id=?'''),
+                                   plays_correct=?, plays_total=?, streak=?, best_streak=?, last_day=? WHERE user_id=?'''),
                             (row['games'] + 1, row['wins'] + (1 if r['won'] else 0),
                              row['total_score'] + r['total'], best,
-                             row['plays_correct'] + pc, row['plays_total'] + pt, r['user_id']))
+                             row['plays_correct'] + pc, row['plays_total'] + pt,
+                             streak, best_streak, _utc_day(0), r['user_id']))
             else:
-                cur.execute(_ph('''INSERT INTO stats (user_id, games, wins, total_score, best_score, plays_correct, plays_total)
-                                   VALUES (?,?,?,?,?,?,?)'''),
-                            (r['user_id'], 1, 1 if r['won'] else 0, r['total'], r['total'], pc, pt))
+                cur.execute(_ph('''INSERT INTO stats (user_id, games, wins, total_score, best_score,
+                                   plays_correct, plays_total, streak, best_streak, last_day)
+                                   VALUES (?,?,?,?,?,?,?,?,?,?)'''),
+                            (r['user_id'], 1, 1 if r['won'] else 0, r['total'], r['total'], pc, pt,
+                             1, 1, _utc_day(0)))
         conn.commit()
     finally:
         conn.close()
@@ -700,26 +727,43 @@ def get_stats(user_id):
         cur.execute(_ph('SELECT count(*) AS c FROM referrals WHERE referrer_id=?'), (user_id,))
         referrals = cur.fetchone()['c']
         cur.execute(_ph('''SELECT games, wins, total_score, best_score, plays_correct, plays_total,
-                                  rating, rd, ranked_games, ranked_wins FROM stats WHERE user_id=?'''),
+                                  rating, rd, ranked_games, ranked_wins, streak, best_streak, last_day
+                           FROM stats WHERE user_id=?'''),
                     (user_id,))
         r = cur.fetchone()
         if not r:
             return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'accuracy': None,
                     'rank': None, 'rating': None, 'ranked_games': 0, 'ranked_wins': 0, 'ranked_rank': None,
-                    'referrals': referrals}
+                    'referrals': referrals, 'streak': 0, 'best_streak': 0}
         # Ranked ladder rank (by rating, among players who've played ranked).
         ranked_rank = None
         if r['ranked_games'] > 0:
             cur.execute(_ph('SELECT count(*) AS c FROM stats WHERE ranked_games > 0 AND rating > ?'), (r['rating'],))
             ranked_rank = cur.fetchone()['c'] + 1
+        # A streak lapses if the last game wasn't today or yesterday.
+        live_streak = r['streak'] if r['last_day'] in (_utc_day(0), _utc_day(1)) else 0
         return {'games': r['games'], 'wins': r['wins'], 'total_score': r['total_score'],
                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total']),
                 'rank': ranked_rank,
                 'rating': round(r['rating']) if r['ranked_games'] > 0 else None,
                 'ranked_games': r['ranked_games'], 'ranked_wins': r['ranked_wins'],
-                'referrals': referrals}
+                'referrals': referrals, 'streak': live_streak, 'best_streak': r['best_streak']}
     finally:
         conn.close()
+
+
+def get_streak(user_id):
+    """Current daily-play streak, lapsing to 0 if the last game predates yesterday."""
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT streak, last_day FROM stats WHERE user_id=?'), (user_id,))
+        r = cur.fetchone()
+    finally:
+        conn.close()
+    if not r or r['last_day'] not in (_utc_day(0), _utc_day(1)):
+        return 0
+    return r['streak']
 
 
 def get_leaderboard(limit=10):

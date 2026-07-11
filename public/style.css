@@ -464,6 +464,34 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .back-tag.on { color: var(--gold); opacity: 1; font-weight: 700; }
 .back-tag.lock { opacity: 0.7; line-height: 1.25; }
 .locker-count { font-weight: 700; color: var(--gold); font-size: 0.8rem; margin-left: 4px; }
+
+/* Daily streak chip on the landing */
+.streak-chip {
+  align-self: center; margin: 2px 0 10px; padding: 5px 14px;
+  border-radius: 999px; font-weight: 700; font-size: 0.85rem;
+  color: #ffd9a3;
+  background: linear-gradient(180deg, rgba(230,126,34,0.22), rgba(200,80,20,0.16));
+  border: 1px solid rgba(230,150,60,0.45);
+}
+
+/* Clickable leaderboard rows / opponent names -> profile */
+.lb-clickable { cursor: pointer; }
+.lb-row.lb-clickable:hover { background: rgba(255,255,255,0.06); }
+.opp-name.lb-clickable:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Player profile modal */
+.profile-box { max-width: 380px; text-align: left; }
+.profile-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.profile-name { font-family: var(--display); font-size: 1.3rem; font-weight: 700; letter-spacing: 0.02em; }
+.profile-id { display: flex; flex-direction: column; gap: 4px; }
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin-top: 12px; }
+.profile-stat {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 7px 11px; border-radius: 9px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.profile-stat span { color: var(--ink-dim); font-size: 0.82rem; }
+.profile-stat strong { font-size: 0.9rem; }
 .avatar.emblem-preview { margin: 2px auto 0; }
 .avatar.has-emblem { font-size: 1.05em; }
 

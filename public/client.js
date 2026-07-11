@@ -180,7 +180,7 @@ const TRANSLATIONS = {
     histShed: 'Cards shed (matches)', histPowers: 'Powers used',
     tierBronze: 'Bronze', tierSilver: 'Silver', tierGold: 'Gold', tierPlatinum: 'Platinum', tierDiamond: 'Diamond', tierMaster: 'Master',
     achievementsLabel: 'Achievements', achUnlocked: 'Achievement unlocked',
-    ach_first_win: 'First Win', ach_red_king: 'Red King', ach_perfect_round: 'Flawless Round', ach_shed3: 'Card Shark', ach_power3: 'Power Player', ach_low_score: 'Featherweight', ach_dutch_win: 'Called It', ach_ranked_win: 'Ranked Victory', ach_veteran: 'Veteran', ach_invite_1: 'Recruiter', ach_invite_5: 'Ambassador', ach_invite_10: 'Evangelist',
+    ach_first_win: 'First Win', ach_red_king: 'Red King', ach_perfect_round: 'Flawless Round', ach_shed3: 'Card Shark', ach_power3: 'Power Player', ach_low_score: 'Featherweight', ach_dutch_win: 'Called It', ach_ranked_win: 'Ranked Victory', ach_veteran: 'Veteran', ach_invite_1: 'Recruiter', ach_invite_5: 'Ambassador', ach_invite_10: 'Evangelist', ach_streak_3: 'On Fire', ach_streak_7: 'Unstoppable', ach_streak_30: 'Dedicated',
     inviteFriends: 'Invite friends', inviteCopied: 'Invite link copied!', inviteNeedLogin: 'Log in to get your invite link.', statInvited: 'invited',
     shareText: 'Play Dutch with me — lowest score wins!', referralJoined: 'A friend joined with your invite! ({n} total)',
     cardBacksLabel: 'Card backs', cardBacksHint: 'Unlock designs as you play — everyone at the table sees the back you equip.',
@@ -201,6 +201,8 @@ const TRANSLATIONS = {
     em_default: 'Initial', em_clover: 'Clover', em_gift: 'Gift', em_star: 'Star', em_fox: 'Fox', em_joker: 'Joker', em_crown: 'Crown', em_dragon: 'Dragon',
     emReqDefault: 'Always yours', emReqClover: 'Play 3 games', emReqGift: 'Invite a friend', emReqStar: 'Win 3 games',
     emReqFox: 'Play 15 games', emReqJoker: 'Earn 5 achievements', emReqCrown: 'Reach Platinum (1700)', emReqDragon: 'Win 20 games',
+    streakChip: '{n}-day streak', streakTip: 'Play a game every day to keep your streak alive.', streakToast: '{n}-day streak!',
+    statStreak: 'day streak', statStreakBest: 'best {n}', viewProfile: 'View profile', noAchievements: 'No achievements yet.', closeBtn: 'Close',
     powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
     peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
     peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
@@ -306,7 +308,7 @@ const TRANSLATIONS = {
     histShed: 'Cartas soltadas (emparejes)', histPowers: 'Poderes usados',
     tierBronze: 'Bronce', tierSilver: 'Plata', tierGold: 'Oro', tierPlatinum: 'Platino', tierDiamond: 'Diamante', tierMaster: 'Maestro',
     achievementsLabel: 'Logros', achUnlocked: '¡Logro desbloqueado!',
-    ach_first_win: 'Primera victoria', ach_red_king: 'Rey rojo', ach_perfect_round: 'Ronda perfecta', ach_shed3: 'Tiburón', ach_power3: 'Jugador de poder', ach_low_score: 'Peso pluma', ach_dutch_win: '¡Cantado!', ach_ranked_win: 'Victoria clasificatoria', ach_veteran: 'Veterano', ach_invite_1: 'Reclutador', ach_invite_5: 'Embajador', ach_invite_10: 'Evangelista',
+    ach_first_win: 'Primera victoria', ach_red_king: 'Rey rojo', ach_perfect_round: 'Ronda perfecta', ach_shed3: 'Tiburón', ach_power3: 'Jugador de poder', ach_low_score: 'Peso pluma', ach_dutch_win: '¡Cantado!', ach_ranked_win: 'Victoria clasificatoria', ach_veteran: 'Veterano', ach_invite_1: 'Reclutador', ach_invite_5: 'Embajador', ach_invite_10: 'Evangelista', ach_streak_3: 'En racha', ach_streak_7: 'Imparable', ach_streak_30: 'Dedicado',
     inviteFriends: 'Invita amigos', inviteCopied: '¡Enlace de invitación copiado!', inviteNeedLogin: 'Entra para obtener tu enlace de invitación.', statInvited: 'invitados',
     shareText: '¡Juega a Dutch conmigo — gana el que tenga menos puntos!', referralJoined: '¡Un amigo se unió con tu invitación! ({n} en total)',
     cardBacksLabel: 'Reversos', cardBacksHint: 'Desbloquea diseños jugando — todos en la mesa ven el reverso que equipas.',
@@ -327,6 +329,8 @@ const TRANSLATIONS = {
     em_default: 'Inicial', em_clover: 'Trébol', em_gift: 'Regalo', em_star: 'Estrella', em_fox: 'Zorro', em_joker: 'Comodín', em_crown: 'Corona', em_dragon: 'Dragón',
     emReqDefault: 'Siempre tuyo', emReqClover: 'Juega 3 partidas', emReqGift: 'Invita a un amigo', emReqStar: 'Gana 3 partidas',
     emReqFox: 'Juega 15 partidas', emReqJoker: 'Consigue 5 logros', emReqCrown: 'Alcanza Platino (1700)', emReqDragon: 'Gana 20 partidas',
+    streakChip: 'racha de {n} días', streakTip: 'Juega una partida cada día para mantener tu racha.', streakToast: '¡Racha de {n} días!',
+    statStreak: 'días de racha', statStreakBest: 'mejor {n}', viewProfile: 'Ver perfil', noAchievements: 'Aún no hay logros.', closeBtn: 'Cerrar',
     powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
     peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
     peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
@@ -431,7 +435,7 @@ const TRANSLATIONS = {
     histShed: 'Cartes posées (associations)', histPowers: 'Pouvoirs utilisés',
     tierBronze: 'Bronze', tierSilver: 'Argent', tierGold: 'Or', tierPlatinum: 'Platine', tierDiamond: 'Diamant', tierMaster: 'Maître',
     achievementsLabel: 'Succès', achUnlocked: 'Succès débloqué',
-    ach_first_win: 'Première victoire', ach_red_king: 'Roi rouge', ach_perfect_round: 'Manche parfaite', ach_shed3: 'Requin', ach_power3: 'Joueur de pouvoir', ach_low_score: 'Poids plume', ach_dutch_win: 'Bien annoncé', ach_ranked_win: 'Victoire classée', ach_veteran: 'Vétéran', ach_invite_1: 'Recruteur', ach_invite_5: 'Ambassadeur', ach_invite_10: 'Évangéliste',
+    ach_first_win: 'Première victoire', ach_red_king: 'Roi rouge', ach_perfect_round: 'Manche parfaite', ach_shed3: 'Requin', ach_power3: 'Joueur de pouvoir', ach_low_score: 'Poids plume', ach_dutch_win: 'Bien annoncé', ach_ranked_win: 'Victoire classée', ach_veteran: 'Vétéran', ach_invite_1: 'Recruteur', ach_invite_5: 'Ambassadeur', ach_invite_10: 'Évangéliste', ach_streak_3: 'En feu', ach_streak_7: 'Inarrêtable', ach_streak_30: 'Assidu',
     inviteFriends: 'Inviter des amis', inviteCopied: "Lien d'invitation copié !", inviteNeedLogin: 'Connectez-vous pour obtenir votre lien.', statInvited: 'invités',
     shareText: 'Joue à Dutch avec moi — le score le plus bas gagne !', referralJoined: 'Un ami a rejoint avec votre invitation ! ({n} au total)',
     cardBacksLabel: 'Dos de cartes', cardBacksHint: 'Débloquez des motifs en jouant — toute la table voit le dos que vous équipez.',
@@ -452,6 +456,8 @@ const TRANSLATIONS = {
     em_default: 'Initiale', em_clover: 'Trèfle', em_gift: 'Cadeau', em_star: 'Étoile', em_fox: 'Renard', em_joker: 'Joker', em_crown: 'Couronne', em_dragon: 'Dragon',
     emReqDefault: 'Toujours à vous', emReqClover: 'Jouez 3 parties', emReqGift: 'Invitez un ami', emReqStar: 'Gagnez 3 parties',
     emReqFox: 'Jouez 15 parties', emReqJoker: 'Obtenez 5 succès', emReqCrown: 'Atteignez Platine (1700)', emReqDragon: 'Gagnez 20 parties',
+    streakChip: 'série de {n} jours', streakTip: 'Jouez une partie chaque jour pour garder votre série.', streakToast: 'Série de {n} jours !',
+    statStreak: 'jours de série', statStreakBest: 'record {n}', viewProfile: 'Voir le profil', noAchievements: 'Pas encore de succès.', closeBtn: 'Fermer',
     powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
     peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
     peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
@@ -556,7 +562,7 @@ const TRANSLATIONS = {
     histShed: 'Abgelegte Karten', histPowers: 'Machtkarten genutzt',
     tierBronze: 'Bronze', tierSilver: 'Silber', tierGold: 'Gold', tierPlatinum: 'Platin', tierDiamond: 'Diamant', tierMaster: 'Meister',
     achievementsLabel: 'Erfolge', achUnlocked: 'Erfolg freigeschaltet',
-    ach_first_win: 'Erster Sieg', ach_red_king: 'Roter König', ach_perfect_round: 'Perfekte Runde', ach_shed3: 'Kartenhai', ach_power3: 'Machtspieler', ach_low_score: 'Federgewicht', ach_dutch_win: 'Angesagt', ach_ranked_win: 'Ranglisten-Sieg', ach_veteran: 'Veteran', ach_invite_1: 'Anwerber', ach_invite_5: 'Botschafter', ach_invite_10: 'Evangelist',
+    ach_first_win: 'Erster Sieg', ach_red_king: 'Roter König', ach_perfect_round: 'Perfekte Runde', ach_shed3: 'Kartenhai', ach_power3: 'Machtspieler', ach_low_score: 'Federgewicht', ach_dutch_win: 'Angesagt', ach_ranked_win: 'Ranglisten-Sieg', ach_veteran: 'Veteran', ach_invite_1: 'Anwerber', ach_invite_5: 'Botschafter', ach_invite_10: 'Evangelist', ach_streak_3: 'In Flammen', ach_streak_7: 'Unaufhaltsam', ach_streak_30: 'Engagiert',
     inviteFriends: 'Freunde einladen', inviteCopied: 'Einladungslink kopiert!', inviteNeedLogin: 'Melde dich an, um deinen Link zu erhalten.', statInvited: 'eingeladen',
     shareText: 'Spiel Dutch mit mir — niedrigste Punktzahl gewinnt!', referralJoined: 'Ein Freund ist über deine Einladung beigetreten! ({n} insgesamt)',
     cardBacksLabel: 'Kartenrücken', cardBacksHint: 'Schalte Designs beim Spielen frei — alle am Tisch sehen den Rücken, den du ausrüstest.',
@@ -577,6 +583,8 @@ const TRANSLATIONS = {
     em_default: 'Initiale', em_clover: 'Kleeblatt', em_gift: 'Geschenk', em_star: 'Stern', em_fox: 'Fuchs', em_joker: 'Joker', em_crown: 'Krone', em_dragon: 'Drache',
     emReqDefault: 'Immer deins', emReqClover: 'Spiele 3 Spiele', emReqGift: 'Lade einen Freund ein', emReqStar: 'Gewinne 3 Spiele',
     emReqFox: 'Spiele 15 Spiele', emReqJoker: 'Erringe 5 Erfolge', emReqCrown: 'Erreiche Platin (1700)', emReqDragon: 'Gewinne 20 Spiele',
+    streakChip: '{n}-Tage-Serie', streakTip: 'Spiele jeden Tag eine Partie, um deine Serie zu halten.', streakToast: '{n}-Tage-Serie!',
+    statStreak: 'Tage-Serie', statStreakBest: 'Beste {n}', viewProfile: 'Profil ansehen', noAchievements: 'Noch keine Erfolge.', closeBtn: 'Schließen',
     powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
     peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
     peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
@@ -681,7 +689,7 @@ const TRANSLATIONS = {
     histShed: '打出的牌（配对）', histPowers: '使用的能力牌',
     tierBronze: '青铜', tierSilver: '白银', tierGold: '黄金', tierPlatinum: '铂金', tierDiamond: '钻石', tierMaster: '大师',
     achievementsLabel: '成就', achUnlocked: '成就解锁',
-    ach_first_win: '首胜', ach_red_king: '红K', ach_perfect_round: '完美一轮', ach_shed3: '出牌高手', ach_power3: '能力大师', ach_low_score: '轻量级', ach_dutch_win: '喊中了', ach_ranked_win: '排位胜利', ach_veteran: '老兵', ach_invite_1: '招募者', ach_invite_5: '大使', ach_invite_10: '布道者',
+    ach_first_win: '首胜', ach_red_king: '红K', ach_perfect_round: '完美一轮', ach_shed3: '出牌高手', ach_power3: '能力大师', ach_low_score: '轻量级', ach_dutch_win: '喊中了', ach_ranked_win: '排位胜利', ach_veteran: '老兵', ach_invite_1: '招募者', ach_invite_5: '大使', ach_invite_10: '布道者', ach_streak_3: '火热', ach_streak_7: '势不可挡', ach_streak_30: '专注',
     inviteFriends: '邀请好友', inviteCopied: '邀请链接已复制！', inviteNeedLogin: '登录后获取你的邀请链接。', statInvited: '已邀请',
     shareText: '来和我一起玩 Dutch —— 分数最低者获胜！', referralJoined: '有好友通过你的邀请加入了！（共 {n} 人）',
     cardBacksLabel: '牌背', cardBacksHint: '边玩边解锁牌背样式 —— 你装备的牌背，牌桌上所有人都能看到。',
@@ -702,6 +710,8 @@ const TRANSLATIONS = {
     em_default: '首字母', em_clover: '四叶草', em_gift: '礼物', em_star: '星星', em_fox: '狐狸', em_joker: '小丑', em_crown: '皇冠', em_dragon: '巨龙',
     emReqDefault: '始终拥有', emReqClover: '玩 3 局', emReqGift: '邀请一位好友', emReqStar: '赢 3 局',
     emReqFox: '玩 15 局', emReqJoker: '获得 5 个成就', emReqCrown: '达到白金（1700）', emReqDragon: '赢 20 局',
+    streakChip: '连续 {n} 天', streakTip: '每天玩一局以保持连胜天数。', streakToast: '连续 {n} 天！',
+    statStreak: '连续天数', statStreakBest: '最佳 {n}', viewProfile: '查看资料', noAchievements: '暂无成就。', closeBtn: '关闭',
     powerCards: '能力牌', powBasic: '基础', powFull: '完整',
     peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
     peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
@@ -976,7 +986,8 @@ function handleServerMessage(data) {
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
     saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null,
-                  cardBack: data.cardBack || 'classic', tableFelt: data.tableFelt || 'classic', emblem: data.emblem || 'default' });
+                  cardBack: data.cardBack || 'classic', tableFelt: data.tableFelt || 'classic', emblem: data.emblem || 'default',
+                  streak: data.streak || 0 });
     applyTableFelt(data.tableFelt || 'classic');
     if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     try { localStorage.removeItem('dutchRef'); } catch (e) {}  // referral consumed / no longer needed
@@ -1005,6 +1016,13 @@ function handleServerMessage(data) {
     if (prof) { prof.email = data.email || null; saveProfile(prof); }
   } else if (data.type === 'statsUpdate') {
     showToast(data.won ? t('youWon', { n: data.stats.wins }) : t('gameRecorded', { n: data.stats.games }));
+    const prof = loadProfile();
+    if (prof && data.stats && typeof data.stats.streak === 'number') {
+      const advanced = data.stats.streak > (prof.streak || 0);
+      prof.streak = data.stats.streak;
+      saveProfile(prof);
+      if (advanced && data.stats.streak >= 2) showToast(`🔥 ${t('streakToast', { n: data.stats.streak })}`);
+    }
   } else if (data.type === 'rankedUpdate') {
     lastRankedUpdate = { rating: data.rating, delta: data.delta, won: data.won };
     const sign = data.delta > 0 ? '+' : '';
@@ -1016,6 +1034,9 @@ function handleServerMessage(data) {
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
     if (leaderboardOpen) renderLeaderboardRoot();
+  } else if (data.type === 'profile') {
+    renderProfileModal(data);
+    return;
   } else if (data.type === 'friendsUpdate') {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
   } else if (data.type === 'referralJoined') {
@@ -1154,6 +1175,7 @@ const ACHIEVEMENTS = {
   first_win: '🏆', red_king: '👑', perfect_round: '🎯', shed3: '🃏', power3: '⚡',
   low_score: '🪶', dutch_win: '📣', ranked_win: '⚔️', veteran: '🎖️',
   invite_1: '🎁', invite_5: '🤝', invite_10: '🌟',
+  streak_3: '🔥', streak_7: '☄️', streak_30: '💎',
 };
 function achName(code) { return t('ach_' + code); }
 
@@ -1355,6 +1377,68 @@ function showRecoveryModal(code) {
   </div>`);
   box.querySelector('#rec-copy').onclick = () => navigator.clipboard?.writeText(code).then(() => showToast(t('recoveryCopied')));
   box.querySelector('#rec-done').onclick = () => { root.innerHTML = ''; };
+  root.appendChild(box);
+}
+
+function profileAvatar(username, emblem) {
+  const a = el(`<div class="avatar lg"></div>`);
+  let h = 0;
+  for (const c of (username || '?')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  a.style.background = AVATAR_COLORS[h % AVATAR_COLORS.length];
+  const g = EMBLEM_GLYPH[emblem];
+  if (g) { a.textContent = g; a.classList.add('has-emblem'); }
+  else a.textContent = initials(username);
+  return a;
+}
+
+function showProfileModal(username) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const box = el(`<div class="overlay" style="z-index:100;"><div class="overlay-box profile-box"><div class="help-text">${escapeHtml(t('loading'))}</div></div></div>`);
+  box.onclick = (e) => { if (e.target === box) root.innerHTML = ''; };
+  root.appendChild(box);
+  sendMsg({ type: 'getProfile', username });
+}
+
+function renderProfileModal(p) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const s = p.stats || {};
+  const box = el(`<div class="overlay" style="z-index:100;"><div class="overlay-box profile-box"></div></div>`);
+  box.onclick = (e) => { if (e.target === box) root.innerHTML = ''; };
+  const card = box.querySelector('.overlay-box');
+
+  const head = el(`<div class="profile-head"></div>`);
+  head.appendChild(profileAvatar(p.username, p.emblem));
+  head.appendChild(el(`<div class="profile-id"><div class="profile-name">${escapeHtml(p.username)}</div>${tierBadge(s.rating)}</div>`));
+  card.appendChild(head);
+
+  const rows = [
+    [t('statRating'), s.rating == null ? t('unranked') : s.rating],
+    ...(s.rank ? [[t('statRank'), '#' + s.rank]] : []),
+    [t('statWins'), s.wins || 0],
+    [t('statGames'), s.games || 0],
+    ...(s.ranked_games ? [[t('statRanked'), `${s.ranked_wins}–${s.ranked_games - s.ranked_wins}`]] : []),
+    [t('statBestRound'), s.best_score == null ? '—' : s.best_score],
+    [t('statAccuracy'), s.accuracy == null ? '—' : s.accuracy + '%'],
+    ...(s.streak ? [['🔥 ' + t('statStreak'), s.streak]] : []),
+  ];
+  const grid = el(`<div class="profile-grid"></div>`);
+  rows.forEach(([k, v]) => grid.appendChild(el(`<div class="profile-stat"><span>${escapeHtml(String(k))}</span><strong>${escapeHtml(String(v))}</strong></div>`)));
+  card.appendChild(grid);
+
+  card.appendChild(el(`<div class="section-label" style="margin-top:12px;">${escapeHtml(t('achievementsLabel'))}</div>`));
+  if (p.achievements && p.achievements.length) {
+    const wrap = el(`<div class="ach-list"></div>`);
+    p.achievements.forEach((code) => wrap.appendChild(el(`<span class="ach-badge" title="${escapeHtml(achName(code))}">${ACHIEVEMENTS[code] || '🏅'} ${escapeHtml(achName(code))}</span>`)));
+    card.appendChild(wrap);
+  } else {
+    card.appendChild(el(`<div class="help-text" style="margin-top:4px;">${escapeHtml(t('noAchievements'))}</div>`));
+  }
+
+  const close = el(`<button class="btn-gold" style="margin-top:16px; width:100%;">${escapeHtml(t('closeBtn'))}</button>`);
+  close.onclick = () => { root.innerHTML = ''; };
+  card.appendChild(close);
   root.appendChild(box);
 }
 
@@ -1703,6 +1787,7 @@ function renderLeaderboard() {
         ${s.rank ? `<span>${escapeHtml(t('statRank'))} <strong>#${s.rank}</strong></span>` : ''}
         <span><strong>${s.wins}</strong> ${escapeHtml(t('statWins'))}</span>
         <span><strong>${s.games}</strong> ${escapeHtml(t('statGames'))}</span>
+        ${s.streak ? `<span>🔥 <strong>${s.streak}</strong> ${escapeHtml(t('statStreak'))}${s.best_streak > s.streak ? ` <span class="hist-players">${escapeHtml(t('statStreakBest', { n: s.best_streak }))}</span>` : ''}</span>` : ''}
         ${s.referrals ? `<span>🎁 <strong>${s.referrals}</strong> ${escapeHtml(t('statInvited'))}</span>` : ''}
         <span>${escapeHtml(t('statBestRound'))} <strong>${s.best_score == null ? '—' : s.best_score}</strong></span>
         <span>${escapeHtml(t('statAccuracy'))} <strong>${s.accuracy == null ? '—' : s.accuracy + '%'}</strong></span>
@@ -1767,12 +1852,15 @@ function renderLeaderboard() {
     const record = r.ranked_games ? `${r.ranked_wins}–${r.ranked_games - r.ranked_wins}` : '—';
     const tier = r.rating == null ? null : RANK_TIERS.find((x) => r.rating >= x.min);
     const ratingCell = tier ? `${tier.icon} ${r.rating}` : '—';
-    const row = el(`<div class="lb-row ${mine ? 'me' : ''}">
+    const row = el(`<div class="lb-row lb-clickable ${mine ? 'me' : ''}" title="${escapeHtml(t('viewProfile'))}">
       <span class="lb-rank">${i + 1}</span>
       <span class="grow">${escapeHtml(r.username)}</span>
       <span class="lb-num lb-rating" title="${tier ? escapeHtml(t(tier.key)) : ''}">${ratingCell}</span>
       <span class="lb-num">${record}</span>
     </div>`);
+    const open = () => showProfileModal(r.username);
+    row.onclick = open;
+    makeKeyActivatable(row, open);
     table.appendChild(row);
   });
   drawer.appendChild(table);
@@ -2373,6 +2461,8 @@ function renderLanding() {
     ${(() => { const a = loadProfile(); return a && a.username
       ? `<button class="account-cta signed" id="account-cta">👤 ${escapeHtml(t('signedInAs'))} <strong>${escapeHtml(a.username)}</strong></button>`
       : `<button class="account-cta" id="account-cta"><span class="account-cta-main">👤 ${escapeHtml(t('authCta'))}</span><span class="account-cta-sub">${escapeHtml(t('authCtaSub'))}</span></button>`; })()}
+    ${(() => { const a = loadProfile(); return a && a.username && a.streak > 0
+      ? `<div class="streak-chip" title="${escapeHtml(t('streakTip'))}">🔥 ${escapeHtml(t('streakChip', { n: a.streak }))}</div>` : ''; })()}
     <button class="btn-gold quickplay-btn" id="quick-btn">⚡ ${escapeHtml(t('quickPlay'))}<span class="quickplay-sub">${escapeHtml(t('quickPlaySub'))}</span></button>
     <div class="ranked-cta"><button class="btn-blue" id="ranked-btn">⚔️ ${escapeHtml(t('ranked1v1'))}</button>
       <button class="btn-ghost" id="locker-btn">🎨 ${escapeHtml(t('lockerBtn'))}</button>
@@ -2649,6 +2739,13 @@ function renderTable(state) {
     const nameRow = el(`<div class="opp-name"></div>`);
     nameRow.appendChild(avatarEl(p.id, state, 'sm'));
     nameRow.appendChild(document.createTextNode((p.isBot ? '🤖 ' : '') + p.name));
+    if (p.account && !p.left) {                     // only real accounts have a viewable profile
+      nameRow.classList.add('lb-clickable');
+      nameRow.title = t('viewProfile');
+      const open = () => showProfileModal(p.name);
+      nameRow.onclick = open;
+      makeKeyActivatable(nameRow, open);
+    }
     card.appendChild(nameRow);
     const tags = el(`<div class="opp-tags"></div>`);
     if (p.left) tags.appendChild(el(`<span class="mini-tag offline">${escapeHtml(t('tagLeft'))}</span>`));
