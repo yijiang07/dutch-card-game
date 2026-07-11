@@ -1041,7 +1041,9 @@ function handleServerMessage(data) {
   } else if (data.type === 'publicRooms') {
     publicRooms = data.rooms || [];
     liveActivity = { playing: data.playing || 0, games: data.games || 0 };
-    if (!latestState) render();  // only the landing shows this list
+    // Refresh the landing, but not while a drawer is open over it — re-rendering
+    // would rebuild (and interrupt) the panel the user is interacting with.
+    if (!latestState && !leaderboardOpen && !lockerOpen && !friendsPanelOpen && !chatOpen) render();
     return;
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
@@ -1349,11 +1351,22 @@ function chatFab() {
 
 function refreshFriendsPanel() {
   const root = document.getElementById('panel-root');
+  // A full re-render (background poll, game tick, presence update) rebuilds the
+  // open drawer — preserve its scroll position so it doesn't jump to the top.
+  const prevScroll = root.querySelector('.friends-drawer')?.scrollTop || 0;
   root.innerHTML = '';
-  if (leaderboardOpen) { root.appendChild(renderLeaderboard()); return; }
-  if (lockerOpen) { root.appendChild(renderLocker()); return; }
-  if (chatOpen) { root.appendChild(renderChat()); return; }
-  if (friendsPanelOpen) root.appendChild(renderFriendsPanel());
+  let overlay = null;
+  if (leaderboardOpen) overlay = renderLeaderboard();
+  else if (lockerOpen) overlay = renderLocker();
+  else if (chatOpen) overlay = renderChat();
+  else if (friendsPanelOpen) overlay = renderFriendsPanel();
+  if (overlay) {
+    root.appendChild(overlay);
+    if (prevScroll) {
+      const drawer = overlay.querySelector('.friends-drawer');
+      if (drawer) drawer.scrollTop = prevScroll;
+    }
+  }
 }
 
 function renderChat() {
