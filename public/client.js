@@ -35,6 +35,7 @@ let langAsked = false;
 let authTab = 'login'; // 'login' | 'signup' | 'recover'
 let leaderboardOpen = false;
 let leaderboardData = null;
+let lbTab = 'all';            // leaderboard tab: 'all' (all-time) or 'week'
 let lockerOpen = false;
 let chatOpen = false;
 let chatLog = [];
@@ -172,6 +173,8 @@ const TRANSLATIONS = {
     rankedTag: 'Ranked 1v1', rankedRules: 'Standard rules · Glicko-rated',
     rankedWaitOpp: 'Share the code — waiting for an opponent to join…',
     ratingCol: 'Rating', recordCol: 'W–L', statRating: 'rating', statRanked: 'ranked', unranked: 'unranked',
+    lbAllTime: 'All-time', lbThisWeek: 'This week', winsCol: 'Wins', gamesCol: 'Games', noGamesWeek: 'No games this week yet — play one!',
+    lbWeekYou: 'You: #{rank} · {w} wins in {g} games this week', lbWeekUnranked: 'Win a game to join this week’s board.',
     ratingToast: 'Ranked rating: {rating} ({delta})',
     authCta: 'Log in / Sign up', authCtaSub: 'Save your stats, add friends & play ranked.',
     powerYours: 'Matched power — your move!', powerOther: '{name} is using a matched power…',
@@ -302,6 +305,8 @@ const TRANSLATIONS = {
     rankedTag: 'Clasificatoria 1v1', rankedRules: 'Reglas estándar · con rating Glicko',
     rankedWaitOpp: 'Comparte el código — esperando a un rival…',
     ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'clasif.', unranked: 'sin rating',
+    lbAllTime: 'Histórico', lbThisWeek: 'Esta semana', winsCol: 'Victorias', gamesCol: 'Partidas', noGamesWeek: 'Aún no hay partidas esta semana — ¡juega una!',
+    lbWeekYou: 'Tú: #{rank} · {w} victorias en {g} partidas esta semana', lbWeekUnranked: 'Gana una partida para entrar en la tabla de esta semana.',
     ratingToast: 'Rating de clasificatoria: {rating} ({delta})',
     authCta: 'Entrar / Registrarse', authCtaSub: 'Guarda tus estadísticas, añade amigos y juega clasificatorias.',
     powerYours: 'Poder emparejado — ¡te toca!', powerOther: '{name} está usando un poder emparejado…',
@@ -431,6 +436,8 @@ const TRANSLATIONS = {
     rankedTag: 'Classé 1v1', rankedRules: 'Règles standard · classement Glicko',
     rankedWaitOpp: 'Partagez le code — en attente d\'un adversaire…',
     ratingCol: 'Rating', recordCol: 'V–D', statRating: 'rating', statRanked: 'classé', unranked: 'non classé',
+    lbAllTime: 'Général', lbThisWeek: 'Cette semaine', winsCol: 'Victoires', gamesCol: 'Parties', noGamesWeek: 'Aucune partie cette semaine — jouez-en une !',
+    lbWeekYou: 'Vous : #{rank} · {w} victoires en {g} parties cette semaine', lbWeekUnranked: 'Gagnez une partie pour rejoindre le classement de la semaine.',
     ratingToast: 'Rating classé : {rating} ({delta})',
     authCta: 'Connexion / Inscription', authCtaSub: 'Enregistrez vos stats, ajoutez des amis et jouez en classé.',
     powerYours: 'Pouvoir associé — à vous !', powerOther: '{name} utilise un pouvoir associé…',
@@ -560,6 +567,8 @@ const TRANSLATIONS = {
     rankedTag: 'Rangliste 1v1', rankedRules: 'Standardregeln · Glicko-gewertet',
     rankedWaitOpp: 'Teile den Code — warte auf einen Gegner…',
     ratingCol: 'Wertung', recordCol: 'S–N', statRating: 'Wertung', statRanked: 'ranked', unranked: 'ohne Wertung',
+    lbAllTime: 'Gesamt', lbThisWeek: 'Diese Woche', winsCol: 'Siege', gamesCol: 'Spiele', noGamesWeek: 'Diese Woche noch keine Spiele — spiel eins!',
+    lbWeekYou: 'Du: #{rank} · {w} Siege in {g} Spielen diese Woche', lbWeekUnranked: 'Gewinne ein Spiel, um in die Wochenliste zu kommen.',
     ratingToast: 'Ranglisten-Wertung: {rating} ({delta})',
     authCta: 'Anmelden / Registrieren', authCtaSub: 'Statistiken speichern, Freunde hinzufügen, ranked spielen.',
     powerYours: 'Abgelegte Machtkarte — du bist dran!', powerOther: '{name} nutzt eine abgelegte Machtkarte…',
@@ -689,6 +698,8 @@ const TRANSLATIONS = {
     rankedTag: '排位 1v1', rankedRules: '标准规则 · Glicko 计分',
     rankedWaitOpp: '分享房间码 — 等待对手加入…',
     ratingCol: '评分', recordCol: '胜–负', statRating: '评分', statRanked: '排位', unranked: '暂无评分',
+    lbAllTime: '总榜', lbThisWeek: '本周', winsCol: '胜场', gamesCol: '场次', noGamesWeek: '本周还没有对局 —— 来玩一局吧！',
+    lbWeekYou: '你：第 {rank} 名 · 本周 {g} 局 {w} 胜', lbWeekUnranked: '赢一局即可进入本周榜单。',
     ratingToast: '排位评分：{rating}（{delta}）',
     authCta: '登录 / 注册', authCtaSub: '保存战绩、添加好友、畅玩排位。',
     powerYours: '配对能力牌 — 该你了！', powerOther: '{name} 正在使用配对的能力牌…',
@@ -1925,27 +1936,62 @@ function renderLeaderboard() {
   }
 
   drawer.appendChild(el(`<div class="section-label">${escapeHtml(t('topPlayers'))}</div>`));
+
+  // Tabs: all-time ladder vs a rolling 7-day board.
+  const tabs = el(`<div class="lb-tabs">
+    <button class="lb-tab ${lbTab === 'all' ? 'on' : ''}" data-tab="all">${escapeHtml(t('lbAllTime'))}</button>
+    <button class="lb-tab ${lbTab === 'week' ? 'on' : ''}" data-tab="week">${escapeHtml(t('lbThisWeek'))}</button>
+  </div>`);
+  tabs.querySelectorAll('.lb-tab').forEach((b) => { b.onclick = () => { lbTab = b.dataset.tab; refreshFriendsPanel(true); }; });
+  drawer.appendChild(tabs);
+
+  const mineRow = (username) => leaderboardData.myUsername && username === leaderboardData.myUsername;
+  const openRow = (row, username) => { const o = () => showProfileModal(username); row.onclick = o; makeKeyActivatable(row, o); };
   const table = el(`<div class="lb-table"></div>`);
-  table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num lb-rating">${escapeHtml(t('ratingCol'))}</span><span class="lb-num">${escapeHtml(t('recordCol'))}</span></div>`));
-  if (!board.length) {
-    table.appendChild(el(`<div class="help-text" style="padding:10px;">${escapeHtml(t('noGames'))}</div>`));
+
+  if (lbTab === 'week') {
+    const wk = leaderboardData.weekly || [];
+    const mw = leaderboardData.myWeekly;
+    if (mw && mw.games) {
+      drawer.querySelector('.lb-tabs').insertAdjacentElement('afterend',
+        el(`<div class="lb-week-you">${escapeHtml(t('lbWeekYou', { rank: mw.rank, w: mw.wins, g: mw.games }))}</div>`));
+    } else if (leaderboardData.myUsername) {
+      drawer.querySelector('.lb-tabs').insertAdjacentElement('afterend',
+        el(`<div class="lb-week-you dim">${escapeHtml(t('lbWeekUnranked'))}</div>`));
+    }
+    table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num">${escapeHtml(t('winsCol'))}</span><span class="lb-num">${escapeHtml(t('gamesCol'))}</span></div>`));
+    if (!wk.length) {
+      table.appendChild(el(`<div class="help-text" style="padding:10px;">${escapeHtml(t('noGamesWeek'))}</div>`));
+    }
+    wk.forEach((r, i) => {
+      const row = el(`<div class="lb-row lb-clickable ${mineRow(r.username) ? 'me' : ''}" title="${escapeHtml(t('viewProfile'))}">
+        <span class="lb-rank">${i + 1}</span>
+        <span class="grow">${escapeHtml(r.username)}</span>
+        <span class="lb-num"><strong>${r.wins}</strong></span>
+        <span class="lb-num">${r.games}</span>
+      </div>`);
+      openRow(row, r.username);
+      table.appendChild(row);
+    });
+  } else {
+    table.appendChild(el(`<div class="lb-row lb-head"><span class="lb-rank">#</span><span class="grow">${escapeHtml(t('lbPlayer'))}</span><span class="lb-num lb-rating">${escapeHtml(t('ratingCol'))}</span><span class="lb-num">${escapeHtml(t('recordCol'))}</span></div>`));
+    if (!board.length) {
+      table.appendChild(el(`<div class="help-text" style="padding:10px;">${escapeHtml(t('noGames'))}</div>`));
+    }
+    board.forEach((r, i) => {
+      const record = r.ranked_games ? `${r.ranked_wins}–${r.ranked_games - r.ranked_wins}` : '—';
+      const tier = r.rating == null ? null : RANK_TIERS.find((x) => r.rating >= x.min);
+      const ratingCell = tier ? `${tier.icon} ${r.rating}` : '—';
+      const row = el(`<div class="lb-row lb-clickable ${mineRow(r.username) ? 'me' : ''}" title="${escapeHtml(t('viewProfile'))}">
+        <span class="lb-rank">${i + 1}</span>
+        <span class="grow">${escapeHtml(r.username)}</span>
+        <span class="lb-num lb-rating" title="${tier ? escapeHtml(t(tier.key)) : ''}">${ratingCell}</span>
+        <span class="lb-num">${record}</span>
+      </div>`);
+      openRow(row, r.username);
+      table.appendChild(row);
+    });
   }
-  board.forEach((r, i) => {
-    const mine = leaderboardData.myUsername && r.username === leaderboardData.myUsername;
-    const record = r.ranked_games ? `${r.ranked_wins}–${r.ranked_games - r.ranked_wins}` : '—';
-    const tier = r.rating == null ? null : RANK_TIERS.find((x) => r.rating >= x.min);
-    const ratingCell = tier ? `${tier.icon} ${r.rating}` : '—';
-    const row = el(`<div class="lb-row lb-clickable ${mine ? 'me' : ''}" title="${escapeHtml(t('viewProfile'))}">
-      <span class="lb-rank">${i + 1}</span>
-      <span class="grow">${escapeHtml(r.username)}</span>
-      <span class="lb-num lb-rating" title="${tier ? escapeHtml(t(tier.key)) : ''}">${ratingCell}</span>
-      <span class="lb-num">${record}</span>
-    </div>`);
-    const open = () => showProfileModal(r.username);
-    row.onclick = open;
-    makeKeyActivatable(row, open);
-    table.appendChild(row);
-  });
   drawer.appendChild(table);
   return overlay;
 }

@@ -783,3 +783,48 @@ def get_leaderboard(limit=10):
                 for r in cur.fetchall()]
     finally:
         conn.close()
+
+
+WEEK_SECONDS = 7 * 86400
+
+
+def get_weekly_leaderboard(limit=10):
+    """Top players by wins over the last 7 days, from per-round history."""
+    cutoff = time.time() - WEEK_SECONDS
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('''SELECT u.username, COUNT(*) AS games, SUM(h.won) AS wins
+                           FROM game_history h JOIN users u ON u.id = h.user_id
+                           WHERE h.played_at >= ?
+                           GROUP BY u.id, u.username
+                           ORDER BY SUM(h.won) DESC, COUNT(*) DESC LIMIT ?'''), (cutoff, limit))
+        return [{'username': r['username'], 'games': r['games'], 'wins': int(r['wins'] or 0)}
+                for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def get_weekly_stats(user_id):
+    """A player's own wins/games/rank over the last 7 days."""
+    cutoff = time.time() - WEEK_SECONDS
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('''SELECT COUNT(*) AS games, SUM(won) AS wins
+                           FROM game_history WHERE user_id=? AND played_at >= ?'''), (user_id, cutoff))
+        r = cur.fetchone()
+        games = r['games'] or 0
+        wins = int(r['wins'] or 0)
+        if games == 0:
+            return {'games': 0, 'wins': 0, 'rank': None}
+        # Rank = 1 + players who sort strictly above (more wins, or equal wins & more games).
+        cur.execute(_ph('''SELECT COUNT(*) AS c FROM (
+                               SELECT user_id, COUNT(*) AS g, SUM(won) AS w
+                               FROM game_history WHERE played_at >= ? GROUP BY user_id
+                           ) t WHERE t.w > ? OR (t.w = ? AND t.g > ?)'''),
+                    (cutoff, wins, wins, games))
+        rank = cur.fetchone()['c'] + 1
+        return {'games': games, 'wins': wins, 'rank': rank}
+    finally:
+        conn.close()

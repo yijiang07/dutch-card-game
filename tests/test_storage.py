@@ -87,6 +87,30 @@ def test_daily_streak_advances_and_lapses():
     assert storage.get_streak(u['id']) == 1
 
 
+def test_weekly_leaderboard_windows_and_ranks():
+    import time
+    now = time.time()
+    a, b = _mk('weeka'), _mk('weekb')
+
+    def hist(uid, played_at, won):
+        storage.record_history([{'user_id': uid, 'played_at': played_at, 'total': 5, 'won': won,
+                                 'players': 4, 'ranked': False, 'rating_delta': None,
+                                 'placement': 1, 'accuracy': None, 'shed': 0, 'powers': 0}])
+
+    for _ in range(3):
+        hist(a['id'], now - 3600, True)          # weeka: 3 wins this week
+    hist(b['id'], now - 7200, True)              # weekb: 1 win this week
+    hist(b['id'], now - 10 * 86400, True)        # weekb: an old win, outside the window
+
+    wk = {r['username']: r for r in storage.get_weekly_leaderboard(20)}
+    assert wk['weeka']['wins'] == 3 and wk['weeka']['games'] == 3
+    assert wk['weekb']['wins'] == 1 and wk['weekb']['games'] == 1   # old game excluded
+
+    sa = storage.get_weekly_stats(a['id'])
+    assert sa['wins'] == 3 and sa['games'] == 3 and sa['rank'] == 1
+    assert storage.get_weekly_stats(_mk('weekc')['id']) == {'games': 0, 'wins': 0, 'rank': None}
+
+
 def test_cosmetics_default_and_persist():
     u = _mk('grace')
     row = storage.get_by_id(u['id'])

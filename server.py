@@ -767,13 +767,15 @@ async def handle_message(ws, ctx, data):
 
     if mtype == 'getLeaderboard':
         board = await asyncio.to_thread(storage.get_leaderboard, 10)
+        weekly = await asyncio.to_thread(storage.get_weekly_leaderboard, 10)
         me = ctx.get('user')
         my_stats = await asyncio.to_thread(storage.get_stats, me['id']) if me else None
+        my_weekly = await asyncio.to_thread(storage.get_weekly_stats, me['id']) if me else None
         history = await asyncio.to_thread(storage.get_history, me['id'], 15) if me else None
         achievements = await asyncio.to_thread(storage.get_achievements, me['id']) if me else None
-        await send(ws, {'type': 'leaderboard', 'board': board, 'myStats': my_stats,
-                        'myUsername': me['username'] if me else None, 'history': history,
-                        'achievements': achievements})
+        await send(ws, {'type': 'leaderboard', 'board': board, 'weekly': weekly, 'myStats': my_stats,
+                        'myWeekly': my_weekly, 'myUsername': me['username'] if me else None,
+                        'history': history, 'achievements': achievements})
         return
 
     if mtype == 'getPublicRooms':
