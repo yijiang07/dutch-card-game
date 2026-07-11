@@ -1003,18 +1003,21 @@ function handleServerMessage(data) {
     if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     try { localStorage.removeItem('dutchRef'); } catch (e) {}  // referral consumed / no longer needed
     if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
+    if (friendsPanelOpen || lockerOpen) refreshFriendsPanel(true);   // reflect signed-in state / cosmetics
   } else if (data.type === 'identityFailed') {
     // Stored session is no longer valid (expired, logged out elsewhere, or data reset).
     clearProfile();
+    if (friendsPanelOpen || lockerOpen) refreshFriendsPanel(true);
   } else if (data.type === 'loggedOut') {
     clearProfile();
+    if (friendsPanelOpen || lockerOpen) refreshFriendsPanel(true);
   } else if (data.type === 'emote') {
     popEmote(data.playerId, data.emoji);
     return;
   } else if (data.type === 'chat') {
     chatLog.push({ playerId: data.playerId, name: data.name, text: data.text, mine: data.playerId === myId });
     if (chatLog.length > 100) chatLog.shift();
-    if (chatOpen) { refreshFriendsPanel(); scrollChatToBottom(); }
+    if (chatOpen) { refreshFriendsPanel(true); scrollChatToBottom(); }
     else { chatUnread++; if (data.playerId !== myId) showToast(`${data.name}: ${data.text}`); render(); }
     return;
   } else if (data.type === 'leftRoom') {
@@ -1025,6 +1028,7 @@ function handleServerMessage(data) {
   } else if (data.type === 'emailUpdated') {
     const prof = loadProfile();
     if (prof) { prof.email = data.email || null; saveProfile(prof); }
+    if (friendsPanelOpen) refreshFriendsPanel(true);
   } else if (data.type === 'statsUpdate') {
     showToast(data.won ? t('youWon', { n: data.stats.wins }) : t('gameRecorded', { n: data.stats.games }));
     const prof = loadProfile();
@@ -1047,12 +1051,13 @@ function handleServerMessage(data) {
     return;
   } else if (data.type === 'leaderboard') {
     leaderboardData = data;
-    if (leaderboardOpen) renderLeaderboardRoot();
+    if (leaderboardOpen || lockerOpen) refreshFriendsPanel(true);   // both drawers read this
   } else if (data.type === 'profile') {
     renderProfileModal(data);
     return;
   } else if (data.type === 'friendsUpdate') {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
+    if (friendsPanelOpen) refreshFriendsPanel(true);
   } else if (data.type === 'referralJoined') {
     showToast(`🎉 ${t('referralJoined', { n: data.count })}`);
     return;
@@ -1069,7 +1074,7 @@ function handleServerMessage(data) {
       if (prof) { prof.cardBack = data.id; saveProfile(prof); }
       showToast(`🎨 ${t('backEquipped', { name: t('back_' + data.id) })}`);
     }
-    if (lockerOpen) refreshFriendsPanel();
+    if (lockerOpen) refreshFriendsPanel(true);
     return;
   } else if (data.type === 'achievements') {
     (data.earned || []).forEach((code) => {
@@ -1220,7 +1225,7 @@ function inviteFriends() {
   const p = loadProfile();
   if (!p || !p.username) {
     showToast(t('inviteNeedLogin'), true);
-    authTab = 'signup'; friendsPanelOpen = true; leaderboardOpen = false; chatOpen = false; refreshFriendsPanel();
+    authTab = 'signup'; friendsPanelOpen = true; leaderboardOpen = false; chatOpen = false; lockerOpen = false; refreshFriendsPanel(true);
     return;
   }
   const link = `${location.origin}/?ref=${encodeURIComponent(p.username)}`;
@@ -1349,17 +1354,25 @@ function chatFab() {
   return fab;
 }
 
-function refreshFriendsPanel() {
+let mountedPanel = null;   // which drawer is currently in the DOM
+
+// The whole app re-renders constantly (background poll every 5s, game tick every
+// 300ms, presence/stats pushes). Those must NOT rebuild the drawer the user is
+// scrolling — so we only rebuild when the open panel actually changes, or when a
+// caller forces it because the panel's own data changed (equip, chat message,
+// leaderboard/friends update). A forced rebuild still preserves scroll position.
+function refreshFriendsPanel(force) {
   const root = document.getElementById('panel-root');
-  // A full re-render (background poll, game tick, presence update) rebuilds the
-  // open drawer — preserve its scroll position so it doesn't jump to the top.
+  const want = leaderboardOpen ? 'lb' : lockerOpen ? 'locker' : chatOpen ? 'chat' : friendsPanelOpen ? 'friends' : null;
+  if (!force && want === mountedPanel) return;   // already showing it — leave it alone
   const prevScroll = root.querySelector('.friends-drawer')?.scrollTop || 0;
   root.innerHTML = '';
+  mountedPanel = want;
   let overlay = null;
-  if (leaderboardOpen) overlay = renderLeaderboard();
-  else if (lockerOpen) overlay = renderLocker();
-  else if (chatOpen) overlay = renderChat();
-  else if (friendsPanelOpen) overlay = renderFriendsPanel();
+  if (want === 'lb') overlay = renderLeaderboard();
+  else if (want === 'locker') overlay = renderLocker();
+  else if (want === 'chat') overlay = renderChat();
+  else if (want === 'friends') overlay = renderFriendsPanel();
   if (overlay) {
     root.appendChild(overlay);
     if (prevScroll) {
@@ -1495,7 +1508,7 @@ function renderAuthForm() {
     <button class="auth-tab ${authTab === 'signup' ? 'on' : ''}" data-tab="signup">${escapeHtml(t('signup'))}</button>
   </div>`);
   tabs.querySelectorAll('.auth-tab').forEach((tab) => {
-    tab.onclick = () => { authTab = tab.dataset.tab; refreshFriendsPanel(); };
+    tab.onclick = () => { authTab = tab.dataset.tab; refreshFriendsPanel(true); };
   });
   wrap.appendChild(tabs);
 
@@ -1527,7 +1540,7 @@ function renderAuthForm() {
     wrap.appendChild(emForm);
 
     const back = el(`<button class="btn-ghost" style="background:transparent;">${escapeHtml(t('backToLogin'))}</button>`);
-    back.onclick = () => { authTab = 'login'; refreshFriendsPanel(); };
+    back.onclick = () => { authTab = 'login'; refreshFriendsPanel(true); };
     wrap.appendChild(back);
     return wrap;
   }
@@ -1555,7 +1568,7 @@ function renderAuthForm() {
     sendMsg(msg);
   };
   const forgot = form.querySelector('#auth-forgot');
-  if (forgot) forgot.onclick = () => { authTab = 'recover'; refreshFriendsPanel(); };
+  if (forgot) forgot.onclick = () => { authTab = 'recover'; refreshFriendsPanel(true); };
   form.querySelectorAll('input').forEach((inp) => {
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') form.querySelector('#auth-submit').click(); });
   });
@@ -1591,7 +1604,7 @@ function renderFriendsPanel() {
     const p = loadProfile();
     sendMsg({ type: 'logout', secret: p && p.secret });
     clearProfile();
-    refreshFriendsPanel();
+    refreshFriendsPanel(true);
   };
   drawer.appendChild(signedRow);
 
@@ -1708,7 +1721,7 @@ function leaderboardFab() {
   return fab;
 }
 
-function renderLeaderboardRoot() { refreshFriendsPanel(); }
+function renderLeaderboardRoot() { refreshFriendsPanel(true); }
 
 /* ---------- Locker (cosmetics) ---------- */
 
