@@ -779,12 +779,17 @@ async def handle_message(ws, ctx, data):
     if mtype == 'getPublicRooms':
         # Every casual lobby that hasn't started and has room is publicly joinable.
         out = []
+        humans = 0
+        active_games = 0
         for c, r in rooms.items():
-            if r.game is None and not r.ranked and 0 < len(r.players) < 8:
+            humans += sum(1 for p in r.players.values() if not p.get('is_bot'))
+            if r.game is not None:
+                active_games += 1
+            elif not r.ranked and 0 < len(r.players) < 8:
                 host = (r.players.get(r.host_id) or {}).get('name') or 'Host'
                 out.append({'code': c, 'host': host, 'players': len(r.players), 'max': 8})
         out.sort(key=lambda x: x['players'], reverse=True)
-        await send(ws, {'type': 'publicRooms', 'rooms': out})
+        await send(ws, {'type': 'publicRooms', 'rooms': out, 'playing': humans, 'games': active_games})
         return
 
     if mtype == 'getProfile':

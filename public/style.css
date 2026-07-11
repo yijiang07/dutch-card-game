@@ -465,6 +465,41 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .back-tag.lock { opacity: 0.7; line-height: 1.25; }
 .locker-count { font-weight: 700; color: var(--gold); font-size: 0.8rem; margin-left: 4px; }
 
+/* Live-activity chip on the landing */
+.live-activity {
+  align-self: center; margin: -2px 0 8px; padding: 4px 13px;
+  display: flex; align-items: center; gap: 7px;
+  border-radius: 999px; font-size: 0.8rem; font-weight: 600; color: var(--ink-dim);
+  background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08);
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #4ad07a;
+  box-shadow: 0 0 0 0 rgba(74,208,122,0.6); animation: live-pulse 2s infinite;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(74,208,122,0.55); }
+  70% { box-shadow: 0 0 0 6px rgba(74,208,122,0); }
+  100% { box-shadow: 0 0 0 0 rgba(74,208,122,0); }
+}
+
+/* Achievements gallery in the Locker */
+.ach-gallery { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.ach-item {
+  display: flex; align-items: center; gap: 11px; padding: 9px 11px;
+  border-radius: 11px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.ach-item.earned { border-color: rgba(226,201,140,0.4); background: rgba(226,201,140,0.07); }
+.ach-item.locked { opacity: 0.82; }
+.ach-ico { font-size: 1.5rem; width: 30px; text-align: center; flex: 0 0 auto; }
+.ach-body { flex: 1; min-width: 0; }
+.ach-title { font-weight: 700; font-size: 0.9rem; }
+.ach-check { color: var(--gold); }
+.ach-desc { font-size: 0.76rem; color: var(--ink-dim); margin-top: 1px; }
+.ach-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden; }
+.ach-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--gold-2), var(--gold)); }
+.ach-prog { font-size: 0.68rem; color: var(--ink-dim); margin-top: 3px; }
+
 /* Daily streak chip on the landing */
 .streak-chip {
   align-self: center; margin: 2px 0 10px; padding: 5px 14px;

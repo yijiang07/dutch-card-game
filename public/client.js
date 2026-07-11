@@ -41,6 +41,7 @@ let chatLog = [];
 let chatUnread = 0;
 let lastRankedUpdate = null;  // {rating, delta, won} for the most recent ranked round, shown on reveal
 let publicRooms = [];         // joinable casual lobbies, shown on the landing
+let liveActivity = { playing: 0, games: 0 };  // global activity for the landing chip
 let publicRoomsTimer = null;
 
 // Briefly reveal which card a player just swapped in from the discard pile.
@@ -181,6 +182,8 @@ const TRANSLATIONS = {
     tierBronze: 'Bronze', tierSilver: 'Silver', tierGold: 'Gold', tierPlatinum: 'Platinum', tierDiamond: 'Diamond', tierMaster: 'Master',
     achievementsLabel: 'Achievements', achUnlocked: 'Achievement unlocked',
     ach_first_win: 'First Win', ach_red_king: 'Red King', ach_perfect_round: 'Flawless Round', ach_shed3: 'Card Shark', ach_power3: 'Power Player', ach_low_score: 'Featherweight', ach_dutch_win: 'Called It', ach_ranked_win: 'Ranked Victory', ach_veteran: 'Veteran', ach_invite_1: 'Recruiter', ach_invite_5: 'Ambassador', ach_invite_10: 'Evangelist', ach_streak_3: 'On Fire', ach_streak_7: 'Unstoppable', ach_streak_30: 'Dedicated',
+    achd_first_win: 'Win your first round', achd_red_king: 'Hold a red King — it scores 0', achd_perfect_round: 'Make every draw/swap the best move in a round', achd_shed3: 'Shed 3+ cards in one round', achd_power3: 'Trigger 3+ card powers in one round', achd_low_score: 'Win a round with 3 points or fewer', achd_dutch_win: 'Call Dutch and win the round', achd_ranked_win: 'Win a ranked 1v1 game', achd_veteran: 'Play 25 games', achd_invite_1: 'Invite a friend who signs up', achd_invite_5: 'Get 5 friends to sign up', achd_invite_10: 'Get 10 friends to sign up', achd_streak_3: 'Play 3 days in a row', achd_streak_7: 'Play 7 days in a row', achd_streak_30: 'Play 30 days in a row',
+    liveNow: '{p} online · {g} live games',
     inviteFriends: 'Invite friends', inviteCopied: 'Invite link copied!', inviteNeedLogin: 'Log in to get your invite link.', statInvited: 'invited',
     shareText: 'Play Dutch with me — lowest score wins!', referralJoined: 'A friend joined with your invite! ({n} total)',
     cardBacksLabel: 'Card backs', cardBacksHint: 'Unlock designs as you play — everyone at the table sees the back you equip.',
@@ -309,6 +312,8 @@ const TRANSLATIONS = {
     tierBronze: 'Bronce', tierSilver: 'Plata', tierGold: 'Oro', tierPlatinum: 'Platino', tierDiamond: 'Diamante', tierMaster: 'Maestro',
     achievementsLabel: 'Logros', achUnlocked: '¡Logro desbloqueado!',
     ach_first_win: 'Primera victoria', ach_red_king: 'Rey rojo', ach_perfect_round: 'Ronda perfecta', ach_shed3: 'Tiburón', ach_power3: 'Jugador de poder', ach_low_score: 'Peso pluma', ach_dutch_win: '¡Cantado!', ach_ranked_win: 'Victoria clasificatoria', ach_veteran: 'Veterano', ach_invite_1: 'Reclutador', ach_invite_5: 'Embajador', ach_invite_10: 'Evangelista', ach_streak_3: 'En racha', ach_streak_7: 'Imparable', ach_streak_30: 'Dedicado',
+    achd_first_win: 'Gana tu primera ronda', achd_red_king: 'Ten un Rey rojo — vale 0', achd_perfect_round: 'Haz la mejor jugada en cada robo/cambio de una ronda', achd_shed3: 'Descarta 3+ cartas en una ronda', achd_power3: 'Activa 3+ poderes en una ronda', achd_low_score: 'Gana una ronda con 3 puntos o menos', achd_dutch_win: 'Canta Dutch y gana la ronda', achd_ranked_win: 'Gana una partida clasificatoria 1v1', achd_veteran: 'Juega 25 partidas', achd_invite_1: 'Invita a un amigo que se registre', achd_invite_5: 'Consigue 5 registros', achd_invite_10: 'Consigue 10 registros', achd_streak_3: 'Juega 3 días seguidos', achd_streak_7: 'Juega 7 días seguidos', achd_streak_30: 'Juega 30 días seguidos',
+    liveNow: '{p} en línea · {g} partidas activas',
     inviteFriends: 'Invita amigos', inviteCopied: '¡Enlace de invitación copiado!', inviteNeedLogin: 'Entra para obtener tu enlace de invitación.', statInvited: 'invitados',
     shareText: '¡Juega a Dutch conmigo — gana el que tenga menos puntos!', referralJoined: '¡Un amigo se unió con tu invitación! ({n} en total)',
     cardBacksLabel: 'Reversos', cardBacksHint: 'Desbloquea diseños jugando — todos en la mesa ven el reverso que equipas.',
@@ -436,6 +441,8 @@ const TRANSLATIONS = {
     tierBronze: 'Bronze', tierSilver: 'Argent', tierGold: 'Or', tierPlatinum: 'Platine', tierDiamond: 'Diamant', tierMaster: 'Maître',
     achievementsLabel: 'Succès', achUnlocked: 'Succès débloqué',
     ach_first_win: 'Première victoire', ach_red_king: 'Roi rouge', ach_perfect_round: 'Manche parfaite', ach_shed3: 'Requin', ach_power3: 'Joueur de pouvoir', ach_low_score: 'Poids plume', ach_dutch_win: 'Bien annoncé', ach_ranked_win: 'Victoire classée', ach_veteran: 'Vétéran', ach_invite_1: 'Recruteur', ach_invite_5: 'Ambassadeur', ach_invite_10: 'Évangéliste', ach_streak_3: 'En feu', ach_streak_7: 'Inarrêtable', ach_streak_30: 'Assidu',
+    achd_first_win: 'Gagnez votre première manche', achd_red_king: 'Ayez un Roi rouge — il vaut 0', achd_perfect_round: 'Faites le meilleur coup à chaque pioche/échange d\'une manche', achd_shed3: 'Défaussez 3+ cartes en une manche', achd_power3: 'Déclenchez 3+ pouvoirs en une manche', achd_low_score: 'Gagnez une manche avec 3 points ou moins', achd_dutch_win: 'Annoncez Dutch et gagnez la manche', achd_ranked_win: 'Gagnez une partie classée 1v1', achd_veteran: 'Jouez 25 parties', achd_invite_1: 'Invitez un ami qui s\'inscrit', achd_invite_5: 'Obtenez 5 inscriptions', achd_invite_10: 'Obtenez 10 inscriptions', achd_streak_3: 'Jouez 3 jours de suite', achd_streak_7: 'Jouez 7 jours de suite', achd_streak_30: 'Jouez 30 jours de suite',
+    liveNow: '{p} en ligne · {g} parties en cours',
     inviteFriends: 'Inviter des amis', inviteCopied: "Lien d'invitation copié !", inviteNeedLogin: 'Connectez-vous pour obtenir votre lien.', statInvited: 'invités',
     shareText: 'Joue à Dutch avec moi — le score le plus bas gagne !', referralJoined: 'Un ami a rejoint avec votre invitation ! ({n} au total)',
     cardBacksLabel: 'Dos de cartes', cardBacksHint: 'Débloquez des motifs en jouant — toute la table voit le dos que vous équipez.',
@@ -563,6 +570,8 @@ const TRANSLATIONS = {
     tierBronze: 'Bronze', tierSilver: 'Silber', tierGold: 'Gold', tierPlatinum: 'Platin', tierDiamond: 'Diamant', tierMaster: 'Meister',
     achievementsLabel: 'Erfolge', achUnlocked: 'Erfolg freigeschaltet',
     ach_first_win: 'Erster Sieg', ach_red_king: 'Roter König', ach_perfect_round: 'Perfekte Runde', ach_shed3: 'Kartenhai', ach_power3: 'Machtspieler', ach_low_score: 'Federgewicht', ach_dutch_win: 'Angesagt', ach_ranked_win: 'Ranglisten-Sieg', ach_veteran: 'Veteran', ach_invite_1: 'Anwerber', ach_invite_5: 'Botschafter', ach_invite_10: 'Evangelist', ach_streak_3: 'In Flammen', ach_streak_7: 'Unaufhaltsam', ach_streak_30: 'Engagiert',
+    achd_first_win: 'Gewinne deine erste Runde', achd_red_king: 'Halte einen roten König — er zählt 0', achd_perfect_round: 'Mache jeden Zug einer Runde optimal', achd_shed3: 'Wirf 3+ Karten in einer Runde ab', achd_power3: 'Löse 3+ Kartenkräfte in einer Runde aus', achd_low_score: 'Gewinne eine Runde mit 3 Punkten oder weniger', achd_dutch_win: 'Sage Dutch an und gewinne die Runde', achd_ranked_win: 'Gewinne ein gewertetes 1v1', achd_veteran: 'Spiele 25 Spiele', achd_invite_1: 'Lade einen Freund ein, der sich anmeldet', achd_invite_5: 'Erreiche 5 Anmeldungen', achd_invite_10: 'Erreiche 10 Anmeldungen', achd_streak_3: 'Spiele 3 Tage in Folge', achd_streak_7: 'Spiele 7 Tage in Folge', achd_streak_30: 'Spiele 30 Tage in Folge',
+    liveNow: '{p} online · {g} laufende Spiele',
     inviteFriends: 'Freunde einladen', inviteCopied: 'Einladungslink kopiert!', inviteNeedLogin: 'Melde dich an, um deinen Link zu erhalten.', statInvited: 'eingeladen',
     shareText: 'Spiel Dutch mit mir — niedrigste Punktzahl gewinnt!', referralJoined: 'Ein Freund ist über deine Einladung beigetreten! ({n} insgesamt)',
     cardBacksLabel: 'Kartenrücken', cardBacksHint: 'Schalte Designs beim Spielen frei — alle am Tisch sehen den Rücken, den du ausrüstest.',
@@ -690,6 +699,8 @@ const TRANSLATIONS = {
     tierBronze: '青铜', tierSilver: '白银', tierGold: '黄金', tierPlatinum: '铂金', tierDiamond: '钻石', tierMaster: '大师',
     achievementsLabel: '成就', achUnlocked: '成就解锁',
     ach_first_win: '首胜', ach_red_king: '红K', ach_perfect_round: '完美一轮', ach_shed3: '出牌高手', ach_power3: '能力大师', ach_low_score: '轻量级', ach_dutch_win: '喊中了', ach_ranked_win: '排位胜利', ach_veteran: '老兵', ach_invite_1: '招募者', ach_invite_5: '大使', ach_invite_10: '布道者', ach_streak_3: '火热', ach_streak_7: '势不可挡', ach_streak_30: '专注',
+    achd_first_win: '赢下你的第一轮', achd_red_king: '持有红K —— 计 0 分', achd_perfect_round: '一轮中每次抽牌/换牌都是最优选择', achd_shed3: '一轮中甩出 3 张以上的牌', achd_power3: '一轮中触发 3 次以上卡牌能力', achd_low_score: '以 3 分或更少赢下一轮', achd_dutch_win: '喊 Dutch 并赢下该轮', achd_ranked_win: '赢一场排位 1v1', achd_veteran: '玩 25 局', achd_invite_1: '邀请一位注册的好友', achd_invite_5: '获得 5 次注册', achd_invite_10: '获得 10 次注册', achd_streak_3: '连续 3 天游玩', achd_streak_7: '连续 7 天游玩', achd_streak_30: '连续 30 天游玩',
+    liveNow: '{p} 在线 · {g} 场进行中',
     inviteFriends: '邀请好友', inviteCopied: '邀请链接已复制！', inviteNeedLogin: '登录后获取你的邀请链接。', statInvited: '已邀请',
     shareText: '来和我一起玩 Dutch —— 分数最低者获胜！', referralJoined: '有好友通过你的邀请加入了！（共 {n} 人）',
     cardBacksLabel: '牌背', cardBacksHint: '边玩边解锁牌背样式 —— 你装备的牌背，牌桌上所有人都能看到。',
@@ -1029,6 +1040,7 @@ function handleServerMessage(data) {
     showToast(t('ratingToast', { rating: data.rating, delta: sign + data.delta }));
   } else if (data.type === 'publicRooms') {
     publicRooms = data.rooms || [];
+    liveActivity = { playing: data.playing || 0, games: data.games || 0 };
     if (!latestState) render();  // only the landing shows this list
     return;
   } else if (data.type === 'leaderboard') {
@@ -1178,6 +1190,27 @@ const ACHIEVEMENTS = {
   streak_3: '🔥', streak_7: '☄️', streak_30: '💎',
 };
 function achName(code) { return t('ach_' + code); }
+function achDesc(code) { return t('achd_' + code); }
+
+// Ordered catalog for the gallery: how-to-earn text comes from achd_<code>;
+// `prog` gives numeric progress toward the countable ones (null = one-off).
+const ACHIEVEMENT_LIST = [
+  { code: 'first_win',     prog: null },
+  { code: 'dutch_win',     prog: null },
+  { code: 'low_score',     prog: null },
+  { code: 'perfect_round', prog: null },
+  { code: 'shed3',         prog: null },
+  { code: 'power3',        prog: null },
+  { code: 'red_king',      prog: null },
+  { code: 'ranked_win',    prog: null },
+  { code: 'veteran',       prog: (s) => ({ cur: s.games || 0, max: 25 }) },
+  { code: 'streak_3',      prog: (s) => ({ cur: s.best_streak || 0, max: 3 }) },
+  { code: 'streak_7',      prog: (s) => ({ cur: s.best_streak || 0, max: 7 }) },
+  { code: 'streak_30',     prog: (s) => ({ cur: s.best_streak || 0, max: 30 }) },
+  { code: 'invite_1',      prog: (s) => ({ cur: s.referrals || 0, max: 1 }) },
+  { code: 'invite_5',      prog: (s) => ({ cur: s.referrals || 0, max: 5 }) },
+  { code: 'invite_10',     prog: (s) => ({ cur: s.referrals || 0, max: 10 }) },
+];
 
 // Motivate sharing: a personal invite link (?ref=username). New signups
 // through it earn the inviter the Recruiter/Ambassador badges.
@@ -1736,6 +1769,30 @@ function renderLocker() {
     });
     drawer.appendChild(grid);
   };
+
+  // Achievements gallery — goals first: every badge, earned or locked, with a
+  // progress bar toward the countable ones.
+  const earnedSet = new Set(leaderboardData.achievements || []);
+  drawer.appendChild(el(`<div class="section-label" style="margin-top:8px;">${escapeHtml(t('achievementsLabel'))} <span class="locker-count">${earnedSet.size}/${ACHIEVEMENT_LIST.length}</span></div>`));
+  const achWrap = el(`<div class="ach-gallery"></div>`);
+  ACHIEVEMENT_LIST.forEach((a) => {
+    const earned = earnedSet.has(a.code);
+    const item = el(`<div class="ach-item ${earned ? 'earned' : 'locked'}"></div>`);
+    item.appendChild(el(`<div class="ach-ico">${earned ? (ACHIEVEMENTS[a.code] || '🏅') : '🔒'}</div>`));
+    const body = el(`<div class="ach-body"></div>`);
+    body.appendChild(el(`<div class="ach-title">${escapeHtml(achName(a.code))}${earned ? ' <span class="ach-check">✓</span>' : ''}</div>`));
+    body.appendChild(el(`<div class="ach-desc">${escapeHtml(achDesc(a.code))}</div>`));
+    if (!earned && a.prog) {
+      const p = a.prog(s);
+      const pct = Math.min(100, Math.round(100 * p.cur / p.max));
+      const bar = el(`<div class="ach-bar"><div class="ach-bar-fill" style="width:${pct}%;"></div></div>`);
+      body.appendChild(bar);
+      body.appendChild(el(`<div class="ach-prog">${Math.min(p.cur, p.max)}/${p.max}</div>`));
+    }
+    item.appendChild(body);
+    achWrap.appendChild(item);
+  });
+  drawer.appendChild(achWrap);
 
   renderPicker(EMBLEMS, {
     kind: 'emblem', nameKey: 'em_', equipped: prof.emblem || 'default',
@@ -2458,6 +2515,8 @@ function renderLanding() {
       <h1>DUTCH</h1>
       <div class="tagline">${escapeHtml(t('tagline'))}</div>
     </div>
+    ${liveActivity.playing > 0
+      ? `<div class="live-activity"><span class="live-dot"></span>${escapeHtml(t('liveNow', { p: liveActivity.playing, g: liveActivity.games }))}</div>` : ''}
     ${(() => { const a = loadProfile(); return a && a.username
       ? `<button class="account-cta signed" id="account-cta">👤 ${escapeHtml(t('signedInAs'))} <strong>${escapeHtml(a.username)}</strong></button>`
       : `<button class="account-cta" id="account-cta"><span class="account-cta-main">👤 ${escapeHtml(t('authCta'))}</span><span class="account-cta-sub">${escapeHtml(t('authCtaSub'))}</span></button>`; })()}
