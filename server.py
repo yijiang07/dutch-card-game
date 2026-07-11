@@ -200,6 +200,17 @@ def _score_play(room, game, pid, actual):
         _count_play(room, pid, bots.judge_main_play(room, game, pid, actual))
 
 
+def _referral_codes(count):
+    codes = []
+    if count >= 1:
+        codes.append('invite_1')
+    if count >= 5:
+        codes.append('invite_5')
+    if count >= 10:
+        codes.append('invite_10')
+    return codes
+
+
 def _earned_codes(game, r, stats, ranked):
     """Which achievement codes a player qualifies for from a finished round."""
     pid = r['pid']
@@ -571,6 +582,17 @@ async def handle_message(ws, ctx, data):
         await set_online(ws, ctx, {'id': created['id'], 'username': created['username'],
                                    'email': data.get('email') or None, 'lang': created.get('lang'),
                                    'secret': secret, 'recovery_code': created['recovery_code']})
+        # Credit a referral if this signup came through someone's invite link.
+        ref = data.get('ref')
+        if ref:
+            res = await asyncio.to_thread(storage.record_referral, ref, created['id'])
+            if res:
+                earned = await asyncio.to_thread(
+                    storage.award_achievements, res['referrer_id'], _referral_codes(res['count']))
+                for w in list(ONLINE.get(res['referrer_id'], ())):
+                    await send(w, {'type': 'referralJoined', 'count': res['count']})
+                    if earned:
+                        await send(w, {'type': 'achievements', 'earned': earned})
         return
 
     if mtype == 'setLang':

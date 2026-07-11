@@ -53,6 +53,23 @@ def test_history_records_detail_and_prunes():
     assert len(storage.get_history(u['id'], 999)) == 50   # capped at 50 per user
 
 
+def test_referrals():
+    host = _mk('refhost')
+    r_b = _mk('refb')
+    r_c = _mk('refc')
+    # refb & refc both signed up via refhost's link
+    r1 = storage.record_referral('refhost', r_b['id'])
+    assert r1 and r1['referrer_id'] == host['id'] and r1['count'] == 1
+    r2 = storage.record_referral('refhost', r_c['id'])
+    assert r2['count'] == 2
+    assert storage.referral_count(host['id']) == 2
+    assert storage.get_stats(host['id'])['referrals'] == 2
+    # a referee can't be re-credited, and self/unknown referrers are ignored
+    assert storage.record_referral('refhost', r_b['id']) is None
+    assert storage.record_referral('refhost', host['id']) is None
+    assert storage.record_referral('nobody', _mk('refd')['id']) is None
+
+
 def test_achievements_award_once():
     u = _mk('frank')
     assert set(storage.award_achievements(u['id'], ['first_win', 'veteran'])) == {'first_win', 'veteran'}

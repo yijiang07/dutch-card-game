@@ -176,6 +176,13 @@ def init_db():
             earned_at {ts_type} NOT NULL,
             PRIMARY KEY (user_id, code)
         )''')
+        # Referrals — each new user is referred by at most one existing user.
+        cur.execute(f'''CREATE TABLE IF NOT EXISTS referrals (
+            referee_id TEXT PRIMARY KEY,
+            referrer_id TEXT NOT NULL,
+            created_at {ts_type} NOT NULL
+        )''')
+        cur.execute('CREATE INDEX IF NOT EXISTS idx_referrer ON referrals (referrer_id)')
         conn.commit()
     finally:
         conn.close()
@@ -630,17 +637,54 @@ def get_achievements(user_id):
         conn.close()
 
 
+def record_referral(referrer_username, referee_id):
+    """Credit a signup to the referrer named by their username. Returns
+    {referrer_id, count} on a new credit, or None (unknown/self/already-referred)."""
+    referrer = get_by_username(referrer_username or '')
+    if not referrer or referrer['id'] == referee_id:
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT 1 FROM referrals WHERE referee_id=?'), (referee_id,))
+        if cur.fetchone():
+            return None                       # already referred by someone
+        cur.execute(_ph('INSERT INTO referrals (referee_id, referrer_id, created_at) VALUES (?,?,?)'),
+                    (referee_id, referrer['id'], time.time()))
+        cur.execute(_ph('SELECT count(*) AS c FROM referrals WHERE referrer_id=?'), (referrer['id'],))
+        count = cur.fetchone()['c']
+        conn.commit()
+        return {'referrer_id': referrer['id'], 'count': count}
+    except DUP_ERRORS:
+        return None
+    finally:
+        conn.close()
+
+
+def referral_count(user_id):
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(_ph('SELECT count(*) AS c FROM referrals WHERE referrer_id=?'), (user_id,))
+        return cur.fetchone()['c']
+    finally:
+        conn.close()
+
+
 def get_stats(user_id):
     conn = _connect()
     try:
         cur = conn.cursor()
+        cur.execute(_ph('SELECT count(*) AS c FROM referrals WHERE referrer_id=?'), (user_id,))
+        referrals = cur.fetchone()['c']
         cur.execute(_ph('''SELECT games, wins, total_score, best_score, plays_correct, plays_total,
                                   rating, rd, ranked_games, ranked_wins FROM stats WHERE user_id=?'''),
                     (user_id,))
         r = cur.fetchone()
         if not r:
             return {'games': 0, 'wins': 0, 'total_score': 0, 'best_score': None, 'accuracy': None,
-                    'rank': None, 'rating': None, 'ranked_games': 0, 'ranked_wins': 0, 'ranked_rank': None}
+                    'rank': None, 'rating': None, 'ranked_games': 0, 'ranked_wins': 0, 'ranked_rank': None,
+                    'referrals': referrals}
         # Ranked ladder rank (by rating, among players who've played ranked).
         ranked_rank = None
         if r['ranked_games'] > 0:
@@ -650,7 +694,8 @@ def get_stats(user_id):
                 'best_score': r['best_score'], 'accuracy': _accuracy(r['plays_correct'], r['plays_total']),
                 'rank': ranked_rank,
                 'rating': round(r['rating']) if r['ranked_games'] > 0 else None,
-                'ranked_games': r['ranked_games'], 'ranked_wins': r['ranked_wins']}
+                'ranked_games': r['ranked_games'], 'ranked_wins': r['ranked_wins'],
+                'referrals': referrals}
     finally:
         conn.close()
 

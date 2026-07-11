@@ -1481,7 +1481,8 @@ button:active:not(:disabled) { transform: scale(0.95); }
 }
 
 /* ---- Ranked 1v1 ---- */
-.ranked-cta { display: flex; justify-content: center; margin: -4px 0 24px; }
+.ranked-cta { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: -4px 0 24px; }
+.ranked-cta #invite-btn { padding: 11px 22px; font-size: 0.95rem; }
 .ranked-cta .btn-blue { padding: 11px 26px; font-size: 1rem; letter-spacing: 0.03em; }
 .ranked-banner {
   align-self: center;
