@@ -24,6 +24,31 @@ def test_cosmetic_unlock_gates(monkeypatch):
     assert not server._cosmetic_unlocked('cardBack', 'nope', 'pro')        # unknown id stays locked
 
 
+def test_house_lobbies_seed_and_host_transfer():
+    server.rooms.clear()
+    try:
+        server.ensure_house_lobbies()
+        seeds = server._house_seeds()
+        assert len(seeds) == server.HOUSE_TARGET
+        r = seeds[0]
+        assert r.house and r.game is None
+        assert all(p['is_bot'] for p in r.players.values())        # bots only
+        assert r.players[r.host_id]['is_bot']                      # a bot holds the seat
+        assert 0 < len(r.players) < 8                              # shows as joinable
+
+        # A human joins the seed -> takes host, a replacement seed is spun up.
+        pid = 'human1'
+        r.players[pid] = {'name': 'Al', 'is_bot': False, 'connected': True, 'ws': None}
+        if r.house and r.players.get(r.host_id, {}).get('is_bot'):
+            r.host_id = pid
+            server.ensure_house_lobbies()
+        assert r.host_id == pid
+        assert r not in server._house_seeds()                      # taken (has a human)
+        assert len(server._house_seeds()) == server.HOUSE_TARGET   # topped back up
+    finally:
+        server.rooms.clear()
+
+
 def test_earned_codes_all_and_none():
     g = _game({'A': [make_card('K', 'H')], 'B': [make_card('5', 'C')]})   # A holds a red King (0)
     g.dutch_caller = 'A'

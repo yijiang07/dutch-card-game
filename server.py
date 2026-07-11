@@ -94,6 +94,7 @@ class Room:
         self.deal_seq = 0         # bumps each new round so clients can deal-in cards
         self.ranked = False       # ranked 1v1: standard rules, no bots, Glicko-rated
         self.reveal_scheduled = False  # guards the end-of-round match-grace reveal task
+        self.house = False        # auto-seeded open table so the lobby list is never empty
 
     def connected_count(self):
         return sum(1 for p in self.players.values() if p['connected'])
@@ -124,6 +125,37 @@ def _humans(room):
 def _reassign_host(room):
     humans = _humans(room)
     room.host_id = humans[0] if humans else next(iter(room.players), None)
+
+
+# Auto-seeded "house" tables keep the Live Games list populated so a new visitor
+# always has something to join. Each is an open lobby pre-filled with two bots;
+# the first human to join takes over as host, and a fresh seed is spun up.
+HOUSE_TARGET = 2
+HOUSE_BOTS = ('easy', 'medium')
+
+
+def _house_seeds():
+    """House lobbies still waiting for a human (available to join)."""
+    return [r for r in rooms.values() if r.house and r.game is None and not _humans(r)]
+
+
+def create_house_lobby():
+    code = new_code()
+    room = Room(code)
+    room.house = True
+    for diff in HOUSE_BOTS:
+        bot_id = new_id()
+        bname = bots.pick_bot_name([p['name'] for p in room.players.values()])
+        room.players[bot_id] = {'name': bname, 'token': None, 'ws': None,
+                                'connected': True, 'is_bot': True, 'difficulty': diff}
+    room.host_id = next(iter(room.players))   # a bot holds the seat until a human joins
+    rooms[code] = room
+    return room
+
+
+def ensure_house_lobbies():
+    while len(_house_seeds()) < HOUSE_TARGET:
+        create_house_lobby()
 
 
 def clean_name(raw):
@@ -625,7 +657,13 @@ async def ws_handler(request):
         if room and ctx['player_id'] in room.players:
             room.players[ctx['player_id']]['ws'] = None
             room.players[ctx['player_id']]['connected'] = False
-            await broadcast_state(room)
+            # A house seed the human joined but abandoned before starting: drop it
+            # (it's just bots now) rather than leave a stale table in the list.
+            if room.house and room.game is None and not any(
+                    p.get('connected') and not p.get('is_bot') for p in room.players.values()):
+                rooms.pop(room.code, None)
+            else:
+                await broadcast_state(room)
 
     return ws
 
@@ -780,6 +818,7 @@ async def handle_message(ws, ctx, data):
 
     if mtype == 'getPublicRooms':
         # Every casual lobby that hasn't started and has room is publicly joinable.
+        ensure_house_lobbies()   # keep the list populated for whoever's looking
         out = []
         humans = 0
         active_games = 0
@@ -929,6 +968,11 @@ async def handle_message(ws, ctx, data):
                              'card_back': (ctx.get('user') or {}).get('card_back', 'classic'),
                              'emblem': (ctx.get('user') or {}).get('emblem', 'default')}
         ctx['code'], ctx['player_id'] = code, pid
+        # Joining a house seed: the human takes over as host, and we spin up a
+        # replacement seed so the Live Games list stays populated.
+        if room.house and room.players.get(room.host_id, {}).get('is_bot'):
+            room.host_id = pid
+            ensure_house_lobbies()
         await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
         await broadcast_state(room)
         return

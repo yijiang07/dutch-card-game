@@ -141,6 +141,8 @@ const TRANSLATIONS = {
     tagLeft: 'LEFT', tagTurn: 'TURN', tagOffline: 'OFFLINE',
     // reveal
     roundOver: 'Round Over', allRevealed: 'All cards revealed', winner: 'WINNER', ptsUnit: 'pts',
+    shareResult: 'Share result', shareSaved: 'Image saved & link copied!', shareNoResult: 'No result to share.',
+    shareWonText: 'I won at Dutch with {total} points! 🏆 Lowest score wins — play free:', sharePlayText: 'I’m playing Dutch — the card game where the lowest score wins:',
     waitingNewRound: 'Waiting for the host to start a new round…', matchStandings: 'Match standings · {n} rounds',
     // reveal modal
     yourPeek: 'Your Peek', queensPeek: "Queen's Peek", gotIt: 'Got it',
@@ -281,6 +283,8 @@ const TRANSLATIONS = {
     queenClickAny: 'Toca cualquier carta de la mesa para mirarla.',
     tagLeft: 'SE FUE', tagTurn: 'TURNO', tagOffline: 'DESCONECTADO',
     roundOver: 'Fin de la ronda', allRevealed: 'Cartas reveladas', winner: 'GANADOR', ptsUnit: 'pts',
+    shareResult: 'Compartir', shareSaved: '¡Imagen guardada y enlace copiado!', shareNoResult: 'No hay resultado para compartir.',
+    shareWonText: '¡Gané en Dutch con {total} puntos! 🏆 Gana quien menos suma — juega gratis:', sharePlayText: 'Estoy jugando a Dutch — el juego de cartas donde gana la puntuación más baja:',
     waitingNewRound: 'Esperando a que el anfitrión empiece otra ronda…', matchStandings: 'Clasificación · {n} rondas',
     yourPeek: 'Tu vistazo', queensPeek: 'Vistazo de la Reina', gotIt: 'Entendido',
     soundTip: 'Sonido', leaderboardTip: 'Clasificación',
@@ -414,6 +418,8 @@ const TRANSLATIONS = {
     queenClickAny: "Touchez n'importe quelle carte de la table pour la regarder.",
     tagLeft: 'PARTI', tagTurn: 'TOUR', tagOffline: 'HORS LIGNE',
     roundOver: 'Fin de la manche', allRevealed: 'Cartes révélées', winner: 'GAGNANT', ptsUnit: 'pts',
+    shareResult: 'Partager', shareSaved: 'Image enregistrée et lien copié !', shareNoResult: 'Aucun résultat à partager.',
+    shareWonText: "J'ai gagné à Dutch avec {total} points ! 🏆 Le plus bas score gagne — jouez gratuitement :", sharePlayText: 'Je joue à Dutch — le jeu de cartes où le score le plus bas gagne :',
     waitingNewRound: "En attente d'une nouvelle manche par l'hôte…", matchStandings: 'Classement · {n} manches',
     yourPeek: 'Votre coup d’œil', queensPeek: 'Coup d’œil de la Dame', gotIt: 'Compris',
     soundTip: 'Son', leaderboardTip: 'Classement',
@@ -547,6 +553,8 @@ const TRANSLATIONS = {
     queenClickAny: 'Tippe eine beliebige Karte auf dem Tisch zum Ansehen.',
     tagLeft: 'WEG', tagTurn: 'ZUG', tagOffline: 'OFFLINE',
     roundOver: 'Runde vorbei', allRevealed: 'Alle Karten aufgedeckt', winner: 'SIEGER', ptsUnit: 'Pkt',
+    shareResult: 'Teilen', shareSaved: 'Bild gespeichert & Link kopiert!', shareNoResult: 'Kein Ergebnis zum Teilen.',
+    shareWonText: 'Ich habe Dutch mit {total} Punkten gewonnen! 🏆 Niedrigste Punktzahl gewinnt — kostenlos spielen:', sharePlayText: 'Ich spiele Dutch — das Kartenspiel, bei dem die niedrigste Punktzahl gewinnt:',
     waitingNewRound: 'Warte auf eine neue Runde vom Host…', matchStandings: 'Gesamtstand · {n} Runden',
     yourPeek: 'Dein Blick', queensPeek: 'Blick der Dame', gotIt: 'Verstanden',
     soundTip: 'Ton', leaderboardTip: 'Bestenliste',
@@ -680,6 +688,8 @@ const TRANSLATIONS = {
     queenClickAny: '点击桌上任意一张牌偷看。',
     tagLeft: '已离开', tagTurn: '回合', tagOffline: '离线',
     roundOver: '本轮结束', allRevealed: '所有牌已亮出', winner: '胜者', ptsUnit: '分',
+    shareResult: '分享战绩', shareSaved: '图片已保存，链接已复制！', shareNoResult: '没有可分享的结果。',
+    shareWonText: '我在 Dutch 以 {total} 分获胜！🏆 分数最低者获胜 —— 免费来玩：', sharePlayText: '我正在玩 Dutch —— 分数最低者获胜的卡牌游戏：',
     waitingNewRound: '等待房主开始新一轮…', matchStandings: '总积分榜 · {n} 轮',
     yourPeek: '你的偷看', queensPeek: 'Q 的偷看', gotIt: '知道了',
     soundTip: '声音', leaderboardTip: '排行榜',
@@ -3199,6 +3209,89 @@ function renderActionBar(state) {
 
 /* ---------- Reveal ---------- */
 
+// Draw a square, screenshot-friendly result card on a canvas (English text so it
+// travels well as a share asset; the surrounding UI stays localized).
+async function drawResultCard({ won, placement, players, total }) {
+  const W = 1080, H = 1080;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  try { await document.fonts.ready; await document.fonts.load('700 150px Cinzel'); } catch (e) { /* fall back to serif */ }
+
+  const bg = g.createRadialGradient(W / 2, H * 0.3, 60, W / 2, H * 0.42, W);
+  bg.addColorStop(0, '#1c8a5c'); bg.addColorStop(0.5, '#0b4d31'); bg.addColorStop(0.82, '#063a24'); bg.addColorStop(1, '#03230f');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(231,194,90,0.55)'; g.lineWidth = 8; g.strokeRect(30, 30, W - 60, H - 60);
+
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(231,194,90,0.9)';
+  g.font = '54px Georgia, "Times New Roman", serif';
+  g.fillText('♠    ♥    ♣    ♦', W / 2, 155);
+
+  g.fillStyle = '#e7c25a';
+  g.font = '700 154px Cinzel, Georgia, serif';
+  g.fillText('DUTCH', W / 2, 310);
+
+  g.fillStyle = '#f6e6b8';
+  g.font = '700 66px Inter, Arial, sans-serif';
+  g.fillText(won ? '🏆  I WON' : `#${placement} of ${players}`, W / 2, 480);
+
+  g.fillStyle = '#ffffff';
+  g.font = '800 250px Inter, Arial, sans-serif';
+  g.fillText(String(total), W / 2, 668);
+  g.fillStyle = 'rgba(255,255,255,0.82)';
+  g.font = '600 52px Inter, Arial, sans-serif';
+  g.fillText('points', W / 2, 812);
+
+  g.fillStyle = 'rgba(255,255,255,0.72)';
+  g.font = 'italic 500 48px Georgia, serif';
+  g.fillText('Lowest score wins.', W / 2, 902);
+
+  g.fillStyle = '#e7c25a';
+  g.font = '700 54px Inter, Arial, sans-serif';
+  g.fillText('Play free · dutchcardgame.com', W / 2, 992);
+  return c;
+}
+
+async function shareResult(state) {
+  const reveal = state.reveal || [];
+  const me = reveal.find((r) => r.id === state.youId);
+  if (!me) { showToast(t('shareNoResult'), true); return; }
+  const minTotal = Math.min(...reveal.map((r) => r.total));
+  const won = me.total === minTotal;
+  const placement = 1 + reveal.filter((r) => r.total < me.total).length;
+
+  let blob;
+  try {
+    const canvas = await drawResultCard({ won, placement, players: reveal.length, total: me.total });
+    blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+  } catch (e) { blob = null; }
+
+  const url = location.origin;
+  const text = won ? t('shareWonText', { total: me.total }) : t('sharePlayText');
+  const file = blob ? new File([blob], 'dutch-result.png', { type: 'image/png' }) : null;
+
+  try {
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text, url });
+      return;
+    }
+    if (navigator.share) { await navigator.share({ text, url }); return; }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;   // user dismissed the share sheet
+  }
+  // Desktop fallback: download the image and copy the link.
+  if (blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dutch-result.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  try { await navigator.clipboard.writeText(url); } catch (e) { /* clipboard may be blocked */ }
+  showToast(blob ? t('shareSaved') : t('inviteCopied'));
+}
+
 function renderReveal(state) {
   const isHost = state.hostId === state.youId;
   const reveal = state.reveal || [];
@@ -3223,9 +3316,13 @@ function renderReveal(state) {
            ${(state.roundsPlayed > 1 && !state.ranked) ? `<button class="btn-ghost" id="new-match-btn" style="padding:14px 22px;">${escapeHtml(t('newMatch'))}</button>` : ''}`
         : `<span class="help-text">${escapeHtml(t('waitingNewRound'))}</span>`}
     </div>
+    <div class="row center" style="margin-top:12px;">
+      <button class="btn-blue" id="share-result-btn">📸 ${escapeHtml(t('shareResult'))}</button>
+    </div>
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);
   wrap.querySelector('#reveal-leave').appendChild(leaveBtn(t('leaveRoom')));
+  wrap.querySelector('#share-result-btn').onclick = () => shareResult(state);
 
   // Cumulative match standings once more than one round has been played.
   const series = (state.series || []).slice().sort((a, b) => a.total - b.total);
