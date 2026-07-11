@@ -73,11 +73,12 @@ def test_referrals():
 def test_cosmetics_default_and_persist():
     u = _mk('grace')
     row = storage.get_by_id(u['id'])
-    assert row['card_back'] == 'classic' and row['table_felt'] == 'classic'   # defaults
+    assert row['card_back'] == 'classic' and row['table_felt'] == 'classic' and row['emblem'] == 'default'
     storage.set_card_back(u['id'], 'noir')
     storage.set_table_felt(u['id'], 'midnight')
+    storage.set_cosmetic(u['id'], 'emblem', 'dragon')
     row = storage.get_by_id(u['id'])
-    assert row['card_back'] == 'noir' and row['table_felt'] == 'midnight'
+    assert row['card_back'] == 'noir' and row['table_felt'] == 'midnight' and row['emblem'] == 'dragon'
 
 
 def test_achievements_award_once():

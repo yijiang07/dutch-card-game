@@ -148,7 +148,7 @@ def lobby_state(room, viewer_id):
         'players': [
             {'id': pid, 'name': p['name'], 'connected': p['connected'], 'isYou': pid == viewer_id,
              'isBot': p.get('is_bot', False), 'difficulty': p.get('difficulty'),
-             'cardBack': p.get('card_back', 'classic')}
+             'cardBack': p.get('card_back', 'classic'), 'emblem': p.get('emblem', 'default')}
             for pid, p in room.players.items()
         ],
         'settings': room.settings,
@@ -170,6 +170,7 @@ def build_state(room, viewer_id):
         p['isBot'] = info.get('is_bot', False)
         p['difficulty'] = info.get('difficulty')
         p['cardBack'] = info.get('card_back', 'classic')
+        p['emblem'] = info.get('emblem', 'default')
         p['left'] = info.get('left', False)
     state['roundsPlayed'] = room.rounds_played
     state['dealSeq'] = room.deal_seq
@@ -227,11 +228,22 @@ TABLE_FELTS = {
     'royal':    lambda s, a: len(a) >= 3,
     'sunrise':  lambda s, a: (s.get('rating') or 0) >= 1550,
 }
+EMBLEMS = {
+    'default': lambda s, a: True,
+    'clover':  lambda s, a: s.get('games', 0) >= 3,
+    'gift':    lambda s, a: s.get('referrals', 0) >= 1,
+    'star':    lambda s, a: s.get('wins', 0) >= 3,
+    'fox':     lambda s, a: s.get('games', 0) >= 15,
+    'joker':   lambda s, a: len(a) >= 5,
+    'crown':   lambda s, a: (s.get('rating') or 0) >= 1700,
+    'dragon':  lambda s, a: s.get('wins', 0) >= 20,
+}
 # kind -> (users column, rule table). `shared` marks a cosmetic other players see
 # in-game (so equipping it must rebroadcast room state); felt is viewer-only.
 COSMETIC_DEFS = {
     'cardBack':  {'col': 'card_back',  'rules': CARD_BACKS,  'shared': True},
     'tableFelt': {'col': 'table_felt', 'rules': TABLE_FELTS, 'shared': False},
+    'emblem':    {'col': 'emblem',     'rules': EMBLEMS,     'shared': True},
 }
 
 
@@ -538,12 +550,14 @@ async def notify_friends_of(user_id):
 async def set_online(ws, ctx, user):
     ctx['user'] = {'id': user['id'], 'username': user['username'],
                    'card_back': user.get('card_back') or 'classic',
-                   'table_felt': user.get('table_felt') or 'classic'}
+                   'table_felt': user.get('table_felt') or 'classic',
+                   'emblem': user.get('emblem') or 'default'}
     ONLINE.setdefault(user['id'], set()).add(ws)
     payload = {'type': 'identity', 'userId': user['id'], 'username': user['username'],
                'email': user.get('email'), 'lang': user.get('lang'),
                'cardBack': user.get('card_back') or 'classic',
-               'tableFelt': user.get('table_felt') or 'classic'}
+               'tableFelt': user.get('table_felt') or 'classic',
+               'emblem': user.get('emblem') or 'default'}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -827,11 +841,45 @@ async def handle_message(ws, ctx, data):
         room.ranked = ranked
         pid, token = new_id(), new_token()
         room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id,
-                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic')}
+                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic'),
+                             'emblem': (ctx.get('user') or {}).get('emblem', 'default')}
         room.host_id = pid
         rooms[code] = room
         ctx['code'], ctx['player_id'] = code, pid
         await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
+        await broadcast_state(room)
+        return
+
+    if mtype == 'quickPlay':
+        # One-tap solo game: new room, three bots of mixed skill, dealt at once.
+        name = clean_name(data.get('name'))
+        code = new_code()
+        room = Room(code)
+        pid, token = new_id(), new_token()
+        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id,
+                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic'),
+                             'emblem': (ctx.get('user') or {}).get('emblem', 'default')}
+        room.host_id = pid
+        rooms[code] = room
+        ctx['code'], ctx['player_id'] = code, pid
+        for diff in ('easy', 'medium', 'hard'):
+            bot_id = new_id()
+            bname = bots.pick_bot_name([p['name'] for p in room.players.values()])
+            room.players[bot_id] = {'name': bname, 'token': None, 'ws': None,
+                                    'connected': True, 'is_bot': True, 'difficulty': diff}
+        await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
+        names = {p_id: p['name'] for p_id, p in room.players.items()}
+        room.game = Game(list(room.players.keys()), names, room.settings)
+        room.stats_recorded = False
+        room.reveal_scheduled = False
+        for p in room.players.values():
+            p['play_correct'] = 0
+            p['play_total'] = 0
+            p['shed'] = 0
+            p['powers'] = 0
+        bots.init_brains(room)
+        room.deal_seq += 1
+        start_monitor(room)
         await broadcast_state(room)
         return
 
@@ -851,7 +899,8 @@ async def handle_message(ws, ctx, data):
         name = clean_name(data.get('name'))
         pid, token = new_id(), new_token()
         room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id,
-                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic')}
+                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic'),
+                             'emblem': (ctx.get('user') or {}).get('emblem', 'default')}
         ctx['code'], ctx['player_id'] = code, pid
         await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
         await broadcast_state(room)

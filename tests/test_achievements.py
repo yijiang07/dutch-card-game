@@ -10,6 +10,20 @@ def _game(grids):
     return g
 
 
+def test_cosmetic_unlock_gates(monkeypatch):
+    # High-tier player unlocks everything; a fresh account only the defaults.
+    def fake_stats(uid):
+        return {'games': 40, 'wins': 30, 'referrals': 5, 'rating': 2100} if uid == 'pro' else {}
+    monkeypatch.setattr(server.storage, 'get_stats', fake_stats)
+    monkeypatch.setattr(server.storage, 'get_achievements', lambda uid: [f'a{i}' for i in range(12)] if uid == 'pro' else [])
+    for kind, rules in (('cardBack', server.CARD_BACKS), ('tableFelt', server.TABLE_FELTS), ('emblem', server.EMBLEMS)):
+        for skin in rules:
+            assert server._cosmetic_unlocked(kind, skin, 'pro')            # all unlocked for the pro
+        locked = [s for s in rules if not server._cosmetic_unlocked(kind, s, 'new')]
+        assert locked and 'classic' not in locked and 'default' not in locked  # defaults always free
+    assert not server._cosmetic_unlocked('cardBack', 'nope', 'pro')        # unknown id stays locked
+
+
 def test_earned_codes_all_and_none():
     g = _game({'A': [make_card('K', 'H')], 'B': [make_card('5', 'C')]})   # A holds a red King (0)
     g.dutch_caller = 'A'

@@ -35,6 +35,7 @@ let langAsked = false;
 let authTab = 'login'; // 'login' | 'signup' | 'recover'
 let leaderboardOpen = false;
 let leaderboardData = null;
+let lockerOpen = false;
 let chatOpen = false;
 let chatLog = [];
 let chatUnread = 0;
@@ -194,6 +195,12 @@ const TRANSLATIONS = {
     felt_classic: 'Emerald', felt_midnight: 'Midnight', felt_slate: 'Slate', felt_crimson: 'Crimson', felt_royal: 'Royal', felt_sunrise: 'Sunrise',
     feltReqDefault: 'Always yours', feltReqMidnight: 'Play 5 games', feltReqSlate: 'Play 20 games',
     feltReqCrimson: 'Win 3 games', feltReqRoyal: 'Earn 3 achievements', feltReqSunrise: 'Reach Gold (1550)',
+    lockerTip: 'Locker', lockerTitle: 'Locker', lockerBtn: 'Customize', lockerNeedLogin: 'Log in to unlock and equip cosmetics.',
+    quickPlay: 'Quick Play', quickPlaySub: 'Instant game vs 3 bots', quickPlayer: 'Player',
+    emblemsLabel: 'Emblems', emblemsHint: 'A badge shown on your avatar to everyone at the table.',
+    em_default: 'Initial', em_clover: 'Clover', em_gift: 'Gift', em_star: 'Star', em_fox: 'Fox', em_joker: 'Joker', em_crown: 'Crown', em_dragon: 'Dragon',
+    emReqDefault: 'Always yours', emReqClover: 'Play 3 games', emReqGift: 'Invite a friend', emReqStar: 'Win 3 games',
+    emReqFox: 'Play 15 games', emReqJoker: 'Earn 5 achievements', emReqCrown: 'Reach Platinum (1700)', emReqDragon: 'Win 20 games',
     powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
     peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
     peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
@@ -314,6 +321,12 @@ const TRANSLATIONS = {
     felt_classic: 'Esmeralda', felt_midnight: 'Medianoche', felt_slate: 'Pizarra', felt_crimson: 'Carmesí', felt_royal: 'Real', felt_sunrise: 'Amanecer',
     feltReqDefault: 'Siempre tuyo', feltReqMidnight: 'Juega 5 partidas', feltReqSlate: 'Juega 20 partidas',
     feltReqCrimson: 'Gana 3 partidas', feltReqRoyal: 'Consigue 3 logros', feltReqSunrise: 'Alcanza Oro (1550)',
+    lockerTip: 'Casillero', lockerTitle: 'Casillero', lockerBtn: 'Personalizar', lockerNeedLogin: 'Inicia sesión para desbloquear y equipar cosméticos.',
+    quickPlay: 'Juego rápido', quickPlaySub: 'Partida instantánea vs 3 bots', quickPlayer: 'Jugador',
+    emblemsLabel: 'Emblemas', emblemsHint: 'Una insignia en tu avatar que ve toda la mesa.',
+    em_default: 'Inicial', em_clover: 'Trébol', em_gift: 'Regalo', em_star: 'Estrella', em_fox: 'Zorro', em_joker: 'Comodín', em_crown: 'Corona', em_dragon: 'Dragón',
+    emReqDefault: 'Siempre tuyo', emReqClover: 'Juega 3 partidas', emReqGift: 'Invita a un amigo', emReqStar: 'Gana 3 partidas',
+    emReqFox: 'Juega 15 partidas', emReqJoker: 'Consigue 5 logros', emReqCrown: 'Alcanza Platino (1700)', emReqDragon: 'Gana 20 partidas',
     powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
     peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
     peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
@@ -433,6 +446,12 @@ const TRANSLATIONS = {
     felt_classic: 'Émeraude', felt_midnight: 'Minuit', felt_slate: 'Ardoise', felt_crimson: 'Cramoisi', felt_royal: 'Royal', felt_sunrise: 'Aurore',
     feltReqDefault: 'Toujours à vous', feltReqMidnight: 'Jouez 5 parties', feltReqSlate: 'Jouez 20 parties',
     feltReqCrimson: 'Gagnez 3 parties', feltReqRoyal: 'Obtenez 3 succès', feltReqSunrise: 'Atteignez Or (1550)',
+    lockerTip: 'Casier', lockerTitle: 'Casier', lockerBtn: 'Personnaliser', lockerNeedLogin: 'Connectez-vous pour débloquer et équiper des cosmétiques.',
+    quickPlay: 'Partie rapide', quickPlaySub: 'Partie instantanée contre 3 bots', quickPlayer: 'Joueur',
+    emblemsLabel: 'Emblèmes', emblemsHint: 'Un badge affiché sur votre avatar, visible par toute la table.',
+    em_default: 'Initiale', em_clover: 'Trèfle', em_gift: 'Cadeau', em_star: 'Étoile', em_fox: 'Renard', em_joker: 'Joker', em_crown: 'Couronne', em_dragon: 'Dragon',
+    emReqDefault: 'Toujours à vous', emReqClover: 'Jouez 3 parties', emReqGift: 'Invitez un ami', emReqStar: 'Gagnez 3 parties',
+    emReqFox: 'Jouez 15 parties', emReqJoker: 'Obtenez 5 succès', emReqCrown: 'Atteignez Platine (1700)', emReqDragon: 'Gagnez 20 parties',
     powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
     peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
     peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
@@ -552,6 +571,12 @@ const TRANSLATIONS = {
     felt_classic: 'Smaragd', felt_midnight: 'Mitternacht', felt_slate: 'Schiefer', felt_crimson: 'Karmesin', felt_royal: 'Königlich', felt_sunrise: 'Morgenrot',
     feltReqDefault: 'Immer deins', feltReqMidnight: 'Spiele 5 Spiele', feltReqSlate: 'Spiele 20 Spiele',
     feltReqCrimson: 'Gewinne 3 Spiele', feltReqRoyal: 'Erringe 3 Erfolge', feltReqSunrise: 'Erreiche Gold (1550)',
+    lockerTip: 'Spind', lockerTitle: 'Spind', lockerBtn: 'Anpassen', lockerNeedLogin: 'Melde dich an, um Kosmetik freizuschalten und auszurüsten.',
+    quickPlay: 'Schnelles Spiel', quickPlaySub: 'Sofortspiel gegen 3 Bots', quickPlayer: 'Spieler',
+    emblemsLabel: 'Embleme', emblemsHint: 'Ein Abzeichen auf deinem Avatar, das der ganze Tisch sieht.',
+    em_default: 'Initiale', em_clover: 'Kleeblatt', em_gift: 'Geschenk', em_star: 'Stern', em_fox: 'Fuchs', em_joker: 'Joker', em_crown: 'Krone', em_dragon: 'Drache',
+    emReqDefault: 'Immer deins', emReqClover: 'Spiele 3 Spiele', emReqGift: 'Lade einen Freund ein', emReqStar: 'Gewinne 3 Spiele',
+    emReqFox: 'Spiele 15 Spiele', emReqJoker: 'Erringe 5 Erfolge', emReqCrown: 'Erreiche Platin (1700)', emReqDragon: 'Gewinne 20 Spiele',
     powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
     peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
     peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
@@ -671,6 +696,12 @@ const TRANSLATIONS = {
     felt_classic: '翡翠', felt_midnight: '午夜', felt_slate: '石板', felt_crimson: '绯红', felt_royal: '皇家', felt_sunrise: '日出',
     feltReqDefault: '始终拥有', feltReqMidnight: '玩 5 局', feltReqSlate: '玩 20 局',
     feltReqCrimson: '赢 3 局', feltReqRoyal: '获得 3 个成就', feltReqSunrise: '达到黄金（1550）',
+    lockerTip: '衣柜', lockerTitle: '衣柜', lockerBtn: '自定义', lockerNeedLogin: '登录后即可解锁并装备外观。',
+    quickPlay: '快速游戏', quickPlaySub: '立即与 3 个机器人对战', quickPlayer: '玩家',
+    emblemsLabel: '徽章', emblemsHint: '显示在你头像上的徽章，牌桌上所有人都能看到。',
+    em_default: '首字母', em_clover: '四叶草', em_gift: '礼物', em_star: '星星', em_fox: '狐狸', em_joker: '小丑', em_crown: '皇冠', em_dragon: '巨龙',
+    emReqDefault: '始终拥有', emReqClover: '玩 3 局', emReqGift: '邀请一位好友', emReqStar: '赢 3 局',
+    emReqFox: '玩 15 局', emReqJoker: '获得 5 个成就', emReqCrown: '达到白金（1700）', emReqDragon: '赢 20 局',
     powerCards: '能力牌', powBasic: '基础', powFull: '完整',
     peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
     peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
@@ -945,7 +976,7 @@ function handleServerMessage(data) {
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
     saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null,
-                  cardBack: data.cardBack || 'classic', tableFelt: data.tableFelt || 'classic' });
+                  cardBack: data.cardBack || 'classic', tableFelt: data.tableFelt || 'classic', emblem: data.emblem || 'default' });
     applyTableFelt(data.tableFelt || 'classic');
     if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     try { localStorage.removeItem('dutchRef'); } catch (e) {}  // referral consumed / no longer needed
@@ -996,11 +1027,14 @@ function handleServerMessage(data) {
       if (prof) { prof.tableFelt = data.id; saveProfile(prof); }
       applyTableFelt(data.id);
       showToast(`🎨 ${t('backEquipped', { name: t('felt_' + data.id) })}`);
+    } else if (data.kind === 'emblem') {
+      if (prof) { prof.emblem = data.id; saveProfile(prof); }
+      showToast(`🎨 ${t('backEquipped', { name: t('em_' + data.id) })}`);
     } else {
       if (prof) { prof.cardBack = data.id; saveProfile(prof); }
       showToast(`🎨 ${t('backEquipped', { name: t('back_' + data.id) })}`);
     }
-    if (leaderboardOpen) renderLeaderboardRoot();
+    if (lockerOpen) refreshFriendsPanel();
     return;
   } else if (data.type === 'achievements') {
     (data.earned || []).forEach((code) => {
@@ -1099,6 +1133,22 @@ function applyTableFelt(id) {
   root.classList.add('felt-' + ok);
 }
 
+// Player emblems — an emoji shown in your avatar to everyone at the table
+// ('default' keeps your name initial). Mirrors EMBLEMS in server.py.
+const EMBLEM_GLYPH = {
+  default: '', clover: '🍀', gift: '🎁', star: '⭐', fox: '🦊', joker: '🃏', crown: '👑', dragon: '🐉',
+};
+const EMBLEMS = [
+  { id: 'default', unlock: () => true,                    req: 'emReqDefault' },
+  { id: 'clover',  unlock: (s) => (s.games || 0) >= 3,     req: 'emReqClover' },
+  { id: 'gift',    unlock: (s) => (s.referrals || 0) >= 1, req: 'emReqGift' },
+  { id: 'star',    unlock: (s) => (s.wins || 0) >= 3,      req: 'emReqStar' },
+  { id: 'fox',     unlock: (s) => (s.games || 0) >= 15,    req: 'emReqFox' },
+  { id: 'joker',   unlock: (s, ac) => ac >= 5,             req: 'emReqJoker' },
+  { id: 'crown',   unlock: (s) => (s.rating || 0) >= 1700, req: 'emReqCrown' },
+  { id: 'dragon',  unlock: (s) => (s.wins || 0) >= 20,     req: 'emReqDragon' },
+];
+
 // Achievement code -> icon; the name comes from t('ach_' + code).
 const ACHIEVEMENTS = {
   first_win: '🏆', red_king: '👑', perfect_round: '🎯', shed3: '🃏', power3: '⚡',
@@ -1145,7 +1195,9 @@ function avatarEl(playerId, state, sizeClass) {
   const p = state.players.find((pl) => pl.id === playerId);
   const a = el(`<div class="avatar ${sizeClass || ''}"></div>`);
   a.style.background = avatarColor(playerId, state);
-  a.textContent = initials(p ? p.name : '?');
+  const glyph = p && p.emblem && p.emblem !== 'default' ? EMBLEM_GLYPH[p.emblem] : '';
+  if (glyph) { a.textContent = glyph; a.classList.add('has-emblem'); }
+  else a.textContent = initials(p ? p.name : '?');
   return a;
 }
 
@@ -1244,6 +1296,7 @@ function refreshFriendsPanel() {
   const root = document.getElementById('panel-root');
   root.innerHTML = '';
   if (leaderboardOpen) { root.appendChild(renderLeaderboard()); return; }
+  if (lockerOpen) { root.appendChild(renderLocker()); return; }
   if (chatOpen) { root.appendChild(renderChat()); return; }
   if (friendsPanelOpen) root.appendChild(renderFriendsPanel());
 }
@@ -1527,6 +1580,103 @@ function leaderboardFab() {
 
 function renderLeaderboardRoot() { refreshFriendsPanel(); }
 
+/* ---------- Locker (cosmetics) ---------- */
+
+function lockerFab() {
+  const fab = el(`<button class="locker-fab" aria-label="${escapeHtml(t('lockerTip'))}" title="${escapeHtml(t('lockerTip'))}">🎨</button>`);
+  fab.onclick = () => openLocker();
+  return fab;
+}
+
+function openLocker() {
+  lockerOpen = true; leaderboardOpen = false; friendsPanelOpen = false; chatOpen = false;
+  // The locker needs stats + achievements to decide what's unlocked; reuse the
+  // leaderboard payload and refetch so it's fresh.
+  sendMsg({ type: 'getLeaderboard' });
+  refreshFriendsPanel();
+}
+
+function cosmeticPickerCount(opts, s, achCount) {
+  const total = opts.length;
+  const unlocked = opts.filter((o) => o.unlock(s, achCount)).length;
+  return { total, unlocked };
+}
+
+function renderLocker() {
+  const overlay = el(`<div class="overlay drawer-overlay"></div>`);
+  overlay.onclick = (e) => { if (e.target === overlay) { lockerOpen = false; refreshFriendsPanel(); } };
+  const drawer = el(`<div class="friends-drawer"></div>`);
+  overlay.appendChild(drawer);
+
+  const header = el(`<div class="row between"><h2 style="margin:0; font-size:1.2rem;">🎨 ${escapeHtml(t('lockerTitle'))}</h2><button class="btn-ghost" style="padding:6px 12px;">✕</button></div>`);
+  header.querySelector('button').onclick = () => { lockerOpen = false; refreshFriendsPanel(); };
+  drawer.appendChild(header);
+
+  const prof = loadProfile();
+  if (!prof || !prof.username) {
+    drawer.appendChild(el(`<div class="help-text" style="margin-top:8px;">${escapeHtml(t('lockerNeedLogin'))}</div>`));
+    const btn = el(`<button class="btn-gold" style="margin-top:12px;">${escapeHtml(t('authCta'))}</button>`);
+    btn.onclick = () => { lockerOpen = false; authTab = 'signup'; friendsPanelOpen = true; refreshFriendsPanel(); };
+    drawer.appendChild(btn);
+    return overlay;
+  }
+  if (!leaderboardData || !leaderboardData.myStats) {
+    drawer.appendChild(el(`<div class="help-text">${escapeHtml(t('loading'))}</div>`));
+    return overlay;
+  }
+
+  const s = leaderboardData.myStats;
+  const achCount = (leaderboardData.achievements || []).length;
+
+  const renderPicker = (opts, { kind, nameKey, equipped, preview, label, hint }) => {
+    const { total, unlocked } = cosmeticPickerCount(opts, s, achCount);
+    drawer.appendChild(el(`<div class="section-label" style="margin-top:16px;">${escapeHtml(t(label))} <span class="locker-count">${unlocked}/${total}</span></div>`));
+    drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t(hint))}</div>`));
+    const grid = el(`<div class="back-picker"></div>`);
+    opts.forEach((o) => {
+      const isUnlocked = o.unlock(s, achCount);
+      const isOn = o.id === equipped;
+      const cell = el(`<div class="back-option ${isUnlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
+      cell.appendChild(preview(o.id));
+      cell.appendChild(el(`<div class="back-name">${escapeHtml(t(nameKey + o.id))}</div>`));
+      if (isOn) cell.appendChild(el(`<div class="back-tag on">✓ ${escapeHtml(t('backEquippedTag'))}</div>`));
+      else if (isUnlocked) cell.appendChild(el(`<div class="back-tag">${escapeHtml(t('backEquip'))}</div>`));
+      else cell.appendChild(el(`<div class="back-tag lock">🔒 ${escapeHtml(t(o.req))}</div>`));
+      if (isUnlocked && !isOn) {
+        const equip = () => sendMsg({ type: 'setCosmetic', kind, id: o.id });
+        cell.classList.add('selectable');
+        cell.onclick = equip;
+        makeKeyActivatable(cell, equip);
+      }
+      grid.appendChild(cell);
+    });
+    drawer.appendChild(grid);
+  };
+
+  renderPicker(EMBLEMS, {
+    kind: 'emblem', nameKey: 'em_', equipped: prof.emblem || 'default',
+    label: 'emblemsLabel', hint: 'emblemsHint',
+    preview: (id) => {
+      const a = el(`<div class="avatar lg emblem-preview"></div>`);
+      const g = EMBLEM_GLYPH[id];
+      if (g) { a.textContent = g; a.classList.add('has-emblem'); }
+      else { a.textContent = initials(prof.username); }
+      return a;
+    },
+  });
+  renderPicker(CARD_BACKS, {
+    kind: 'cardBack', nameKey: 'back_', equipped: prof.cardBack || 'classic',
+    label: 'cardBacksLabel', hint: 'cardBacksHint',
+    preview: (id) => cardBack('size-md', id),
+  });
+  renderPicker(TABLE_FELTS, {
+    kind: 'tableFelt', nameKey: 'felt_', equipped: prof.tableFelt || 'classic',
+    label: 'tableFeltsLabel', hint: 'tableFeltsHint',
+    preview: (id) => el(`<div class="felt-swatch felt-${id}"></div>`),
+  });
+  return overlay;
+}
+
 function renderLeaderboard() {
   const overlay = el(`<div class="overlay drawer-overlay"></div>`);
   overlay.onclick = (e) => { if (e.target === overlay) { leaderboardOpen = false; renderLeaderboardRoot(); } };
@@ -1571,48 +1721,6 @@ function renderLeaderboard() {
       wrap.appendChild(el(`<span class="ach-badge" title="${escapeHtml(achName(code))}">${ACHIEVEMENTS[code] || '🏅'} ${escapeHtml(achName(code))}</span>`));
     });
     drawer.appendChild(wrap);
-  }
-
-  // Cosmetics (signed-in players only): card backs + table felt
-  if (leaderboardData.myStats && leaderboardData.myUsername) {
-    const s = leaderboardData.myStats;
-    const achCount = (leaderboardData.achievements || []).length;
-    const prof = loadProfile() || {};
-
-    const renderPicker = (opts, { kind, nameKey, equipped, preview, label, hint }) => {
-      drawer.appendChild(el(`<div class="section-label" style="margin-top:14px;">${escapeHtml(t(label))}</div>`));
-      drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t(hint))}</div>`));
-      const grid = el(`<div class="back-picker"></div>`);
-      opts.forEach((o) => {
-        const unlocked = o.unlock(s, achCount);
-        const isOn = o.id === equipped;
-        const cell = el(`<div class="back-option ${unlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
-        cell.appendChild(preview(o.id));
-        cell.appendChild(el(`<div class="back-name">${escapeHtml(t(nameKey + o.id))}</div>`));
-        if (isOn) cell.appendChild(el(`<div class="back-tag on">✓ ${escapeHtml(t('backEquippedTag'))}</div>`));
-        else if (unlocked) cell.appendChild(el(`<div class="back-tag">${escapeHtml(t('backEquip'))}</div>`));
-        else cell.appendChild(el(`<div class="back-tag lock">🔒 ${escapeHtml(t(o.req))}</div>`));
-        if (unlocked && !isOn) {
-          const equip = () => sendMsg({ type: 'setCosmetic', kind, id: o.id });
-          cell.classList.add('selectable');
-          cell.onclick = equip;
-          makeKeyActivatable(cell, equip);
-        }
-        grid.appendChild(cell);
-      });
-      drawer.appendChild(grid);
-    };
-
-    renderPicker(CARD_BACKS, {
-      kind: 'cardBack', nameKey: 'back_', equipped: prof.cardBack || 'classic',
-      label: 'cardBacksLabel', hint: 'cardBacksHint',
-      preview: (id) => cardBack('size-md', id),
-    });
-    renderPicker(TABLE_FELTS, {
-      kind: 'tableFelt', nameKey: 'felt_', equipped: prof.tableFelt || 'classic',
-      label: 'tableFeltsLabel', hint: 'tableFeltsHint',
-      preview: (id) => el(`<div class="felt-swatch felt-${id}"></div>`),
-    });
   }
 
   // Recent games (signed-in players only)
@@ -2224,6 +2332,7 @@ function render() {
 
   app.appendChild(friendsFab());
   app.appendChild(leaderboardFab());
+  app.appendChild(lockerFab());
   app.appendChild(soundFab());
   if (onLanding || inLobby) { app.appendChild(helpFab()); app.appendChild(langFab()); }
   if (latestState && latestState.code) { app.appendChild(emoteFab()); app.appendChild(chatFab()); }
@@ -2264,7 +2373,9 @@ function renderLanding() {
     ${(() => { const a = loadProfile(); return a && a.username
       ? `<button class="account-cta signed" id="account-cta">👤 ${escapeHtml(t('signedInAs'))} <strong>${escapeHtml(a.username)}</strong></button>`
       : `<button class="account-cta" id="account-cta"><span class="account-cta-main">👤 ${escapeHtml(t('authCta'))}</span><span class="account-cta-sub">${escapeHtml(t('authCtaSub'))}</span></button>`; })()}
+    <button class="btn-gold quickplay-btn" id="quick-btn">⚡ ${escapeHtml(t('quickPlay'))}<span class="quickplay-sub">${escapeHtml(t('quickPlaySub'))}</span></button>
     <div class="ranked-cta"><button class="btn-blue" id="ranked-btn">⚔️ ${escapeHtml(t('ranked1v1'))}</button>
+      <button class="btn-ghost" id="locker-btn">🎨 ${escapeHtml(t('lockerBtn'))}</button>
       <button class="btn-ghost" id="invite-btn">🎁 ${escapeHtml(t('inviteFriends'))}</button></div>
     ${publicRooms.length ? `<div class="public-games">
       <div class="pg-head">🎲 ${escapeHtml(t('liveGames'))}</div>
@@ -2318,6 +2429,13 @@ function renderLanding() {
     sendMsg({ type: 'createRoom', name });
   };
   wrap.querySelector('#invite-btn').onclick = () => inviteFriends();
+  wrap.querySelector('#locker-btn').onclick = () => openLocker();
+  wrap.querySelector('#quick-btn').onclick = () => {
+    const prof = loadProfile();
+    const name = wrap.querySelector('#create-name').value.trim() || (prof && prof.username) || loadLastName() || t('quickPlayer');
+    saveLastName(name);
+    sendMsg({ type: 'quickPlay', name });
+  };
   wrap.querySelector('#account-cta').onclick = () => {
     const a = loadProfile();
     authTab = (a && a.username) ? 'login' : 'signup';
