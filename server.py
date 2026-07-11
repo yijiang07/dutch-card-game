@@ -143,9 +143,14 @@ def create_house_lobby():
     code = new_code()
     room = Room(code)
     room.house = True
+    # Seed with names distinct from the other visible house tables, so two seeds
+    # never show the same host name side by side in the Live Games list.
+    taken = [(r.players.get(r.host_id) or {}).get('name') for r in rooms.values() if r.house]
+    taken = [n for n in taken if n]
     for diff in HOUSE_BOTS:
         bot_id = new_id()
-        bname = bots.pick_bot_name([p['name'] for p in room.players.values()])
+        bname = bots.pick_bot_name(taken)
+        taken.append(bname)
         room.players[bot_id] = {'name': bname, 'token': None, 'ws': None,
                                 'connected': True, 'is_bot': True, 'difficulty': diff}
     room.host_id = next(iter(room.players))   # a bot holds the seat until a human joins

@@ -89,6 +89,7 @@ const LANGS = [
 const TRANSLATIONS = {
   en: {
     tagline: 'Lowest score wins. Play from anywhere.',
+    akaLine: 'Also known as Cambio · Cabo · Golf · Pablo',
     createTitle: 'Create a Game', createSub: 'Start a new table and invite others with a code.',
     joinTitle: 'Join a Game', joinSub: 'Enter the code someone shared with you.',
     yourName: 'Your name', createGame: 'Create Game', joinGame: 'Join Game', codePlaceholder: 'CODE',
@@ -239,6 +240,7 @@ const TRANSLATIONS = {
   },
   es: {
     tagline: 'Gana quien tenga menos puntos. Juega desde cualquier lugar.',
+    akaLine: 'También conocido como Cambio · Cabo · Golf · Pablo',
     createTitle: 'Crear partida', createSub: 'Crea una mesa nueva e invita con un código.',
     joinTitle: 'Unirse a una partida', joinSub: 'Introduce el código que te compartieron.',
     yourName: 'Tu nombre', createGame: 'Crear partida', joinGame: 'Unirse', codePlaceholder: 'CÓDIGO',
@@ -374,6 +376,7 @@ const TRANSLATIONS = {
   },
   fr: {
     tagline: 'Le score le plus bas gagne. Jouez où que vous soyez.',
+    akaLine: 'Aussi appelé Cambio · Cabo · Golf · Pablo',
     createTitle: 'Créer une partie', createSub: 'Créez une table et invitez avec un code.',
     joinTitle: 'Rejoindre une partie', joinSub: "Entrez le code qu'on vous a partagé.",
     yourName: 'Votre nom', createGame: 'Créer', joinGame: 'Rejoindre', codePlaceholder: 'CODE',
@@ -509,6 +512,7 @@ const TRANSLATIONS = {
   },
   de: {
     tagline: 'Niedrigste Punktzahl gewinnt. Spiele von überall.',
+    akaLine: 'Auch bekannt als Cambio · Cabo · Golf · Pablo',
     createTitle: 'Spiel erstellen', createSub: 'Neuen Tisch starten und mit Code einladen.',
     joinTitle: 'Spiel beitreten', joinSub: 'Gib den geteilten Code ein.',
     yourName: 'Dein Name', createGame: 'Erstellen', joinGame: 'Beitreten', codePlaceholder: 'CODE',
@@ -644,6 +648,7 @@ const TRANSLATIONS = {
   },
   zh: {
     tagline: '分数最低者获胜。随时随地畅玩。',
+    akaLine: '又名 Cambio · Cabo · Golf · Pablo',
     createTitle: '创建游戏', createSub: '开设新牌桌，用房间码邀请他人。',
     joinTitle: '加入游戏', joinSub: '输入别人分享给你的房间码。',
     yourName: '你的名字', createGame: '创建游戏', joinGame: '加入游戏', codePlaceholder: '房间码',
@@ -2606,6 +2611,7 @@ function renderLanding() {
       <div class="suits">&spades; &hearts; &clubs; &diams;</div>
       <h1>DUTCH</h1>
       <div class="tagline">${escapeHtml(t('tagline'))}</div>
+      <div class="aka-line">${escapeHtml(t('akaLine'))}</div>
     </div>
     ${liveActivity.playing > 0
       ? `<div class="live-activity"><span class="live-dot"></span>${escapeHtml(t('liveNow', { p: liveActivity.playing, g: liveActivity.games }))}</div>` : ''}
