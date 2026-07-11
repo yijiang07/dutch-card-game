@@ -70,7 +70,7 @@ function loadProfile() {
   catch (e) { return null; }
 }
 function saveProfile(p) { localStorage.setItem('dutchProfile', JSON.stringify(p)); }
-function clearProfile() { localStorage.removeItem('dutchProfile'); friendsState = null; }
+function clearProfile() { localStorage.removeItem('dutchProfile'); friendsState = null; applyTableFelt('classic'); }
 
 function loadLastName() { try { return localStorage.getItem('dutchLastName') || ''; } catch (e) { return ''; } }
 function saveLastName(n) { try { localStorage.setItem('dutchLastName', n); } catch (e) {} }
@@ -187,6 +187,13 @@ const TRANSLATIONS = {
     back_classic: 'Classic', back_crimson: 'Crimson', back_emerald: 'Emerald', back_amber: 'Amber', back_royal: 'Royal', back_noir: 'Noir',
     backReqDefault: 'Always yours', backReqCrimson: 'Win a game', backReqEmerald: 'Play 10 games',
     backReqAmber: 'Invite a friend', backReqRoyal: 'Earn 5 achievements', backReqNoir: 'Reach Platinum (1700)',
+    back_ocean: 'Ocean', back_rose: 'Rose', back_sunset: 'Sunset', back_frost: 'Frost', back_orchid: 'Orchid', back_aurora: 'Aurora',
+    backReqOcean: 'Play 25 games', backReqRose: 'Win 5 games', backReqSunset: 'Win 25 games',
+    backReqFrost: 'Invite 3 friends', backReqOrchid: 'Earn 10 achievements', backReqAurora: 'Reach Master (2000)',
+    tableFeltsLabel: 'Table felt', tableFeltsHint: 'Set your table’s color — just for your own view.',
+    felt_classic: 'Emerald', felt_midnight: 'Midnight', felt_slate: 'Slate', felt_crimson: 'Crimson', felt_royal: 'Royal', felt_sunrise: 'Sunrise',
+    feltReqDefault: 'Always yours', feltReqMidnight: 'Play 5 games', feltReqSlate: 'Play 20 games',
+    feltReqCrimson: 'Win 3 games', feltReqRoyal: 'Earn 3 achievements', feltReqSunrise: 'Reach Gold (1550)',
     powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
     peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
     peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
@@ -300,6 +307,13 @@ const TRANSLATIONS = {
     back_classic: 'Clásico', back_crimson: 'Carmesí', back_emerald: 'Esmeralda', back_amber: 'Ámbar', back_royal: 'Real', back_noir: 'Negro',
     backReqDefault: 'Siempre tuyo', backReqCrimson: 'Gana una partida', backReqEmerald: 'Juega 10 partidas',
     backReqAmber: 'Invita a un amigo', backReqRoyal: 'Consigue 5 logros', backReqNoir: 'Alcanza Platino (1700)',
+    back_ocean: 'Océano', back_rose: 'Rosa', back_sunset: 'Ocaso', back_frost: 'Escarcha', back_orchid: 'Orquídea', back_aurora: 'Aurora',
+    backReqOcean: 'Juega 25 partidas', backReqRose: 'Gana 5 partidas', backReqSunset: 'Gana 25 partidas',
+    backReqFrost: 'Invita a 3 amigos', backReqOrchid: 'Consigue 10 logros', backReqAurora: 'Alcanza Maestro (2000)',
+    tableFeltsLabel: 'Tapete', tableFeltsHint: 'Elige el color de tu mesa — solo para tu vista.',
+    felt_classic: 'Esmeralda', felt_midnight: 'Medianoche', felt_slate: 'Pizarra', felt_crimson: 'Carmesí', felt_royal: 'Real', felt_sunrise: 'Amanecer',
+    feltReqDefault: 'Siempre tuyo', feltReqMidnight: 'Juega 5 partidas', feltReqSlate: 'Juega 20 partidas',
+    feltReqCrimson: 'Gana 3 partidas', feltReqRoyal: 'Consigue 3 logros', feltReqSunrise: 'Alcanza Oro (1550)',
     powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
     peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
     peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
@@ -412,6 +426,13 @@ const TRANSLATIONS = {
     back_classic: 'Classique', back_crimson: 'Cramoisi', back_emerald: 'Émeraude', back_amber: 'Ambre', back_royal: 'Royal', back_noir: 'Noir',
     backReqDefault: 'Toujours à vous', backReqCrimson: 'Gagnez une partie', backReqEmerald: 'Jouez 10 parties',
     backReqAmber: 'Invitez un ami', backReqRoyal: 'Obtenez 5 succès', backReqNoir: 'Atteignez Platine (1700)',
+    back_ocean: 'Océan', back_rose: 'Rose', back_sunset: 'Couchant', back_frost: 'Givre', back_orchid: 'Orchidée', back_aurora: 'Aurore',
+    backReqOcean: 'Jouez 25 parties', backReqRose: 'Gagnez 5 parties', backReqSunset: 'Gagnez 25 parties',
+    backReqFrost: 'Invitez 3 amis', backReqOrchid: 'Obtenez 10 succès', backReqAurora: 'Atteignez Maître (2000)',
+    tableFeltsLabel: 'Tapis', tableFeltsHint: 'Choisissez la couleur de votre table — pour votre vue seulement.',
+    felt_classic: 'Émeraude', felt_midnight: 'Minuit', felt_slate: 'Ardoise', felt_crimson: 'Cramoisi', felt_royal: 'Royal', felt_sunrise: 'Aurore',
+    feltReqDefault: 'Toujours à vous', feltReqMidnight: 'Jouez 5 parties', feltReqSlate: 'Jouez 20 parties',
+    feltReqCrimson: 'Gagnez 3 parties', feltReqRoyal: 'Obtenez 3 succès', feltReqSunrise: 'Atteignez Or (1550)',
     powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
     peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
     peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
@@ -524,6 +545,13 @@ const TRANSLATIONS = {
     back_classic: 'Klassisch', back_crimson: 'Karmesin', back_emerald: 'Smaragd', back_amber: 'Bernstein', back_royal: 'Königlich', back_noir: 'Noir',
     backReqDefault: 'Immer deins', backReqCrimson: 'Gewinne ein Spiel', backReqEmerald: 'Spiele 10 Spiele',
     backReqAmber: 'Lade einen Freund ein', backReqRoyal: 'Erringe 5 Erfolge', backReqNoir: 'Erreiche Platin (1700)',
+    back_ocean: 'Ozean', back_rose: 'Rosé', back_sunset: 'Abendrot', back_frost: 'Frost', back_orchid: 'Orchidee', back_aurora: 'Aurora',
+    backReqOcean: 'Spiele 25 Spiele', backReqRose: 'Gewinne 5 Spiele', backReqSunset: 'Gewinne 25 Spiele',
+    backReqFrost: 'Lade 3 Freunde ein', backReqOrchid: 'Erringe 10 Erfolge', backReqAurora: 'Erreiche Meister (2000)',
+    tableFeltsLabel: 'Spieltisch', tableFeltsHint: 'Wähle die Farbe deines Tisches — nur für deine Ansicht.',
+    felt_classic: 'Smaragd', felt_midnight: 'Mitternacht', felt_slate: 'Schiefer', felt_crimson: 'Karmesin', felt_royal: 'Königlich', felt_sunrise: 'Morgenrot',
+    feltReqDefault: 'Immer deins', feltReqMidnight: 'Spiele 5 Spiele', feltReqSlate: 'Spiele 20 Spiele',
+    feltReqCrimson: 'Gewinne 3 Spiele', feltReqRoyal: 'Erringe 3 Erfolge', feltReqSunrise: 'Erreiche Gold (1550)',
     powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
     peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
     peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
@@ -636,6 +664,13 @@ const TRANSLATIONS = {
     back_classic: '经典', back_crimson: '绯红', back_emerald: '翡翠', back_amber: '琥珀', back_royal: '皇家', back_noir: '暗夜',
     backReqDefault: '始终拥有', backReqCrimson: '赢一局', backReqEmerald: '玩 10 局',
     backReqAmber: '邀请一位好友', backReqRoyal: '获得 5 个成就', backReqNoir: '达到白金（1700）',
+    back_ocean: '海洋', back_rose: '玫瑰', back_sunset: '日落', back_frost: '霜寒', back_orchid: '兰花', back_aurora: '极光',
+    backReqOcean: '玩 25 局', backReqRose: '赢 5 局', backReqSunset: '赢 25 局',
+    backReqFrost: '邀请 3 位好友', backReqOrchid: '获得 10 个成就', backReqAurora: '达到大师（2000）',
+    tableFeltsLabel: '牌桌', tableFeltsHint: '设置你的牌桌颜色 —— 仅你自己可见。',
+    felt_classic: '翡翠', felt_midnight: '午夜', felt_slate: '石板', felt_crimson: '绯红', felt_royal: '皇家', felt_sunrise: '日出',
+    feltReqDefault: '始终拥有', feltReqMidnight: '玩 5 局', feltReqSlate: '玩 20 局',
+    feltReqCrimson: '赢 3 局', feltReqRoyal: '获得 3 个成就', feltReqSunrise: '达到黄金（1550）',
     powerCards: '能力牌', powBasic: '基础', powFull: '完整',
     peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
     peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
@@ -851,6 +886,7 @@ function connect() {
     reconnectDelay = 1000;
     const prof = loadProfile();
     if (prof && prof.userId && prof.secret) {
+      applyTableFelt(prof.tableFelt || 'classic');   // avoid a felt flash before identity lands
       sendMsg({ type: 'identify', userId: prof.userId, secret: prof.secret });
     }
     const sess = loadSession();
@@ -909,7 +945,8 @@ function handleServerMessage(data) {
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
     saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null,
-                  cardBack: data.cardBack || 'classic' });
+                  cardBack: data.cardBack || 'classic', tableFelt: data.tableFelt || 'classic' });
+    applyTableFelt(data.tableFelt || 'classic');
     if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     try { localStorage.removeItem('dutchRef'); } catch (e) {}  // referral consumed / no longer needed
     if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
@@ -955,9 +992,15 @@ function handleServerMessage(data) {
     return;
   } else if (data.type === 'cosmetic') {
     const prof = loadProfile();
-    if (prof) { prof.cardBack = data.cardBack; saveProfile(prof); }
-    showToast(`🎨 ${t('backEquipped', { name: t('back_' + data.cardBack) })}`);
-    if (friendsPanelOpen) refreshFriendsPanel();
+    if (data.kind === 'tableFelt') {
+      if (prof) { prof.tableFelt = data.id; saveProfile(prof); }
+      applyTableFelt(data.id);
+      showToast(`🎨 ${t('backEquipped', { name: t('felt_' + data.id) })}`);
+    } else {
+      if (prof) { prof.cardBack = data.id; saveProfile(prof); }
+      showToast(`🎨 ${t('backEquipped', { name: t('back_' + data.id) })}`);
+    }
+    if (leaderboardOpen) renderLeaderboardRoot();
     return;
   } else if (data.type === 'achievements') {
     (data.earned || []).forEach((code) => {
@@ -1030,7 +1073,31 @@ const CARD_BACKS = [
   { id: 'amber',   unlock: (s) => (s.referrals || 0) >= 1, req: 'backReqAmber' },
   { id: 'royal',   unlock: (s, ac) => ac >= 5,             req: 'backReqRoyal' },
   { id: 'noir',    unlock: (s) => (s.rating || 0) >= 1700, req: 'backReqNoir' },
+  { id: 'ocean',   unlock: (s) => (s.games || 0) >= 25,    req: 'backReqOcean' },
+  { id: 'rose',    unlock: (s) => (s.wins || 0) >= 5,      req: 'backReqRose' },
+  { id: 'sunset',  unlock: (s) => (s.wins || 0) >= 25,     req: 'backReqSunset' },
+  { id: 'frost',   unlock: (s) => (s.referrals || 0) >= 3, req: 'backReqFrost' },
+  { id: 'orchid',  unlock: (s, ac) => ac >= 10,            req: 'backReqOrchid' },
+  { id: 'aurora',  unlock: (s) => (s.rating || 0) >= 2000, req: 'backReqAurora' },
 ];
+
+// Table-felt themes — recolor your table, for your view only (mirrors TABLE_FELTS
+// in server.py). Applied as a felt-<id> class on <html>.
+const TABLE_FELTS = [
+  { id: 'classic',  unlock: () => true,                    req: 'feltReqDefault' },
+  { id: 'midnight', unlock: (s) => (s.games || 0) >= 5,     req: 'feltReqMidnight' },
+  { id: 'slate',    unlock: (s) => (s.games || 0) >= 20,    req: 'feltReqSlate' },
+  { id: 'crimson',  unlock: (s) => (s.wins || 0) >= 3,      req: 'feltReqCrimson' },
+  { id: 'royal',    unlock: (s, ac) => ac >= 3,             req: 'feltReqRoyal' },
+  { id: 'sunrise',  unlock: (s) => (s.rating || 0) >= 1550, req: 'feltReqSunrise' },
+];
+
+function applyTableFelt(id) {
+  const ok = TABLE_FELTS.some((f) => f.id === id) ? id : 'classic';
+  const root = document.documentElement;
+  [...root.classList].forEach((c) => { if (c.startsWith('felt-')) root.classList.remove(c); });
+  root.classList.add('felt-' + ok);
+}
 
 // Achievement code -> icon; the name comes from t('ach_' + code).
 const ACHIEVEMENTS = {
@@ -1506,32 +1573,46 @@ function renderLeaderboard() {
     drawer.appendChild(wrap);
   }
 
-  // Card-back cosmetics (signed-in players only)
+  // Cosmetics (signed-in players only): card backs + table felt
   if (leaderboardData.myStats && leaderboardData.myUsername) {
     const s = leaderboardData.myStats;
     const achCount = (leaderboardData.achievements || []).length;
-    const equipped = (loadProfile() || {}).cardBack || 'classic';
-    drawer.appendChild(el(`<div class="section-label" style="margin-top:14px;">${escapeHtml(t('cardBacksLabel'))}</div>`));
-    drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t('cardBacksHint'))}</div>`));
-    const grid = el(`<div class="back-picker"></div>`);
-    CARD_BACKS.forEach((b) => {
-      const unlocked = b.unlock(s, achCount);
-      const isOn = b.id === equipped;
-      const cell = el(`<div class="back-option ${unlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
-      cell.appendChild(cardBack('size-md', b.id));
-      cell.appendChild(el(`<div class="back-name">${escapeHtml(t('back_' + b.id))}</div>`));
-      if (isOn) cell.appendChild(el(`<div class="back-tag on">✓ ${escapeHtml(t('backEquippedTag'))}</div>`));
-      else if (unlocked) cell.appendChild(el(`<div class="back-tag">${escapeHtml(t('backEquip'))}</div>`));
-      else cell.appendChild(el(`<div class="back-tag lock">🔒 ${escapeHtml(t(b.req))}</div>`));
-      if (unlocked && !isOn) {
-        const equip = () => sendMsg({ type: 'setCosmetic', cardBack: b.id });
-        cell.classList.add('selectable');
-        cell.onclick = equip;
-        makeKeyActivatable(cell, equip);
-      }
-      grid.appendChild(cell);
+    const prof = loadProfile() || {};
+
+    const renderPicker = (opts, { kind, nameKey, equipped, preview, label, hint }) => {
+      drawer.appendChild(el(`<div class="section-label" style="margin-top:14px;">${escapeHtml(t(label))}</div>`));
+      drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t(hint))}</div>`));
+      const grid = el(`<div class="back-picker"></div>`);
+      opts.forEach((o) => {
+        const unlocked = o.unlock(s, achCount);
+        const isOn = o.id === equipped;
+        const cell = el(`<div class="back-option ${unlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
+        cell.appendChild(preview(o.id));
+        cell.appendChild(el(`<div class="back-name">${escapeHtml(t(nameKey + o.id))}</div>`));
+        if (isOn) cell.appendChild(el(`<div class="back-tag on">✓ ${escapeHtml(t('backEquippedTag'))}</div>`));
+        else if (unlocked) cell.appendChild(el(`<div class="back-tag">${escapeHtml(t('backEquip'))}</div>`));
+        else cell.appendChild(el(`<div class="back-tag lock">🔒 ${escapeHtml(t(o.req))}</div>`));
+        if (unlocked && !isOn) {
+          const equip = () => sendMsg({ type: 'setCosmetic', kind, id: o.id });
+          cell.classList.add('selectable');
+          cell.onclick = equip;
+          makeKeyActivatable(cell, equip);
+        }
+        grid.appendChild(cell);
+      });
+      drawer.appendChild(grid);
+    };
+
+    renderPicker(CARD_BACKS, {
+      kind: 'cardBack', nameKey: 'back_', equipped: prof.cardBack || 'classic',
+      label: 'cardBacksLabel', hint: 'cardBacksHint',
+      preview: (id) => cardBack('size-md', id),
     });
-    drawer.appendChild(grid);
+    renderPicker(TABLE_FELTS, {
+      kind: 'tableFelt', nameKey: 'felt_', equipped: prof.tableFelt || 'classic',
+      label: 'tableFeltsLabel', hint: 'tableFeltsHint',
+      preview: (id) => el(`<div class="felt-swatch felt-${id}"></div>`),
+    });
   }
 
   // Recent games (signed-in players only)

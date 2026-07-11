@@ -75,7 +75,7 @@ def init_db():
         )''')
         # Migrate installs created before passwords existed.
         if USE_PG:
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang', 'card_back'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang', 'card_back', 'table_felt'):
                 cur.execute(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} TEXT')
             # The old passwordless schema had a NOT NULL secret_hash; new signups
             # don't set it, so relax the constraint if that column is still around.
@@ -85,7 +85,7 @@ def init_db():
                 cur.execute('ALTER TABLE users ALTER COLUMN secret_hash DROP NOT NULL')
         else:
             have = {r[1] for r in cur.execute('PRAGMA table_info(users)').fetchall()}
-            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang', 'card_back'):
+            for col in ('pw_salt', 'pw_hash', 'recovery_hash', 'email', 'lang', 'card_back', 'table_felt'):
                 if col not in have:
                     cur.execute(f'ALTER TABLE users ADD COLUMN {col} TEXT')
         # Case-insensitive uniqueness via an expression index (both backends).
@@ -241,10 +241,20 @@ def set_lang(user_id, lang):
 
 
 def set_card_back(user_id, skin):
+    set_cosmetic(user_id, 'card_back', skin)
+
+
+def set_table_felt(user_id, skin):
+    set_cosmetic(user_id, 'table_felt', skin)
+
+
+def set_cosmetic(user_id, column, skin):
+    # column is a fixed, code-supplied cosmetic slot name — never user input.
+    assert column in ('card_back', 'table_felt')
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('UPDATE users SET card_back=? WHERE id=?'), (skin[:20], user_id))
+        cur.execute(_ph(f'UPDATE users SET {column}=? WHERE id=?'), (skin[:20], user_id))
         conn.commit()
     finally:
         conn.close()
@@ -327,12 +337,12 @@ def get_by_id(uid):
     conn = _connect()
     try:
         cur = conn.cursor()
-        cur.execute(_ph('SELECT id, username, email, lang, card_back FROM users WHERE id=?'), (uid,))
+        cur.execute(_ph('SELECT id, username, email, lang, card_back, table_felt FROM users WHERE id=?'), (uid,))
         r = cur.fetchone()
     finally:
         conn.close()
     return {'id': r['id'], 'username': r['username'], 'email': r['email'], 'lang': r['lang'],
-            'card_back': r['card_back'] or 'classic'} if r else None
+            'card_back': r['card_back'] or 'classic', 'table_felt': r['table_felt'] or 'classic'} if r else None
 
 
 def create_session(user_id):

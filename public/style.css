@@ -412,9 +412,37 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .card.back.back-amber   { --card-back-a: #b5791f; --card-back-b: #5e3a0c; }
 .card.back.back-royal   { --card-back-a: #5b3aa6; --card-back-b: #2b1a55; }
 .card.back.back-noir    { --card-back-a: #2c2c30; --card-back-b: #050506; }
-.card.back.back-emerald::after { color: #f2d98a; }
+.card.back.back-ocean   { --card-back-a: #1f8f9c; --card-back-b: #0a3b45; }
+.card.back.back-rose    { --card-back-a: #c65a86; --card-back-b: #6e2444; }
+.card.back.back-sunset  { --card-back-a: #cc6a34; --card-back-b: #6e2f14; }
+.card.back.back-frost   { --card-back-a: #6aa8d8; --card-back-b: #2a5a86; }
+.card.back.back-orchid  { --card-back-a: #a24bb0; --card-back-b: #4f1a5a; }
+.card.back.back-aurora  { --card-back-a: #2fae8f; --card-back-b: #3a2a7a; }
+.card.back.back-aurora {
+  background: linear-gradient(135deg, #2fae8f 0%, #3f74c9 38%, #7a49c0 68%, #c14f9e 100%);
+}
+.card.back.back-emerald::after,
+.card.back.back-ocean::after { color: #f2d98a; }
 .card.back.back-noir::after,
-.card.back.back-royal::after   { color: #f5e39c; }
+.card.back.back-royal::after,
+.card.back.back-orchid::after,
+.card.back.back-aurora::after  { color: #f8ecb0; }
+
+/* Table-felt themes — override the four felt vars. Bare class so it works both on
+   <html> (whole table) and on a .felt-swatch preview. Defined after :root so it wins. */
+.felt-classic  { --felt-1: #1c8a5c; --felt-2: #0b4d31; --felt-3: #063a24; --felt-edge: #03230f; }
+.felt-midnight { --felt-1: #2a4a8a; --felt-2: #14264f; --felt-3: #0a1730; --felt-edge: #050b18; }
+.felt-slate    { --felt-1: #5a6472; --felt-2: #333a44; --felt-3: #1f242b; --felt-edge: #0d1013; }
+.felt-crimson  { --felt-1: #a83f3f; --felt-2: #6e1f22; --felt-3: #3f1113; --felt-edge: #200607; }
+.felt-royal    { --felt-1: #6b4bb0; --felt-2: #3d2a70; --felt-3: #241645; --felt-edge: #100826; }
+.felt-sunrise  { --felt-1: #d98a4a; --felt-2: #a8542a; --felt-3: #5f2c12; --felt-edge: #2a1206; }
+.felt-swatch {
+  width: 46px; height: 62px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.06);
+  background:
+    radial-gradient(120% 90% at 50% 0%, var(--felt-1) 0%, var(--felt-2) 46%, var(--felt-3) 76%, var(--felt-edge) 100%);
+}
 
 /* Card-back picker in the stats drawer */
 .back-picker {

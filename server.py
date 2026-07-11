@@ -202,9 +202,9 @@ def _score_play(room, game, pid, actual):
         _count_play(room, pid, bots.judge_main_play(room, game, pid, actual))
 
 
-# Unlockable card-back cosmetics. Each entry maps a skin id to a predicate over a
-# player's stats dict + achievement code set. Purely visual; enforced here so a
-# crafted setCosmetic can't equip a locked skin.
+# Unlockable cosmetics. Each entry maps a skin id to a predicate over a player's
+# stats dict + achievement code set. Purely visual; enforced here so a crafted
+# setCosmetic can't equip a locked skin.
 CARD_BACKS = {
     'classic': lambda s, a: True,
     'crimson': lambda s, a: s.get('wins', 0) >= 1,
@@ -212,11 +212,32 @@ CARD_BACKS = {
     'amber':   lambda s, a: s.get('referrals', 0) >= 1,
     'royal':   lambda s, a: len(a) >= 5,
     'noir':    lambda s, a: (s.get('rating') or 0) >= 1700,
+    'ocean':   lambda s, a: s.get('games', 0) >= 25,
+    'rose':    lambda s, a: s.get('wins', 0) >= 5,
+    'sunset':  lambda s, a: s.get('wins', 0) >= 25,
+    'frost':   lambda s, a: s.get('referrals', 0) >= 3,
+    'orchid':  lambda s, a: len(a) >= 10,
+    'aurora':  lambda s, a: (s.get('rating') or 0) >= 2000,
+}
+TABLE_FELTS = {
+    'classic':  lambda s, a: True,
+    'midnight': lambda s, a: s.get('games', 0) >= 5,
+    'slate':    lambda s, a: s.get('games', 0) >= 20,
+    'crimson':  lambda s, a: s.get('wins', 0) >= 3,
+    'royal':    lambda s, a: len(a) >= 3,
+    'sunrise':  lambda s, a: (s.get('rating') or 0) >= 1550,
+}
+# kind -> (users column, rule table). `shared` marks a cosmetic other players see
+# in-game (so equipping it must rebroadcast room state); felt is viewer-only.
+COSMETIC_DEFS = {
+    'cardBack':  {'col': 'card_back',  'rules': CARD_BACKS,  'shared': True},
+    'tableFelt': {'col': 'table_felt', 'rules': TABLE_FELTS, 'shared': False},
 }
 
 
-def _cosmetic_unlocked(skin, user_id):
-    rule = CARD_BACKS.get(skin)
+def _cosmetic_unlocked(kind, skin, user_id):
+    defn = COSMETIC_DEFS.get(kind)
+    rule = defn['rules'].get(skin) if defn else None
     if rule is None:
         return False
     stats = storage.get_stats(user_id) or {}
@@ -516,11 +537,13 @@ async def notify_friends_of(user_id):
 
 async def set_online(ws, ctx, user):
     ctx['user'] = {'id': user['id'], 'username': user['username'],
-                   'card_back': user.get('card_back') or 'classic'}
+                   'card_back': user.get('card_back') or 'classic',
+                   'table_felt': user.get('table_felt') or 'classic'}
     ONLINE.setdefault(user['id'], set()).add(ws)
     payload = {'type': 'identity', 'userId': user['id'], 'username': user['username'],
                'email': user.get('email'), 'lang': user.get('lang'),
-               'cardBack': user.get('card_back') or 'classic'}
+               'cardBack': user.get('card_back') or 'classic',
+               'tableFelt': user.get('table_felt') or 'classic'}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -630,20 +653,25 @@ async def handle_message(ws, ctx, data):
     if mtype == 'setCosmetic':
         user = ctx.get('user')
         if not user:
-            raise GameError('Log in to change your card back.')
-        skin = (data.get('cardBack') or 'classic')
-        if skin not in CARD_BACKS:
-            raise GameError('Unknown card back.')
-        if not _cosmetic_unlocked(skin, user['id']):
-            raise GameError('That card back is still locked.')
-        storage.set_card_back(user['id'], skin)
-        user['card_back'] = skin
-        await send(ws, {'type': 'cosmetic', 'cardBack': skin})
-        code = ctx.get('code')
-        room = rooms.get(code) if code else None
-        if room and ctx.get('player_id') in room.players:
-            room.players[ctx['player_id']]['card_back'] = skin
-            await broadcast_state(room)
+            raise GameError('Log in to change your cosmetics.')
+        kind = data.get('kind', 'cardBack')
+        defn = COSMETIC_DEFS.get(kind)
+        if not defn:
+            raise GameError('Unknown cosmetic.')
+        skin = data.get('id') or data.get('cardBack') or 'classic'
+        if skin not in defn['rules']:
+            raise GameError('Unknown cosmetic.')
+        if not _cosmetic_unlocked(kind, skin, user['id']):
+            raise GameError('That cosmetic is still locked.')
+        storage.set_cosmetic(user['id'], defn['col'], skin)
+        user[defn['col']] = skin
+        await send(ws, {'type': 'cosmetic', 'kind': kind, 'id': skin})
+        if defn['shared']:
+            code = ctx.get('code')
+            room = rooms.get(code) if code else None
+            if room and ctx.get('player_id') in room.players:
+                room.players[ctx['player_id']][defn['col']] = skin
+                await broadcast_state(room)
         return
 
     if mtype == 'login':

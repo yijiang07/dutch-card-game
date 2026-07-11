@@ -70,11 +70,14 @@ def test_referrals():
     assert storage.record_referral('nobody', _mk('refd')['id']) is None
 
 
-def test_card_back_defaults_and_persists():
+def test_cosmetics_default_and_persist():
     u = _mk('grace')
-    assert storage.get_by_id(u['id'])['card_back'] == 'classic'   # default
+    row = storage.get_by_id(u['id'])
+    assert row['card_back'] == 'classic' and row['table_felt'] == 'classic'   # defaults
     storage.set_card_back(u['id'], 'noir')
-    assert storage.get_by_id(u['id'])['card_back'] == 'noir'
+    storage.set_table_felt(u['id'], 'midnight')
+    row = storage.get_by_id(u['id'])
+    assert row['card_back'] == 'noir' and row['table_felt'] == 'midnight'
 
 
 def test_achievements_award_once():
