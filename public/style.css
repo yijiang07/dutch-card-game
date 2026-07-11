@@ -405,6 +405,37 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   font-size: 1em;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
+/* Unlockable card-back skins — each just re-colors the two gradient stops
+   (and the emblem where a different accent reads better). */
+.card.back.back-crimson { --card-back-a: #9c1f2e; --card-back-b: #4c0d17; }
+.card.back.back-emerald { --card-back-a: #157a4f; --card-back-b: #0a3b27; }
+.card.back.back-amber   { --card-back-a: #b5791f; --card-back-b: #5e3a0c; }
+.card.back.back-royal   { --card-back-a: #5b3aa6; --card-back-b: #2b1a55; }
+.card.back.back-noir    { --card-back-a: #2c2c30; --card-back-b: #050506; }
+.card.back.back-emerald::after { color: #f2d98a; }
+.card.back.back-noir::after,
+.card.back.back-royal::after   { color: #f5e39c; }
+
+/* Card-back picker in the stats drawer */
+.back-picker {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px; margin-top: 4px;
+}
+.back-option {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 10px 8px; border-radius: 12px; text-align: center;
+  border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03);
+}
+.back-option.selectable { cursor: pointer; }
+.back-option.selectable:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.22); }
+.back-option.equipped { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.back-option.locked { opacity: 0.72; }
+.back-option.locked .card.back { filter: grayscale(0.55) brightness(0.8); }
+.back-name { font-weight: 700; font-size: 0.86rem; }
+.back-tag { font-size: 0.72rem; opacity: 0.8; }
+.back-tag.on { color: var(--gold); opacity: 1; font-weight: 700; }
+.back-tag.lock { opacity: 0.7; line-height: 1.25; }
+
 .card.front {
   background: linear-gradient(158deg, #ffffff, #eef0ec);
   border: 1px solid rgba(0,0,0,0.14);

@@ -70,6 +70,13 @@ def test_referrals():
     assert storage.record_referral('nobody', _mk('refd')['id']) is None
 
 
+def test_card_back_defaults_and_persists():
+    u = _mk('grace')
+    assert storage.get_by_id(u['id'])['card_back'] == 'classic'   # default
+    storage.set_card_back(u['id'], 'noir')
+    assert storage.get_by_id(u['id'])['card_back'] == 'noir'
+
+
 def test_achievements_award_once():
     u = _mk('frank')
     assert set(storage.award_achievements(u['id'], ['first_win', 'veteran'])) == {'first_win', 'veteran'}

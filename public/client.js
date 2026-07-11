@@ -182,6 +182,11 @@ const TRANSLATIONS = {
     ach_first_win: 'First Win', ach_red_king: 'Red King', ach_perfect_round: 'Flawless Round', ach_shed3: 'Card Shark', ach_power3: 'Power Player', ach_low_score: 'Featherweight', ach_dutch_win: 'Called It', ach_ranked_win: 'Ranked Victory', ach_veteran: 'Veteran', ach_invite_1: 'Recruiter', ach_invite_5: 'Ambassador', ach_invite_10: 'Evangelist',
     inviteFriends: 'Invite friends', inviteCopied: 'Invite link copied!', inviteNeedLogin: 'Log in to get your invite link.', statInvited: 'invited',
     shareText: 'Play Dutch with me — lowest score wins!', referralJoined: 'A friend joined with your invite! ({n} total)',
+    cardBacksLabel: 'Card backs', cardBacksHint: 'Unlock designs as you play — everyone at the table sees the back you equip.',
+    backEquip: 'Equip', backEquippedTag: 'Equipped', backEquipped: '{name} equipped',
+    back_classic: 'Classic', back_crimson: 'Crimson', back_emerald: 'Emerald', back_amber: 'Amber', back_royal: 'Royal', back_noir: 'Noir',
+    backReqDefault: 'Always yours', backReqCrimson: 'Win a game', backReqEmerald: 'Play 10 games',
+    backReqAmber: 'Invite a friend', backReqRoyal: 'Earn 5 achievements', backReqNoir: 'Reach Platinum (1700)',
     powerCards: 'Power cards', powBasic: 'basic', powFull: 'full',
     peekSelfMsg: '7/8: peek one of your own cards', peekOtherMsg: "9/10: peek an opponent's card",
     peekResolving: 'Resolving a peek…', opponentPeek: 'Card revealed',
@@ -290,6 +295,11 @@ const TRANSLATIONS = {
     ach_first_win: 'Primera victoria', ach_red_king: 'Rey rojo', ach_perfect_round: 'Ronda perfecta', ach_shed3: 'Tiburón', ach_power3: 'Jugador de poder', ach_low_score: 'Peso pluma', ach_dutch_win: '¡Cantado!', ach_ranked_win: 'Victoria clasificatoria', ach_veteran: 'Veterano', ach_invite_1: 'Reclutador', ach_invite_5: 'Embajador', ach_invite_10: 'Evangelista',
     inviteFriends: 'Invita amigos', inviteCopied: '¡Enlace de invitación copiado!', inviteNeedLogin: 'Entra para obtener tu enlace de invitación.', statInvited: 'invitados',
     shareText: '¡Juega a Dutch conmigo — gana el que tenga menos puntos!', referralJoined: '¡Un amigo se unió con tu invitación! ({n} en total)',
+    cardBacksLabel: 'Reversos', cardBacksHint: 'Desbloquea diseños jugando — todos en la mesa ven el reverso que equipas.',
+    backEquip: 'Equipar', backEquippedTag: 'Equipado', backEquipped: '{name} equipado',
+    back_classic: 'Clásico', back_crimson: 'Carmesí', back_emerald: 'Esmeralda', back_amber: 'Ámbar', back_royal: 'Real', back_noir: 'Negro',
+    backReqDefault: 'Siempre tuyo', backReqCrimson: 'Gana una partida', backReqEmerald: 'Juega 10 partidas',
+    backReqAmber: 'Invita a un amigo', backReqRoyal: 'Consigue 5 logros', backReqNoir: 'Alcanza Platino (1700)',
     powerCards: 'Cartas de poder', powBasic: 'básico', powFull: 'completo',
     peekSelfMsg: '7/8: mira una de tus cartas', peekOtherMsg: ' 9/10: mira una carta de un rival',
     peekResolving: 'Resolviendo un vistazo…', opponentPeek: 'Carta revelada',
@@ -397,6 +407,11 @@ const TRANSLATIONS = {
     ach_first_win: 'Première victoire', ach_red_king: 'Roi rouge', ach_perfect_round: 'Manche parfaite', ach_shed3: 'Requin', ach_power3: 'Joueur de pouvoir', ach_low_score: 'Poids plume', ach_dutch_win: 'Bien annoncé', ach_ranked_win: 'Victoire classée', ach_veteran: 'Vétéran', ach_invite_1: 'Recruteur', ach_invite_5: 'Ambassadeur', ach_invite_10: 'Évangéliste',
     inviteFriends: 'Inviter des amis', inviteCopied: "Lien d'invitation copié !", inviteNeedLogin: 'Connectez-vous pour obtenir votre lien.', statInvited: 'invités',
     shareText: 'Joue à Dutch avec moi — le score le plus bas gagne !', referralJoined: 'Un ami a rejoint avec votre invitation ! ({n} au total)',
+    cardBacksLabel: 'Dos de cartes', cardBacksHint: 'Débloquez des motifs en jouant — toute la table voit le dos que vous équipez.',
+    backEquip: 'Équiper', backEquippedTag: 'Équipé', backEquipped: '{name} équipé',
+    back_classic: 'Classique', back_crimson: 'Cramoisi', back_emerald: 'Émeraude', back_amber: 'Ambre', back_royal: 'Royal', back_noir: 'Noir',
+    backReqDefault: 'Toujours à vous', backReqCrimson: 'Gagnez une partie', backReqEmerald: 'Jouez 10 parties',
+    backReqAmber: 'Invitez un ami', backReqRoyal: 'Obtenez 5 succès', backReqNoir: 'Atteignez Platine (1700)',
     powerCards: 'Cartes de pouvoir', powBasic: 'de base', powFull: 'complet',
     peekSelfMsg: '7/8 : regardez une de vos cartes', peekOtherMsg: "9/10 : regardez une carte d'un adversaire",
     peekResolving: 'Résolution du coup d’œil…', opponentPeek: 'Carte révélée',
@@ -504,6 +519,11 @@ const TRANSLATIONS = {
     ach_first_win: 'Erster Sieg', ach_red_king: 'Roter König', ach_perfect_round: 'Perfekte Runde', ach_shed3: 'Kartenhai', ach_power3: 'Machtspieler', ach_low_score: 'Federgewicht', ach_dutch_win: 'Angesagt', ach_ranked_win: 'Ranglisten-Sieg', ach_veteran: 'Veteran', ach_invite_1: 'Anwerber', ach_invite_5: 'Botschafter', ach_invite_10: 'Evangelist',
     inviteFriends: 'Freunde einladen', inviteCopied: 'Einladungslink kopiert!', inviteNeedLogin: 'Melde dich an, um deinen Link zu erhalten.', statInvited: 'eingeladen',
     shareText: 'Spiel Dutch mit mir — niedrigste Punktzahl gewinnt!', referralJoined: 'Ein Freund ist über deine Einladung beigetreten! ({n} insgesamt)',
+    cardBacksLabel: 'Kartenrücken', cardBacksHint: 'Schalte Designs beim Spielen frei — alle am Tisch sehen den Rücken, den du ausrüstest.',
+    backEquip: 'Ausrüsten', backEquippedTag: 'Ausgerüstet', backEquipped: '{name} ausgerüstet',
+    back_classic: 'Klassisch', back_crimson: 'Karmesin', back_emerald: 'Smaragd', back_amber: 'Bernstein', back_royal: 'Königlich', back_noir: 'Noir',
+    backReqDefault: 'Immer deins', backReqCrimson: 'Gewinne ein Spiel', backReqEmerald: 'Spiele 10 Spiele',
+    backReqAmber: 'Lade einen Freund ein', backReqRoyal: 'Erringe 5 Erfolge', backReqNoir: 'Erreiche Platin (1700)',
     powerCards: 'Machtkarten', powBasic: 'einfach', powFull: 'voll',
     peekSelfMsg: '7/8: sieh eine eigene Karte an', peekOtherMsg: '9/10: sieh die Karte eines Gegners an',
     peekResolving: 'Blick wird aufgelöst…', opponentPeek: 'Karte aufgedeckt',
@@ -611,6 +631,11 @@ const TRANSLATIONS = {
     ach_first_win: '首胜', ach_red_king: '红K', ach_perfect_round: '完美一轮', ach_shed3: '出牌高手', ach_power3: '能力大师', ach_low_score: '轻量级', ach_dutch_win: '喊中了', ach_ranked_win: '排位胜利', ach_veteran: '老兵', ach_invite_1: '招募者', ach_invite_5: '大使', ach_invite_10: '布道者',
     inviteFriends: '邀请好友', inviteCopied: '邀请链接已复制！', inviteNeedLogin: '登录后获取你的邀请链接。', statInvited: '已邀请',
     shareText: '来和我一起玩 Dutch —— 分数最低者获胜！', referralJoined: '有好友通过你的邀请加入了！（共 {n} 人）',
+    cardBacksLabel: '牌背', cardBacksHint: '边玩边解锁牌背样式 —— 你装备的牌背，牌桌上所有人都能看到。',
+    backEquip: '装备', backEquippedTag: '已装备', backEquipped: '已装备 {name}',
+    back_classic: '经典', back_crimson: '绯红', back_emerald: '翡翠', back_amber: '琥珀', back_royal: '皇家', back_noir: '暗夜',
+    backReqDefault: '始终拥有', backReqCrimson: '赢一局', backReqEmerald: '玩 10 局',
+    backReqAmber: '邀请一位好友', backReqRoyal: '获得 5 个成就', backReqNoir: '达到白金（1700）',
     powerCards: '能力牌', powBasic: '基础', powFull: '完整',
     peekSelfMsg: '7/8：查看你自己的一张牌', peekOtherMsg: '9/10：查看对手的一张牌',
     peekResolving: '正在结算偷看…', opponentPeek: '已亮出的牌',
@@ -883,7 +908,8 @@ function handleServerMessage(data) {
     showRevealModal(data);
   } else if (data.type === 'identity') {
     const prof = loadProfile() || {};
-    saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null });
+    saveProfile({ userId: data.userId, secret: data.secret || prof.secret, username: data.username, email: data.email || null,
+                  cardBack: data.cardBack || 'classic' });
     if (data.lang && data.lang !== lang) { lang = data.lang; saveLang(data.lang); }
     try { localStorage.removeItem('dutchRef'); } catch (e) {}  // referral consumed / no longer needed
     if (data.recoveryCode) showRecoveryModal(data.recoveryCode);
@@ -926,6 +952,12 @@ function handleServerMessage(data) {
     friendsState = { friends: data.friends, incoming: data.incoming, outgoing: data.outgoing };
   } else if (data.type === 'referralJoined') {
     showToast(`🎉 ${t('referralJoined', { n: data.count })}`);
+    return;
+  } else if (data.type === 'cosmetic') {
+    const prof = loadProfile();
+    if (prof) { prof.cardBack = data.cardBack; saveProfile(prof); }
+    showToast(`🎨 ${t('backEquipped', { name: t('back_' + data.cardBack) })}`);
+    if (friendsPanelOpen) refreshFriendsPanel();
     return;
   } else if (data.type === 'achievements') {
     (data.earned || []).forEach((code) => {
@@ -988,6 +1020,18 @@ function tierBadge(rating) {
   return `<span class="tier-badge ${tier.cls}">${tier.icon} ${escapeHtml(t(tier.key))}</span>`;
 }
 
+// Unlockable card-back skins. `unlock(stats, achCount)` mirrors the server's
+// gate in server.py; `req` is an i18n key describing how to earn it. Order is
+// the display order in the picker.
+const CARD_BACKS = [
+  { id: 'classic', unlock: () => true,                    req: 'backReqDefault' },
+  { id: 'crimson', unlock: (s) => (s.wins || 0) >= 1,      req: 'backReqCrimson' },
+  { id: 'emerald', unlock: (s) => (s.games || 0) >= 10,    req: 'backReqEmerald' },
+  { id: 'amber',   unlock: (s) => (s.referrals || 0) >= 1, req: 'backReqAmber' },
+  { id: 'royal',   unlock: (s, ac) => ac >= 5,             req: 'backReqRoyal' },
+  { id: 'noir',    unlock: (s) => (s.rating || 0) >= 1700, req: 'backReqNoir' },
+];
+
 // Achievement code -> icon; the name comes from t('ach_' + code).
 const ACHIEVEMENTS = {
   first_win: '🏆', red_king: '👑', perfect_round: '🎯', shed3: '🃏', power3: '⚡',
@@ -1048,8 +1092,9 @@ function cardFront(card, sizeClass) {
   </div>`);
 }
 
-function cardBack(sizeClass) {
-  return el(`<div class="card back ${sizeClass}"></div>`);
+function cardBack(sizeClass, skin) {
+  const s = CARD_BACKS.some(b => b.id === skin) ? skin : 'classic';
+  return el(`<div class="card back back-${s} ${sizeClass}"></div>`);
 }
 
 function cardLabel(card) {
@@ -1459,6 +1504,34 @@ function renderLeaderboard() {
       wrap.appendChild(el(`<span class="ach-badge" title="${escapeHtml(achName(code))}">${ACHIEVEMENTS[code] || '🏅'} ${escapeHtml(achName(code))}</span>`));
     });
     drawer.appendChild(wrap);
+  }
+
+  // Card-back cosmetics (signed-in players only)
+  if (leaderboardData.myStats && leaderboardData.myUsername) {
+    const s = leaderboardData.myStats;
+    const achCount = (leaderboardData.achievements || []).length;
+    const equipped = (loadProfile() || {}).cardBack || 'classic';
+    drawer.appendChild(el(`<div class="section-label" style="margin-top:14px;">${escapeHtml(t('cardBacksLabel'))}</div>`));
+    drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t('cardBacksHint'))}</div>`));
+    const grid = el(`<div class="back-picker"></div>`);
+    CARD_BACKS.forEach((b) => {
+      const unlocked = b.unlock(s, achCount);
+      const isOn = b.id === equipped;
+      const cell = el(`<div class="back-option ${unlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
+      cell.appendChild(cardBack('size-md', b.id));
+      cell.appendChild(el(`<div class="back-name">${escapeHtml(t('back_' + b.id))}</div>`));
+      if (isOn) cell.appendChild(el(`<div class="back-tag on">✓ ${escapeHtml(t('backEquippedTag'))}</div>`));
+      else if (unlocked) cell.appendChild(el(`<div class="back-tag">${escapeHtml(t('backEquip'))}</div>`));
+      else cell.appendChild(el(`<div class="back-tag lock">🔒 ${escapeHtml(t(b.req))}</div>`));
+      if (unlocked && !isOn) {
+        const equip = () => sendMsg({ type: 'setCosmetic', cardBack: b.id });
+        cell.classList.add('selectable');
+        cell.onclick = equip;
+        makeKeyActivatable(cell, equip);
+      }
+      grid.appendChild(cell);
+    });
+    drawer.appendChild(grid);
   }
 
   // Recent games (signed-in players only)
@@ -2393,7 +2466,7 @@ function renderTable(state) {
       let c;
       if (wr) { c = cardFront(wr, 'size-sm'); c.classList.add('just-wrong'); }
       else if (rc) { c = cardFront(rc, 'size-sm'); c.classList.add('just-swapped'); }
-      else c = cardBack('size-sm');
+      else c = cardBack('size-sm', p.cardBack);
       const handler = cellClickHandler(state, p.id, i);
       if (handler) { c.classList.add('selectable'); c.onclick = handler; makeKeyActivatable(c, handler); }
       if (isJackChosen(state, p.id, i)) c.classList.add('chosen');
@@ -2416,7 +2489,8 @@ function renderTable(state) {
       <div id="discard-slot"></div>
     </div>
   </div>`);
-  table.querySelector('#draw-slot').appendChild(state.drawCount > 0 ? cardBack('size-md') : cardEmpty('size-md'));
+  const myBack = (state.players.find((p) => p.isYou) || {}).cardBack;
+  table.querySelector('#draw-slot').appendChild(state.drawCount > 0 ? cardBack('size-md', myBack) : cardEmpty('size-md'));
   const discardCard = state.discardTop ? cardFront(state.discardTop, 'size-md') : cardEmpty('size-md');
   if (discardPulse) discardCard.classList.add('just-matched');
   table.querySelector('#discard-slot').appendChild(discardCard);
@@ -2436,7 +2510,7 @@ function renderTable(state) {
     let c;
     if (wr) { c = cardFront(wr, 'size-lg'); c.classList.add('just-wrong'); }
     else if (rc) { c = cardFront(rc, 'size-lg'); c.classList.add('just-swapped'); }
-    else c = cardBack('size-lg');
+    else c = cardBack('size-lg', myPlayer && myPlayer.cardBack);
     const handler = cellClickHandler(state, me, i);
     if (handler) { c.classList.add('selectable'); c.onclick = handler; makeKeyActivatable(c, handler); }
     if (isJackChosen(state, me, i)) c.classList.add('chosen');

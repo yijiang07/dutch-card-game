@@ -147,7 +147,8 @@ def lobby_state(room, viewer_id):
         'youId': viewer_id,
         'players': [
             {'id': pid, 'name': p['name'], 'connected': p['connected'], 'isYou': pid == viewer_id,
-             'isBot': p.get('is_bot', False), 'difficulty': p.get('difficulty')}
+             'isBot': p.get('is_bot', False), 'difficulty': p.get('difficulty'),
+             'cardBack': p.get('card_back', 'classic')}
             for pid, p in room.players.items()
         ],
         'settings': room.settings,
@@ -168,6 +169,7 @@ def build_state(room, viewer_id):
         p['connected'] = info.get('connected', False)
         p['isBot'] = info.get('is_bot', False)
         p['difficulty'] = info.get('difficulty')
+        p['cardBack'] = info.get('card_back', 'classic')
         p['left'] = info.get('left', False)
     state['roundsPlayed'] = room.rounds_played
     state['dealSeq'] = room.deal_seq
@@ -198,6 +200,28 @@ def _score_play(room, game, pid, actual):
     """Tally whether a human's flip/swap matched the knowledge-optimal play."""
     if game.phase == 'playing' and game.turn_mode == 'awaitingAction' and game.current_player() == pid:
         _count_play(room, pid, bots.judge_main_play(room, game, pid, actual))
+
+
+# Unlockable card-back cosmetics. Each entry maps a skin id to a predicate over a
+# player's stats dict + achievement code set. Purely visual; enforced here so a
+# crafted setCosmetic can't equip a locked skin.
+CARD_BACKS = {
+    'classic': lambda s, a: True,
+    'crimson': lambda s, a: s.get('wins', 0) >= 1,
+    'emerald': lambda s, a: s.get('games', 0) >= 10,
+    'amber':   lambda s, a: s.get('referrals', 0) >= 1,
+    'royal':   lambda s, a: len(a) >= 5,
+    'noir':    lambda s, a: (s.get('rating') or 0) >= 1700,
+}
+
+
+def _cosmetic_unlocked(skin, user_id):
+    rule = CARD_BACKS.get(skin)
+    if rule is None:
+        return False
+    stats = storage.get_stats(user_id) or {}
+    achs = set(storage.get_achievements(user_id) or [])
+    return bool(rule(stats, achs))
 
 
 def _referral_codes(count):
@@ -491,10 +515,12 @@ async def notify_friends_of(user_id):
 
 
 async def set_online(ws, ctx, user):
-    ctx['user'] = {'id': user['id'], 'username': user['username']}
+    ctx['user'] = {'id': user['id'], 'username': user['username'],
+                   'card_back': user.get('card_back') or 'classic'}
     ONLINE.setdefault(user['id'], set()).add(ws)
     payload = {'type': 'identity', 'userId': user['id'], 'username': user['username'],
-               'email': user.get('email'), 'lang': user.get('lang')}
+               'email': user.get('email'), 'lang': user.get('lang'),
+               'cardBack': user.get('card_back') or 'classic'}
     if user.get('secret'):
         payload['secret'] = user['secret']
     if user.get('recovery_code'):
@@ -599,6 +625,25 @@ async def handle_message(ws, ctx, data):
         user = ctx.get('user')
         if user:
             storage.set_lang(user['id'], data.get('lang') or 'en')
+        return
+
+    if mtype == 'setCosmetic':
+        user = ctx.get('user')
+        if not user:
+            raise GameError('Log in to change your card back.')
+        skin = (data.get('cardBack') or 'classic')
+        if skin not in CARD_BACKS:
+            raise GameError('Unknown card back.')
+        if not _cosmetic_unlocked(skin, user['id']):
+            raise GameError('That card back is still locked.')
+        storage.set_card_back(user['id'], skin)
+        user['card_back'] = skin
+        await send(ws, {'type': 'cosmetic', 'cardBack': skin})
+        code = ctx.get('code')
+        room = rooms.get(code) if code else None
+        if room and ctx.get('player_id') in room.players:
+            room.players[ctx['player_id']]['card_back'] = skin
+            await broadcast_state(room)
         return
 
     if mtype == 'login':
@@ -753,7 +798,8 @@ async def handle_message(ws, ctx, data):
         room = Room(code)
         room.ranked = ranked
         pid, token = new_id(), new_token()
-        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id}
+        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id,
+                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic')}
         room.host_id = pid
         rooms[code] = room
         ctx['code'], ctx['player_id'] = code, pid
@@ -776,7 +822,8 @@ async def handle_message(ws, ctx, data):
             raise GameError('That room is full.')
         name = clean_name(data.get('name'))
         pid, token = new_id(), new_token()
-        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id}
+        room.players[pid] = {'name': name, 'token': token, 'ws': ws, 'connected': True, 'account_id': acct_id,
+                             'card_back': (ctx.get('user') or {}).get('card_back', 'classic')}
         ctx['code'], ctx['player_id'] = code, pid
         await send(ws, {'type': 'youAre', 'playerId': pid, 'token': token, 'code': code})
         await broadcast_state(room)
