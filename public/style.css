@@ -225,6 +225,24 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
   user-select: all;
 }
 .room-code-box .copy-hint { color: var(--ink-dim); font-size: 0.78rem; margin-top: 8px; }
+.invite-share { margin-top: 14px; }
+.invite-primary { font-size: 0.98rem; padding: 12px 26px; font-weight: 800; letter-spacing: 0.02em; }
+.invite-quick { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 10px; }
+.invite-app {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer; text-decoration: none;
+  padding: 7px 13px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+  color: var(--ink); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  font-family: var(--font);
+}
+.invite-app:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.26); }
+
+/* Win share button — draw the eye at peak emotion */
+.share-win { animation: share-pulse 1.8s ease-in-out infinite; }
+@keyframes share-pulse {
+  0%, 100% { box-shadow: 0 8px 18px rgba(0,0,0,0.4), 0 0 0 0 rgba(231,194,90,0.5); }
+  50% { box-shadow: 0 8px 18px rgba(0,0,0,0.4), 0 0 0 10px rgba(231,194,90,0); }
+}
+@media (prefers-reduced-motion: reduce) { .share-win { animation: none; } }
 
 .player-chip-list {
   display: flex;
@@ -421,11 +439,16 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .card.back.back-aurora {
   background: linear-gradient(135deg, #2fae8f 0%, #3f74c9 38%, #7a49c0 68%, #c14f9e 100%);
 }
+.card.back.back-welcome { --card-back-a: #d98a4a; --card-back-b: #7a3a12; }
+.card.back.back-welcome {
+  background: linear-gradient(140deg, #f0b45f 0%, #cc7a34 45%, #7a3a12 100%);
+}
 .card.back.back-emerald::after,
 .card.back.back-ocean::after { color: #f2d98a; }
 .card.back.back-noir::after,
 .card.back.back-royal::after,
 .card.back.back-orchid::after,
+.card.back.back-welcome::after,
 .card.back.back-aurora::after  { color: #f8ecb0; }
 
 /* Table-felt themes — override the four felt vars. Bare class so it works both on
@@ -499,6 +522,16 @@ input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:foc
 .ach-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-top: 6px; overflow: hidden; }
 .ach-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--gold-2), var(--gold)); }
 .ach-prog { font-size: 0.68rem; color: var(--ink-dim); margin-top: 3px; }
+
+/* Referral welcome nudge on the landing (arrived via a friend's link) */
+.ref-nudge {
+  align-self: center; margin: 2px 0 10px; padding: 11px 20px; max-width: 440px;
+  border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; line-height: 1.4;
+  color: #2a1e04; font-family: var(--font);
+  background: linear-gradient(180deg, #fbe9b0 0%, var(--gold) 55%, #c69a34 100%);
+  border: 1px solid rgba(120,90,30,0.7); box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+}
+.ref-nudge:hover { filter: brightness(1.04); }
 
 /* Daily streak chip on the landing */
 .streak-chip {

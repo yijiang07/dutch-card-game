@@ -257,6 +257,7 @@ CARD_BACKS = {
     'frost':   lambda s, a: s.get('referrals', 0) >= 3,
     'orchid':  lambda s, a: len(a) >= 10,
     'aurora':  lambda s, a: (s.get('rating') or 0) >= 2000,
+    'welcome': lambda s, a: 'welcomed' in a,   # unlocked by joining via a friend's invite
 }
 TABLE_FELTS = {
     'classic':  lambda s, a: True,
@@ -708,6 +709,9 @@ async def handle_message(ws, ctx, data):
                     await send(w, {'type': 'referralJoined', 'count': res['count']})
                     if earned:
                         await send(w, {'type': 'achievements', 'earned': earned})
+                # Reward the newcomer too — the 'welcomed' badge unlocks a bonus card back.
+                await asyncio.to_thread(storage.award_achievements, created['id'], ['welcomed'])
+                await send(ws, {'type': 'welcomeReward'})
         return
 
     if mtype == 'setLang':

@@ -106,6 +106,7 @@ const TRANSLATIONS = {
     youWon: '🏆 You won! ({n} wins)', gameRecorded: 'Game recorded ({n} played)',
     // lobby
     roomShare: 'Room code — share this', tapCopy: 'Tap the code to copy', copyInvite: 'Copy invite link',
+    copyLink: 'Copy link', inviteMsg: 'Join my Dutch game — lowest score wins!',
     addBotTitle: 'Add a bot', houseRules: 'House rules', cardsEach: 'Cards each', matchWindowLbl: 'Match window',
     mode_classic: 'Classic', mode_blitz: 'Blitz', mode_powers: 'Full Powers', mode_marathon: 'Marathon',
     modeTipClassic: 'Standard rules — 4 cards, basic powers', modeTipBlitz: 'Fast: 15s turns, quick match window', modeTipPowers: 'All card powers active', modeTipMarathon: '6 cards, full powers, relaxed pace',
@@ -142,7 +143,7 @@ const TRANSLATIONS = {
     tagLeft: 'LEFT', tagTurn: 'TURN', tagOffline: 'OFFLINE',
     // reveal
     roundOver: 'Round Over', allRevealed: 'All cards revealed', winner: 'WINNER', ptsUnit: 'pts',
-    shareResult: 'Share result', shareSaved: 'Image saved & link copied!', shareNoResult: 'No result to share.',
+    shareResult: 'Share result', shareWin: 'Share your win', shareSaved: 'Image saved & link copied!', shareNoResult: 'No result to share.',
     shareWonText: 'I won at Dutch with {total} points! 🏆 Lowest score wins — play free:', sharePlayText: 'I’m playing Dutch — the card game where the lowest score wins:',
     waitingNewRound: 'Waiting for the host to start a new round…', matchStandings: 'Match standings · {n} rounds',
     // reveal modal
@@ -202,6 +203,8 @@ const TRANSLATIONS = {
     back_ocean: 'Ocean', back_rose: 'Rose', back_sunset: 'Sunset', back_frost: 'Frost', back_orchid: 'Orchid', back_aurora: 'Aurora',
     backReqOcean: 'Play 25 games', backReqRose: 'Win 5 games', backReqSunset: 'Win 25 games',
     backReqFrost: 'Invite 3 friends', backReqOrchid: 'Earn 10 achievements', backReqAurora: 'Reach Master (2000)',
+    back_welcome: 'Welcome', backReqWelcome: "Join via a friend's invite", ach_welcomed: 'Welcomed', achd_welcomed: "Join through a friend's invite link",
+    welcomeRewardMsg: 'Welcome! You unlocked the Welcome card back for joining through a friend.', refNudge: '{name} invited you — sign up to unlock a bonus card back!',
     tableFeltsLabel: 'Table felt', tableFeltsHint: 'Set your table’s color — just for your own view.',
     felt_classic: 'Emerald', felt_midnight: 'Midnight', felt_slate: 'Slate', felt_crimson: 'Crimson', felt_royal: 'Royal', felt_sunrise: 'Sunrise',
     feltReqDefault: 'Always yours', feltReqMidnight: 'Play 5 games', feltReqSlate: 'Play 20 games',
@@ -255,6 +258,7 @@ const TRANSLATIONS = {
     enterUserPass: 'Introduce un usuario y contraseña.', emailSaved: 'Correo guardado.',
     youWon: '🏆 ¡Ganaste! ({n} victorias)', gameRecorded: 'Partida registrada ({n} jugadas)',
     roomShare: 'Código de sala — compártelo', tapCopy: 'Toca el código para copiar', copyInvite: 'Copiar enlace de invitación',
+    copyLink: 'Copiar enlace', inviteMsg: '¡Únete a mi partida de Dutch — gana el que menos puntos tenga!',
     addBotTitle: 'Añadir un bot', houseRules: 'Reglas de la casa', cardsEach: 'Cartas cada uno', matchWindowLbl: 'Ventana de emparejado',
     mode_classic: 'Clásico', mode_blitz: 'Blitz', mode_powers: 'Poderes', mode_marathon: 'Maratón',
     modeTipClassic: 'Reglas estándar — 4 cartas, poderes básicos', modeTipBlitz: 'Rápido: turnos de 15s, ventana corta', modeTipPowers: 'Todos los poderes activos', modeTipMarathon: '6 cartas, poderes completos, ritmo relajado',
@@ -285,7 +289,7 @@ const TRANSLATIONS = {
     queenClickAny: 'Toca cualquier carta de la mesa para mirarla.',
     tagLeft: 'SE FUE', tagTurn: 'TURNO', tagOffline: 'DESCONECTADO',
     roundOver: 'Fin de la ronda', allRevealed: 'Cartas reveladas', winner: 'GANADOR', ptsUnit: 'pts',
-    shareResult: 'Compartir', shareSaved: '¡Imagen guardada y enlace copiado!', shareNoResult: 'No hay resultado para compartir.',
+    shareResult: 'Compartir', shareWin: 'Comparte tu victoria', shareSaved: '¡Imagen guardada y enlace copiado!', shareNoResult: 'No hay resultado para compartir.',
     shareWonText: '¡Gané en Dutch con {total} puntos! 🏆 Gana quien menos suma — juega gratis:', sharePlayText: 'Estoy jugando a Dutch — el juego de cartas donde gana la puntuación más baja:',
     waitingNewRound: 'Esperando a que el anfitrión empiece otra ronda…', matchStandings: 'Clasificación · {n} rondas',
     yourPeek: 'Tu vistazo', queensPeek: 'Vistazo de la Reina', gotIt: 'Entendido',
@@ -339,6 +343,8 @@ const TRANSLATIONS = {
     back_ocean: 'Océano', back_rose: 'Rosa', back_sunset: 'Ocaso', back_frost: 'Escarcha', back_orchid: 'Orquídea', back_aurora: 'Aurora',
     backReqOcean: 'Juega 25 partidas', backReqRose: 'Gana 5 partidas', backReqSunset: 'Gana 25 partidas',
     backReqFrost: 'Invita a 3 amigos', backReqOrchid: 'Consigue 10 logros', backReqAurora: 'Alcanza Maestro (2000)',
+    back_welcome: 'Bienvenida', backReqWelcome: 'Únete con la invitación de un amigo', ach_welcomed: 'Bienvenido', achd_welcomed: 'Únete con el enlace de invitación de un amigo',
+    welcomeRewardMsg: '¡Bienvenido! Desbloqueaste el reverso Bienvenida por unirte con un amigo.', refNudge: '{name} te invitó — regístrate para desbloquear un reverso de regalo.',
     tableFeltsLabel: 'Tapete', tableFeltsHint: 'Elige el color de tu mesa — solo para tu vista.',
     felt_classic: 'Esmeralda', felt_midnight: 'Medianoche', felt_slate: 'Pizarra', felt_crimson: 'Carmesí', felt_royal: 'Real', felt_sunrise: 'Amanecer',
     feltReqDefault: 'Siempre tuyo', feltReqMidnight: 'Juega 5 partidas', feltReqSlate: 'Juega 20 partidas',
@@ -391,6 +397,7 @@ const TRANSLATIONS = {
     enterUserPass: 'Entrez un identifiant et un mot de passe.', emailSaved: 'E-mail enregistré.',
     youWon: '🏆 Gagné ! ({n} victoires)', gameRecorded: 'Partie enregistrée ({n} jouées)',
     roomShare: 'Code de salle — partagez-le', tapCopy: 'Touchez le code pour copier', copyInvite: "Copier le lien d'invitation",
+    copyLink: 'Copier le lien', inviteMsg: 'Rejoins ma partie de Dutch — le score le plus bas gagne !',
     addBotTitle: 'Ajouter un bot', houseRules: 'Règles', cardsEach: 'Cartes chacun', matchWindowLbl: "Fenêtre d'association",
     mode_classic: 'Classique', mode_blitz: 'Blitz', mode_powers: 'Pouvoirs', mode_marathon: 'Marathon',
     modeTipClassic: 'Règles standard — 4 cartes, pouvoirs de base', modeTipBlitz: 'Rapide : tours de 15s, fenêtre courte', modeTipPowers: 'Tous les pouvoirs actifs', modeTipMarathon: '6 cartes, pouvoirs complets, rythme détendu',
@@ -421,7 +428,7 @@ const TRANSLATIONS = {
     queenClickAny: "Touchez n'importe quelle carte de la table pour la regarder.",
     tagLeft: 'PARTI', tagTurn: 'TOUR', tagOffline: 'HORS LIGNE',
     roundOver: 'Fin de la manche', allRevealed: 'Cartes révélées', winner: 'GAGNANT', ptsUnit: 'pts',
-    shareResult: 'Partager', shareSaved: 'Image enregistrée et lien copié !', shareNoResult: 'Aucun résultat à partager.',
+    shareResult: 'Partager', shareWin: 'Partagez votre victoire', shareSaved: 'Image enregistrée et lien copié !', shareNoResult: 'Aucun résultat à partager.',
     shareWonText: "J'ai gagné à Dutch avec {total} points ! 🏆 Le plus bas score gagne — jouez gratuitement :", sharePlayText: 'Je joue à Dutch — le jeu de cartes où le score le plus bas gagne :',
     waitingNewRound: "En attente d'une nouvelle manche par l'hôte…", matchStandings: 'Classement · {n} manches',
     yourPeek: 'Votre coup d’œil', queensPeek: 'Coup d’œil de la Dame', gotIt: 'Compris',
@@ -475,6 +482,8 @@ const TRANSLATIONS = {
     back_ocean: 'Océan', back_rose: 'Rose', back_sunset: 'Couchant', back_frost: 'Givre', back_orchid: 'Orchidée', back_aurora: 'Aurore',
     backReqOcean: 'Jouez 25 parties', backReqRose: 'Gagnez 5 parties', backReqSunset: 'Gagnez 25 parties',
     backReqFrost: 'Invitez 3 amis', backReqOrchid: 'Obtenez 10 succès', backReqAurora: 'Atteignez Maître (2000)',
+    back_welcome: 'Bienvenue', backReqWelcome: "Rejoignez via l'invitation d'un ami", ach_welcomed: 'Bienvenue', achd_welcomed: "Rejoignez via le lien d'invitation d'un ami",
+    welcomeRewardMsg: "Bienvenue ! Vous avez débloqué le dos Bienvenue en rejoignant via un ami.", refNudge: "{name} vous a invité — inscrivez-vous pour débloquer un dos bonus !",
     tableFeltsLabel: 'Tapis', tableFeltsHint: 'Choisissez la couleur de votre table — pour votre vue seulement.',
     felt_classic: 'Émeraude', felt_midnight: 'Minuit', felt_slate: 'Ardoise', felt_crimson: 'Cramoisi', felt_royal: 'Royal', felt_sunrise: 'Aurore',
     feltReqDefault: 'Toujours à vous', feltReqMidnight: 'Jouez 5 parties', feltReqSlate: 'Jouez 20 parties',
@@ -527,6 +536,7 @@ const TRANSLATIONS = {
     enterUserPass: 'Gib Benutzername und Passwort ein.', emailSaved: 'E-Mail gespeichert.',
     youWon: '🏆 Gewonnen! ({n} Siege)', gameRecorded: 'Spiel gespeichert ({n} gespielt)',
     roomShare: 'Raumcode — teile ihn', tapCopy: 'Tippe den Code zum Kopieren', copyInvite: 'Einladungslink kopieren',
+    copyLink: 'Link kopieren', inviteMsg: 'Komm in mein Dutch-Spiel — niedrigste Punktzahl gewinnt!',
     addBotTitle: 'Bot hinzufügen', houseRules: 'Hausregeln', cardsEach: 'Karten je Spieler', matchWindowLbl: 'Ablege-Fenster',
     mode_classic: 'Klassisch', mode_blitz: 'Blitz', mode_powers: 'Kräfte', mode_marathon: 'Marathon',
     modeTipClassic: 'Standardregeln — 4 Karten, einfache Kräfte', modeTipBlitz: 'Schnell: 15s-Züge, kurzes Fenster', modeTipPowers: 'Alle Kartenkräfte aktiv', modeTipMarathon: '6 Karten, volle Kräfte, entspanntes Tempo',
@@ -557,7 +567,7 @@ const TRANSLATIONS = {
     queenClickAny: 'Tippe eine beliebige Karte auf dem Tisch zum Ansehen.',
     tagLeft: 'WEG', tagTurn: 'ZUG', tagOffline: 'OFFLINE',
     roundOver: 'Runde vorbei', allRevealed: 'Alle Karten aufgedeckt', winner: 'SIEGER', ptsUnit: 'Pkt',
-    shareResult: 'Teilen', shareSaved: 'Bild gespeichert & Link kopiert!', shareNoResult: 'Kein Ergebnis zum Teilen.',
+    shareResult: 'Teilen', shareWin: 'Teile deinen Sieg', shareSaved: 'Bild gespeichert & Link kopiert!', shareNoResult: 'Kein Ergebnis zum Teilen.',
     shareWonText: 'Ich habe Dutch mit {total} Punkten gewonnen! 🏆 Niedrigste Punktzahl gewinnt — kostenlos spielen:', sharePlayText: 'Ich spiele Dutch — das Kartenspiel, bei dem die niedrigste Punktzahl gewinnt:',
     waitingNewRound: 'Warte auf eine neue Runde vom Host…', matchStandings: 'Gesamtstand · {n} Runden',
     yourPeek: 'Dein Blick', queensPeek: 'Blick der Dame', gotIt: 'Verstanden',
@@ -611,6 +621,8 @@ const TRANSLATIONS = {
     back_ocean: 'Ozean', back_rose: 'Rosé', back_sunset: 'Abendrot', back_frost: 'Frost', back_orchid: 'Orchidee', back_aurora: 'Aurora',
     backReqOcean: 'Spiele 25 Spiele', backReqRose: 'Gewinne 5 Spiele', backReqSunset: 'Gewinne 25 Spiele',
     backReqFrost: 'Lade 3 Freunde ein', backReqOrchid: 'Erringe 10 Erfolge', backReqAurora: 'Erreiche Meister (2000)',
+    back_welcome: 'Willkommen', backReqWelcome: 'Tritt über die Einladung eines Freundes bei', ach_welcomed: 'Willkommen', achd_welcomed: 'Tritt über den Einladungslink eines Freundes bei',
+    welcomeRewardMsg: 'Willkommen! Du hast den Kartenrücken Willkommen freigeschaltet, weil du über einen Freund beigetreten bist.', refNudge: '{name} hat dich eingeladen — melde dich an und schalte einen Bonus-Rücken frei!',
     tableFeltsLabel: 'Spieltisch', tableFeltsHint: 'Wähle die Farbe deines Tisches — nur für deine Ansicht.',
     felt_classic: 'Smaragd', felt_midnight: 'Mitternacht', felt_slate: 'Schiefer', felt_crimson: 'Karmesin', felt_royal: 'Königlich', felt_sunrise: 'Morgenrot',
     feltReqDefault: 'Immer deins', feltReqMidnight: 'Spiele 5 Spiele', feltReqSlate: 'Spiele 20 Spiele',
@@ -663,6 +675,7 @@ const TRANSLATIONS = {
     enterUserPass: '请输入用户名和密码。', emailSaved: '邮箱已保存。',
     youWon: '🏆 你赢了！（{n} 胜）', gameRecorded: '对局已记录（已玩 {n} 局）',
     roomShare: '房间码 — 分享给好友', tapCopy: '点击房间码复制', copyInvite: '复制邀请链接',
+    copyLink: '复制链接', inviteMsg: '来加入我的 Dutch 牌局 —— 分数最低者获胜！',
     addBotTitle: '添加机器人', houseRules: '房间规则', cardsEach: '每人手牌', matchWindowLbl: '配对窗口',
     mode_classic: '经典', mode_blitz: '闪电', mode_powers: '全能力', mode_marathon: '马拉松',
     modeTipClassic: '标准规则 —— 4 张牌，基础能力', modeTipBlitz: '快速：15 秒回合，短配对窗口', modeTipPowers: '开启所有卡牌能力', modeTipMarathon: '6 张牌，全能力，节奏轻松',
@@ -693,7 +706,7 @@ const TRANSLATIONS = {
     queenClickAny: '点击桌上任意一张牌偷看。',
     tagLeft: '已离开', tagTurn: '回合', tagOffline: '离线',
     roundOver: '本轮结束', allRevealed: '所有牌已亮出', winner: '胜者', ptsUnit: '分',
-    shareResult: '分享战绩', shareSaved: '图片已保存，链接已复制！', shareNoResult: '没有可分享的结果。',
+    shareResult: '分享战绩', shareWin: '分享你的胜利', shareSaved: '图片已保存，链接已复制！', shareNoResult: '没有可分享的结果。',
     shareWonText: '我在 Dutch 以 {total} 分获胜！🏆 分数最低者获胜 —— 免费来玩：', sharePlayText: '我正在玩 Dutch —— 分数最低者获胜的卡牌游戏：',
     waitingNewRound: '等待房主开始新一轮…', matchStandings: '总积分榜 · {n} 轮',
     yourPeek: '你的偷看', queensPeek: 'Q 的偷看', gotIt: '知道了',
@@ -747,6 +760,8 @@ const TRANSLATIONS = {
     back_ocean: '海洋', back_rose: '玫瑰', back_sunset: '日落', back_frost: '霜寒', back_orchid: '兰花', back_aurora: '极光',
     backReqOcean: '玩 25 局', backReqRose: '赢 5 局', backReqSunset: '赢 25 局',
     backReqFrost: '邀请 3 位好友', backReqOrchid: '获得 10 个成就', backReqAurora: '达到大师（2000）',
+    back_welcome: '欢迎', backReqWelcome: '通过好友邀请加入', ach_welcomed: '受邀加入', achd_welcomed: '通过好友的邀请链接加入',
+    welcomeRewardMsg: '欢迎！你因通过好友加入而解锁了「欢迎」牌背。', refNudge: '{name} 邀请了你 —— 注册即可解锁奖励牌背！',
     tableFeltsLabel: '牌桌', tableFeltsHint: '设置你的牌桌颜色 —— 仅你自己可见。',
     felt_classic: '翡翠', felt_midnight: '午夜', felt_slate: '石板', felt_crimson: '绯红', felt_royal: '皇家', felt_sunrise: '日出',
     feltReqDefault: '始终拥有', feltReqMidnight: '玩 5 局', feltReqSlate: '玩 20 局',
@@ -1097,6 +1112,9 @@ function handleServerMessage(data) {
   } else if (data.type === 'referralJoined') {
     showToast(`🎉 ${t('referralJoined', { n: data.count })}`);
     return;
+  } else if (data.type === 'welcomeReward') {
+    showToast(`🎁 ${t('welcomeRewardMsg')}`);
+    return;
   } else if (data.type === 'cosmetic') {
     const prof = loadProfile();
     if (data.kind === 'tableFelt') {
@@ -1176,18 +1194,20 @@ function tierBadge(rating) {
 // Unlockable card-back skins. `unlock(stats, achCount)` mirrors the server's
 // gate in server.py; `req` is an i18n key describing how to earn it. Order is
 // the display order in the picker.
+// unlock(stats, ach) — `ach` is the array of earned achievement codes.
 const CARD_BACKS = [
   { id: 'classic', unlock: () => true,                    req: 'backReqDefault' },
+  { id: 'welcome', unlock: (s, ach) => ach.includes('welcomed'), req: 'backReqWelcome' },
   { id: 'crimson', unlock: (s) => (s.wins || 0) >= 1,      req: 'backReqCrimson' },
   { id: 'emerald', unlock: (s) => (s.games || 0) >= 10,    req: 'backReqEmerald' },
   { id: 'amber',   unlock: (s) => (s.referrals || 0) >= 1, req: 'backReqAmber' },
-  { id: 'royal',   unlock: (s, ac) => ac >= 5,             req: 'backReqRoyal' },
+  { id: 'royal',   unlock: (s, ach) => ach.length >= 5,    req: 'backReqRoyal' },
   { id: 'noir',    unlock: (s) => (s.rating || 0) >= 1700, req: 'backReqNoir' },
   { id: 'ocean',   unlock: (s) => (s.games || 0) >= 25,    req: 'backReqOcean' },
   { id: 'rose',    unlock: (s) => (s.wins || 0) >= 5,      req: 'backReqRose' },
   { id: 'sunset',  unlock: (s) => (s.wins || 0) >= 25,     req: 'backReqSunset' },
   { id: 'frost',   unlock: (s) => (s.referrals || 0) >= 3, req: 'backReqFrost' },
-  { id: 'orchid',  unlock: (s, ac) => ac >= 10,            req: 'backReqOrchid' },
+  { id: 'orchid',  unlock: (s, ach) => ach.length >= 10,   req: 'backReqOrchid' },
   { id: 'aurora',  unlock: (s) => (s.rating || 0) >= 2000, req: 'backReqAurora' },
 ];
 
@@ -1198,7 +1218,7 @@ const TABLE_FELTS = [
   { id: 'midnight', unlock: (s) => (s.games || 0) >= 5,     req: 'feltReqMidnight' },
   { id: 'slate',    unlock: (s) => (s.games || 0) >= 20,    req: 'feltReqSlate' },
   { id: 'crimson',  unlock: (s) => (s.wins || 0) >= 3,      req: 'feltReqCrimson' },
-  { id: 'royal',    unlock: (s, ac) => ac >= 3,             req: 'feltReqRoyal' },
+  { id: 'royal',    unlock: (s, ach) => ach.length >= 3,    req: 'feltReqRoyal' },
   { id: 'sunrise',  unlock: (s) => (s.rating || 0) >= 1550, req: 'feltReqSunrise' },
 ];
 
@@ -1220,7 +1240,7 @@ const EMBLEMS = [
   { id: 'gift',    unlock: (s) => (s.referrals || 0) >= 1, req: 'emReqGift' },
   { id: 'star',    unlock: (s) => (s.wins || 0) >= 3,      req: 'emReqStar' },
   { id: 'fox',     unlock: (s) => (s.games || 0) >= 15,    req: 'emReqFox' },
-  { id: 'joker',   unlock: (s, ac) => ac >= 5,             req: 'emReqJoker' },
+  { id: 'joker',   unlock: (s, ach) => ach.length >= 5,    req: 'emReqJoker' },
   { id: 'crown',   unlock: (s) => (s.rating || 0) >= 1700, req: 'emReqCrown' },
   { id: 'dragon',  unlock: (s) => (s.wins || 0) >= 20,     req: 'emReqDragon' },
 ];
@@ -1230,7 +1250,7 @@ const ACHIEVEMENTS = {
   first_win: '🏆', red_king: '👑', perfect_round: '🎯', shed3: '🃏', power3: '⚡',
   low_score: '🪶', dutch_win: '📣', ranked_win: '⚔️', veteran: '🎖️',
   invite_1: '🎁', invite_5: '🤝', invite_10: '🌟',
-  streak_3: '🔥', streak_7: '☄️', streak_30: '💎',
+  streak_3: '🔥', streak_7: '☄️', streak_30: '💎', welcomed: '👋',
 };
 function achName(code) { return t('ach_' + code); }
 function achDesc(code) { return t('achd_' + code); }
@@ -1253,6 +1273,7 @@ const ACHIEVEMENT_LIST = [
   { code: 'invite_1',      prog: (s) => ({ cur: s.referrals || 0, max: 1 }) },
   { code: 'invite_5',      prog: (s) => ({ cur: s.referrals || 0, max: 5 }) },
   { code: 'invite_10',     prog: (s) => ({ cur: s.referrals || 0, max: 10 }) },
+  { code: 'welcomed',      prog: null },
 ];
 
 // Motivate sharing: a personal invite link (?ref=username). New signups
@@ -1775,9 +1796,9 @@ function openLocker() {
   refreshFriendsPanel();
 }
 
-function cosmeticPickerCount(opts, s, achCount) {
+function cosmeticPickerCount(opts, s, ach) {
   const total = opts.length;
-  const unlocked = opts.filter((o) => o.unlock(s, achCount)).length;
+  const unlocked = opts.filter((o) => o.unlock(s, ach)).length;
   return { total, unlocked };
 }
 
@@ -1805,15 +1826,15 @@ function renderLocker() {
   }
 
   const s = leaderboardData.myStats;
-  const achCount = (leaderboardData.achievements || []).length;
+  const ach = leaderboardData.achievements || [];
 
   const renderPicker = (opts, { kind, nameKey, equipped, preview, label, hint }) => {
-    const { total, unlocked } = cosmeticPickerCount(opts, s, achCount);
+    const { total, unlocked } = cosmeticPickerCount(opts, s, ach);
     drawer.appendChild(el(`<div class="section-label" style="margin-top:16px;">${escapeHtml(t(label))} <span class="locker-count">${unlocked}/${total}</span></div>`));
     drawer.appendChild(el(`<div class="help-text" style="margin-bottom:8px;">${escapeHtml(t(hint))}</div>`));
     const grid = el(`<div class="back-picker"></div>`);
     opts.forEach((o) => {
-      const isUnlocked = o.unlock(s, achCount);
+      const isUnlocked = o.unlock(s, ach);
       const isOn = o.id === equipped;
       const cell = el(`<div class="back-option ${isUnlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}"></div>`);
       cell.appendChild(preview(o.id));
@@ -2615,6 +2636,13 @@ function renderLanding() {
     </div>
     ${liveActivity.playing > 0
       ? `<div class="live-activity"><span class="live-dot"></span>${escapeHtml(t('liveNow', { p: liveActivity.playing, g: liveActivity.games }))}</div>` : ''}
+    ${(() => {
+      const a = loadProfile();
+      let ref = null;
+      try { ref = localStorage.getItem('dutchRef'); } catch (e) {}
+      return (ref && !(a && a.username))
+        ? `<button class="ref-nudge" id="ref-nudge">🎁 ${escapeHtml(t('refNudge', { name: ref }))}</button>` : '';
+    })()}
     ${(() => { const a = loadProfile(); return a && a.username
       ? `<button class="account-cta signed" id="account-cta">👤 ${escapeHtml(t('signedInAs'))} <strong>${escapeHtml(a.username)}</strong></button>`
       : `<button class="account-cta" id="account-cta"><span class="account-cta-main">👤 ${escapeHtml(t('authCta'))}</span><span class="account-cta-sub">${escapeHtml(t('authCtaSub'))}</span></button>`; })()}
@@ -2688,6 +2716,11 @@ function renderLanding() {
     authTab = (a && a.username) ? 'login' : 'signup';
     friendsPanelOpen = true; leaderboardOpen = false; chatOpen = false;
     refreshFriendsPanel();
+  };
+  const refNudge = wrap.querySelector('#ref-nudge');
+  if (refNudge) refNudge.onclick = () => {
+    authTab = 'signup'; friendsPanelOpen = true; leaderboardOpen = false; chatOpen = false; lockerOpen = false;
+    refreshFriendsPanel(true);
   };
   wrap.querySelector('#ranked-btn').onclick = () => {
     const p = loadProfile();
@@ -2795,7 +2828,15 @@ function renderLobby(state) {
       <div class="label">${escapeHtml(t('roomShare'))}</div>
       <div class="code" id="room-code-text">${escapeHtml(state.code)}</div>
       <div class="copy-hint">${escapeHtml(t('tapCopy'))}</div>
-      <button class="btn-ghost" id="copy-link-btn" style="margin-top:12px; padding:8px 16px; font-size:0.85rem;">🔗 ${escapeHtml(t('copyInvite'))}</button>
+      ${!ranked ? `<div class="invite-share">
+        <button class="btn-gold invite-primary" id="invite-share-btn">📤 ${escapeHtml(t('inviteFriends'))}</button>
+        <div class="invite-quick">
+          <a class="invite-app" id="inv-wa" target="_blank" rel="noopener">💬 WhatsApp</a>
+          <a class="invite-app" id="inv-tg" target="_blank" rel="noopener">✈️ Telegram</a>
+          <a class="invite-app" id="inv-x" target="_blank" rel="noopener">✖️ X</a>
+          <button class="invite-app" id="copy-link-btn">🔗 ${escapeHtml(t('copyLink'))}</button>
+        </div>
+      </div>` : ''}
     </div>
     <div class="player-chip-list" id="player-chips"></div>
     ${isHost && !ranked ? `<div class="add-bot-box">
@@ -2816,11 +2857,25 @@ function renderLobby(state) {
   wrap.querySelector('#room-code-text').onclick = () => {
     navigator.clipboard?.writeText(state.code).then(() => showToast(t('roomCodeCopied')));
   };
-  wrap.querySelector('#copy-link-btn').onclick = () => {
+  if (!ranked) {
     const link = `${location.origin}/?join=${state.code}`;
-    navigator.clipboard?.writeText(link).then(() => showToast(t('inviteLinkCopied')))
-      .catch(() => showToast(link));
-  };
+    const msg = t('inviteMsg');
+    const wa = wrap.querySelector('#inv-wa');
+    const tg = wrap.querySelector('#inv-tg');
+    const x = wrap.querySelector('#inv-x');
+    if (wa) wa.href = `https://wa.me/?text=${encodeURIComponent(msg + ' ' + link)}`;
+    if (tg) tg.href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`;
+    if (x) x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(link)}`;
+    wrap.querySelector('#copy-link-btn').onclick = () => {
+      navigator.clipboard?.writeText(link).then(() => showToast(t('inviteLinkCopied'))).catch(() => showToast(link));
+    };
+    wrap.querySelector('#invite-share-btn').onclick = async () => {
+      try {
+        if (navigator.share) { await navigator.share({ title: 'Dutch', text: msg, url: link }); return; }
+      } catch (e) { if (e && e.name === 'AbortError') return; }
+      navigator.clipboard?.writeText(link).then(() => showToast(t('inviteLinkCopied'))).catch(() => showToast(link));
+    };
+  }
   if (!ranked) wrap.querySelector('#settings-box').appendChild(renderSettings(state, isHost));
 
   const chipList = wrap.querySelector('#player-chips');
@@ -3302,6 +3357,8 @@ function renderReveal(state) {
   const isHost = state.hostId === state.youId;
   const reveal = state.reveal || [];
   const minTotal = Math.min(...reveal.map((r) => r.total));
+  const myReveal = reveal.find((r) => r.id === state.youId);
+  const iWon = !!myReveal && myReveal.total === minTotal;
 
   const ru = state.ranked && lastRankedUpdate ? lastRankedUpdate : null;
   const ruSign = ru && ru.delta > 0 ? '+' : '';
@@ -3323,7 +3380,7 @@ function renderReveal(state) {
         : `<span class="help-text">${escapeHtml(t('waitingNewRound'))}</span>`}
     </div>
     <div class="row center" style="margin-top:12px;">
-      <button class="btn-blue" id="share-result-btn">📸 ${escapeHtml(t('shareResult'))}</button>
+      <button class="${iWon ? 'btn-gold share-win' : 'btn-blue'}" id="share-result-btn">${iWon ? '🎉 ' + escapeHtml(t('shareWin')) : '📸 ' + escapeHtml(t('shareResult'))}</button>
     </div>
     <div class="row center" style="margin-top:12px;" id="reveal-leave"></div>
   </div>`);

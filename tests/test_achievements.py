@@ -15,13 +15,20 @@ def test_cosmetic_unlock_gates(monkeypatch):
     def fake_stats(uid):
         return {'games': 40, 'wins': 30, 'referrals': 5, 'rating': 2100} if uid == 'pro' else {}
     monkeypatch.setattr(server.storage, 'get_stats', fake_stats)
-    monkeypatch.setattr(server.storage, 'get_achievements', lambda uid: [f'a{i}' for i in range(12)] if uid == 'pro' else [])
+    monkeypatch.setattr(server.storage, 'get_achievements',
+                        lambda uid: [f'a{i}' for i in range(12)] + ['welcomed'] if uid == 'pro' else [])
     for kind, rules in (('cardBack', server.CARD_BACKS), ('tableFelt', server.TABLE_FELTS), ('emblem', server.EMBLEMS)):
         for skin in rules:
             assert server._cosmetic_unlocked(kind, skin, 'pro')            # all unlocked for the pro
         locked = [s for s in rules if not server._cosmetic_unlocked(kind, s, 'new')]
         assert locked and 'classic' not in locked and 'default' not in locked  # defaults always free
     assert not server._cosmetic_unlocked('cardBack', 'nope', 'pro')        # unknown id stays locked
+
+    # The 'welcome' card back is gated on the 'welcomed' achievement (double-sided referral reward).
+    monkeypatch.setattr(server.storage, 'get_stats', lambda uid: {})
+    monkeypatch.setattr(server.storage, 'get_achievements', lambda uid: ['welcomed'] if uid == 'referred' else [])
+    assert server._cosmetic_unlocked('cardBack', 'welcome', 'referred')
+    assert not server._cosmetic_unlocked('cardBack', 'welcome', 'stranger')
 
 
 def test_house_lobbies_seed_and_host_transfer():
