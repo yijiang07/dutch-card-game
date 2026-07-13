@@ -50,9 +50,35 @@
   "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 8 }
 }
 </script>
+<style>
+  /* Static hero shown to crawlers and during load; the app replaces #app on boot. */
+  .seo-hero { max-width: 640px; margin: 0 auto; padding: 48px 24px; text-align: center;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #f6f1e4; }
+  .seo-hero h1 { font-family: "Cinzel", serif; font-weight: 900; letter-spacing: 0.12em;
+    font-size: clamp(2.2rem, 9vw, 3.4rem); margin: 4px 0; background: linear-gradient(180deg, #fff, #cfe6d8);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .seo-hero .lead { font-family: "Fraunces", Georgia, serif; font-style: italic; color: #f6e6b8; font-size: 1.15rem; }
+  .seo-hero .aka { color: #a7b7ab; font-size: 0.9rem; margin-top: 4px; }
+  .seo-hero p.about { color: #dfe7df; line-height: 1.6; margin-top: 20px; text-align: left; }
+  .seo-hero a { color: #e7c25a; font-weight: 700; }
+  .seo-hero .links { margin-top: 18px; }
+</style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app">
+  <div class="seo-hero">
+    <div style="color:#e7c25a; letter-spacing:8px;">&spades; &hearts; &clubs; &diams;</div>
+    <h1>Dutch — Free Online Card Game</h1>
+    <p class="lead">Lowest score wins. Play from anywhere.</p>
+    <p class="aka">Also known as Cambio, Cabo, Golf, or Pablo.</p>
+    <p class="about">Dutch is a free, real-time multiplayer card game where the <strong>lowest score wins</strong>.
+      Peek at your cards, swap to cut your total, trigger Jack, Queen, and Ace power cards, and call “Dutch”
+      when you think you're ahead. Play with friends through a room code, join a public table, or practice
+      against bots — no download, works in any browser on phone or computer.</p>
+    <p class="links"><a href="/rules.html">How to play Dutch</a> · <a href="/strategy.html">Strategy &amp; tips</a></p>
+    <noscript><p>Please enable JavaScript to play Dutch.</p></noscript>
+  </div>
+</div>
 <div id="modal-root"></div>
 <div id="panel-root"></div>
 <div id="tutorial-root"></div>
