@@ -284,34 +284,42 @@ def _highest_own(brain, game, bot_id, omni):
 
 def _act(room, game, bot_id, brain, diff, omni):
     discard = game.discard[-1] if game.discard else None
-    D = discard['value'] if discard else None
     n = len(game.grids[bot_id])
-    best_i, best_v = _highest_own(brain, game, bot_id, omni)
 
     def do_swap(i):
         game.swap_cell(bot_id, i)
         record_placement(room, game, bot_id, i)
 
-    if D is None:
-        game.flip(bot_id)
+    if discard is None or n == 0:
+        game.flip(bot_id)   # nothing to draw into (or an empty hand); just pass the action
         return
+    D = discard['value']
 
     if diff == 'easy':
-        # only grabs obviously-low cards, and dumps them into a random slot
+        # Casual: grab a clearly-low discard and drop it into a random slot.
         if D <= 4:
             do_swap(random.randrange(n))
         else:
             game.flip(bot_id)
-    elif diff in ('medium', 'hard'):
-        if best_v - D >= 1:
-            do_swap(best_i)
-        else:
-            game.flip(bot_id)
-    else:  # impossible — swap on any real improvement
-        if best_v - D > 0:
-            do_swap(best_i)
-        else:
-            game.flip(bot_id)
+        return
+
+    # Expected value of each cell; unknown cells sit at the deck average (6.5), so
+    # dropping a lower discard onto one is a positive-EV swap AND turns it into a
+    # cell we now know. Swapping the highest-EV cell that beats the discard is the
+    # value-maximizing move; ties break toward a cell we actually know (less variance).
+    vals = [_est_cell(brain, game, bot_id, i, omni) for i in range(n)]
+    best_v = max(vals)
+    best_cells = [i for i, v in enumerate(vals) if v == best_v]
+    known_best = [i for i in best_cells if omni or (bot_id, i) in brain.known]
+    best_i = known_best[0] if known_best else best_cells[0]
+
+    # hard/impossible take every positive-EV swap; medium needs a full point of
+    # expected gain (a hair more conservative, so it's a slightly softer opponent).
+    threshold = 1 if diff == 'medium' else 0.0001
+    if best_v - D >= threshold:
+        do_swap(best_i)
+    else:
+        game.flip(bot_id)
 
 
 def _resolve_jack(room, game, bot_id, brain, diff, omni):
@@ -449,16 +457,20 @@ def _end_or_dutch(game, bot_id, brain, diff, omni):
     opp_totals = [_est_total(brain, game, p, omni) for p in _opponents(game, bot_id)]
     min_opp = min(opp_totals) if opp_totals else 999
     late = game.turn_counter > 6 * max(1, len(game.order))
+    lead = own <= min_opp   # estimated to be tied-or-ahead of every opponent
 
     if diff == 'easy':
         call = random.random() < (0.22 if late else 0.06)
     elif diff == 'medium':
         call = own <= 12 or (late and own <= 18)
     elif diff == 'hard':
+        # Everything medium would call on, plus a lead-aware bonus: when it's
+        # confident about its hand and estimates it's ahead, it pounces a little
+        # sooner (own <= 14) instead of letting opponents improve.
         confident = known_ct >= n - 1
-        call = (confident and own <= min_opp and own <= 16) or (late and own <= min_opp)
+        call = own <= 12 or (late and own <= 18) or (lead and confident and own <= 14)
     else:  # impossible — exact totals; lock in the win the moment it's (tied-)lowest
-        call = own <= min_opp
+        call = lead
 
     if call:
         game.call_dutch(bot_id)

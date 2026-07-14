@@ -1,8 +1,43 @@
-import time
+import random
+import types
 
 import pytest
 
+import bots
 from game import Game, GameError, card_value, make_card
+
+
+def _play_bot_game(diffs, powers='full'):
+    """Drive a full all-bot game to reveal the way the server does."""
+    ids = [f'B{i}' for i in range(len(diffs))]
+    room = types.SimpleNamespace(
+        players={ids[i]: {'difficulty': diffs[i], 'is_bot': True, 'name': ids[i]} for i in range(len(ids))},
+        brains={})
+    g = Game(ids, {i: i for i in ids},
+             {'cardsPer': 4, 'bufferSeconds': 0, 'matching': True, 'turnLimit': 30, 'powers': powers})
+    bots.init_brains(room)
+    guard = 0
+    while g.phase != 'reveal' and guard < 20000:
+        guard += 1
+        g.turn_started_at = 0
+        actor = bots.required_actor(g)
+        if actor is None:
+            if g.phase == 'playing' and (getattr(g, 'ending', False) or g.turn_mode == 'awaitingMatch'):
+                g.finish_round()
+                break
+            break
+        bots.take_action(room, g, actor)
+    return g, ids, guard
+
+
+def test_bot_games_run_to_reveal():
+    random.seed(0)
+    for diffs in (['easy', 'medium', 'hard', 'impossible'], ['hard', 'hard'], ['medium', 'medium', 'medium']):
+        for _ in range(15):
+            g, ids, guard = _play_bot_game(diffs)
+            assert g.phase == 'reveal' and guard < 20000    # terminates, no wedge
+            for pid in ids:                                  # grids stay well-formed (e.g. 0-card hands)
+                assert all('value' in c for c in g.grids[pid])
 
 
 def start_game(n=2, matching=True, powers='basic'):
